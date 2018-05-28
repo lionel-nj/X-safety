@@ -57,7 +57,7 @@ def generatesamplefromsample():
         indexx=0
         b=random.uniform(0,0.735)
         for k in range(0,len(inte)):
-            if((abs(inte[k]-b))<=0.1):
+            if((abs(inte[k]-b))<=0.01):
                 indexx=k
         return xnew[indexx]
 
@@ -65,7 +65,4 @@ def generatesamplefromsample():
     for k in range(0,100):
         newsample=newsample+[generate()]
 
-    #Kolmogorov-Smirnov test in order to check the goodness of fit of the new sample generated
-    print(stats.ks_2samp(newsample, tivbyvehid))
-
-generatesamplefromsample()
+    return newsample
