@@ -28,6 +28,7 @@ for k in range(1,len(tiv)):
     tivcum=tivcum+[tivcum[k-1]+tiv[k]]
 
 tra=[]
+vitesses=[]
 for i in range(0,100):
     y=[]
     temps=[]
@@ -35,10 +36,11 @@ for i in range(0,100):
     for k in range(0,100):
         temps=temps+[k+tivcum[i]]
         y=y+[speed*k]
+    vitesses=vitesses+[speed]
     voie1=voie1+[Voiture(speed,tiv[i],[temps,y],random.uniform(5.5,8))]
     plt.plot(temps,y)
    #voie2=voie2+[Voiture(random.normalvariate(40,5),j)]
-
+print(vitesses)
 
 
 
