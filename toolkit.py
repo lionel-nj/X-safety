@@ -10,19 +10,19 @@ def create(name,data):
 
 def copy(file,newname):
     data=load(file)
-    create('copied_file.yml',data)
+    create(newname,data)
 
 def add_element(file,element,key):
     data=load(file)
     try:
         with open(file, "w") as out:
-            yaml.dump(data, out)
+            yaml.safe_dump(data, out)
         with open(file) as out:
-            newdct = yaml.load(out)
-        newdct[key] = element
-        create(file,newdct)
+            newdata = yaml.safe_load(out)
+        newdata[key] = element
+        create(file,newdata)
     except:
-        print("la clé entrée n'existe pas")
+        print("the dialed key does not exist in the yaml file")
 
 def update(file,element,key):
     data=load(file)
@@ -30,7 +30,7 @@ def update(file,element,key):
         data[key] = element
         create(file,data)
     except:
-        print("la clé entrée n'existe pas")
+        print("the dialed key does not exist in the yaml file")
 
 def delete(file, key):
     data=load(file)
@@ -38,4 +38,4 @@ def delete(file, key):
         del data[key]
         create(file,data)
     except:
-        print("la clé entrée n'existe pas")
+        print("the dialed key does not exist in the yaml file")

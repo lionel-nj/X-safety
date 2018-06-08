@@ -63,5 +63,5 @@ for k in range(1,len(listek)): # pour chaque vehicule
         ttc=ttc+[num/denom]
 print(ttc)
 
-# plt.show()
-# plt.close()
+plt.show()
+plt.close()
