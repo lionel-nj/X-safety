@@ -1,4 +1,4 @@
-import random
+iimport random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -82,3 +82,26 @@ for veh in range(0,41):
 # #
 plt.show()
 plt.close()
+
+#
+# ttc=[]
+# listek=[] #recuperation des indices des véhicules pour lesquels on calcule les TTC
+# listei=[] #recupérer les indices des instants où les vehicules sont entre 200s et 201s
+# for k in range(0,42):
+#     for i in range(0,300):
+#         if voie1[k].trajectoire[0][i]>=200 and voie1[k].trajectoire[0][i]<201 :
+#             listek=listek+[k]
+#             listei=listei+[i]
+# print(listek)
+# print(listei)
+#
+# #completion de la liste des TTC a un instant t compris entre 200s et 201s
+# for k in range(1,len(listek)): # pour chaque vehicule
+#     if voie1[listek[k]].vitesse>voie1[listek[k-1]].vitesse: # verifier la condition sur les vitesses
+#         num=voie1[listek[k]].trajectoire[1][listei[k]]-voie1[listek[k-1]].trajectoire[1][listei[k]]-voie1[listek[k]].length
+#         denom=voie1[listek[k]].vitesse-voie1[listek[k-1]].vitesse
+#         ttc=ttc+[num/denom]
+# print(ttc)
+#
+# plt.show()
+# plt.close()
