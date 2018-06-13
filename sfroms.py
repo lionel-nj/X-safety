@@ -62,7 +62,7 @@ def generatesamplefromsample():
         return xnew[indexx]
 
     newsample=[]
-    for k in range(0,100):
+    for k in range(0,42):
         newsample=newsample+[generate()]
 
     return newsample
