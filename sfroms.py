@@ -11,7 +11,7 @@ from scipy import stats
 
 data=pd.read_csv('trajectories.csv',sep=';',header=0) #source sample
 
-def generatesamplefromsample():
+def generatesamplefromsample(numofcars):
     #get the info you need, here we need headway from the csv file, that's how we extract them
     lane=1
     voitlane=(data["lane"]==lane) & (data["origin"]!=108) & (data["origin"]!=109) & (data["origin"]!=110) & (data["origin"]!=111) & (data["dest"]==208)
@@ -62,7 +62,10 @@ def generatesamplefromsample():
         return xnew[indexx]
 
     newsample=[]
-    for k in range(0,42):
-        newsample=newsample+[generate()]
+    for k in range(0,numofcars):
+        a=generate()
+        if a<1.5:
+            a=1.5
+        newsample=newsample+[a]
 
     return newsample
