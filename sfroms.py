@@ -62,10 +62,15 @@ def generatesamplefromsample(numofcars):
         return xnew[indexx]
 
     newsample=[]
+<<<<<<< HEAD
     for k in range(0,numofcars):
         a=generate()
         if a<1.5:
             a=1.5
         newsample=newsample+[a]
+=======
+    for k in range(0,42):
+        newsample=newsample+[generate()]
+>>>>>>> 4a33fab79768a77f5ae21b01a5c3d4e840a21a29
 
     return newsample
