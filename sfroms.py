@@ -2,75 +2,76 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-import pandas as  pd
+import pandas as pd
 import csv
-from scipy.interpolate import interp1d
-import scipy.integrate as integrate
-import scipy.special as special
-from scipy import stats
+import collections
+import itertools
+from scipy.stats import rv_continuous
 
-data=pd.read_csv('trajectories.csv',sep=';',header=0) #source sample
+class EmpiricalContinuousDistribution(rv_continuous):
+    def __init__(self, values, probabilities, **kwargs):
+        '''The values (and corresponding probabilities) are supposed to be sorted by value
+        for v, p in zip(values, probabilities): P(X<=v)=p'''
+        assert probabilities[0]==0
+        super(EmpiricalContinuousDistribution, self).__init__(**kwargs)
+        self.values = values
+        self.probabilities = probabilities
 
-def generatesamplefromsample(numofcars):
-    #get the info you need, here we need headway from the csv file, that's how we extract them
-    lane=1
-    voitlane=(data["lane"]==lane) & (data["origin"]!=108) & (data["origin"]!=109) & (data["origin"]!=110) & (data["origin"]!=111) & (data["dest"]==208)
-    a=data[voitlane].vehid
-    indices=a.drop_duplicates("last",False)
-    tivbyvehid=[]
-    for k in indices :
-        a=data[data.vehid==k]
-        tivbyvehid = tivbyvehid +[a[a.localy>=800].headway.iloc[0]]
+    def _cdf(self, x):
+        if x < self.values[0]:
+            return self.probabilities[0]
+        else:
+            i=0
+            while i+1<len(self.values) and self.values[i+1] < x:
+                i += 1
+            if i == len(self.values)-1:
+                return self.probabilities[-1]
+            else:
+                return self.probabilities[i]+(x-self.values[i])*float(self.probabilities[i+1]-self.probabilities[i])/float(self.values[i+1]-self.values[i])
 
-#tivbyvehid : headways
-    n, bins, patches = plt.hist(tivbyvehid, 12, normed=True) #histogram of observed sample
-    y=[] #getting the height of bars
-    for k in n:
-        y=y+[k]
-    y=y+[n[len(n)-1]]
-    x=[] # getting the x position of the bars
-    for k in range(0,len(bins)-1):
-        x=x+[bins[k]]
 
-    width=x[1]-x[0]
-    x=x+[bins[len(bins)-1]+width]
+def generateSampleFromSample(sample_size):
+    #ouverture du fichier csv
+    with open("data.csv", 'r') as f:
+        liste = csv.reader(f)
+        a = list(liste)
 
-#interpolating in order to get the density function of the sample
-    f = interp1d(x, y, kind='cubic')
-    xnew=np.linspace(min(x),max(x),100)
-    plt.plot(xnew, f(xnew))
+    #initialisations
+    tiv=[]
+    tivprob=[]
+    tivprobcum=[]
 
-    F=[]
-    for k in xnew:
-        F = F+[integrate.quad(interp1d(x, y, kind='cubic'), min(xnew), k)]
+    #completion dela liste des tiv
+    for k in range(0,len(a)):
+        tiv=tiv+[float(a[k][0])]
 
-    #F is a list of interpolated points
+    #suppression des zéros
+    tiv = [i for i in tiv if i != 0]
 
-    #calculating the cdf : cumulative distribution function of the sample
-    inte=[]
-    for k in range(0,len(F)):
-        inte=inte+[F[k][0]]
+    #tri de la liste des tiv
+    tiv=sorted(tiv)
 
-    #generation of a sample of values, based on the observed data
+    #comptage des élément => obtention des frequences
 
-    def generate():
-        indexx=0
-        b=random.uniform(0,0.735)
-        for k in range(0,len(inte)):
-            if((abs(inte[k]-b))<=0.01):
-                indexx=k
-        return xnew[indexx]
+    count=list(collections.Counter(tiv).values())
 
-    newsample=[]
-<<<<<<< HEAD
-    for k in range(0,numofcars):
-        a=generate()
-        if a<1.5:
-            a=1.5
-        newsample=newsample+[a]
-=======
-    for k in range(0,42):
-        newsample=newsample+[generate()]
->>>>>>> 4a33fab79768a77f5ae21b01a5c3d4e840a21a29
+    #frequences
+    for k in range(0,len(count)):
+        tivprob=tivprob+[count[k]/len(tiv)]
 
-    return newsample
+    #suppression des doublons de la liste des tiv
+    tiv=sorted(list(set(tiv)))
+
+    #mettre la probabilite de 0 à 0
+    tiv=[0]+tiv
+    tivprob=[0]+tivprob
+
+    #cumul des probabilités
+    tivprobcum=list(itertools.accumulate(tivprob))
+
+    #generation d'un échantillon
+    tivdistrib=EmpiricalContinuousDistribution(tiv,tivprobcum)
+
+    return list(tivdistrib.rvs(size=sample_size))
+
+generateSampleFromSample(100)
