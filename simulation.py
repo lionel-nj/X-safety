@@ -93,9 +93,7 @@ for k in range(1,numofcars):
     l=random.uniform(6,8)
     voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
     voie_verticale[k].userType=2
-    c=0
     for t in range(1,t_simul):
-        c+=1
         voie_verticale[k].velocities.append(vitesse(a_n,voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y,S[k],V_n,voie_verticale[k-1].velocities[t-1],voie_verticale[k-1].positions[t-1].y,S[k-1]))
         voie_verticale[k].positions.append(positionV(voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y))
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
