@@ -12,10 +12,10 @@ from math import sqrt
 numofcars=7
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
-delta_t=1
+delta_t=2/3
 t_simul=30
 
-voie1=dict()
+voie_verticale=dict()
 
 intervals=[None]*numofcars
 for k in range(0,numofcars):
@@ -35,7 +35,7 @@ def vitesse(a_n,v_n,x_n,s_n,V_n,v_n1,x_n1,s_n1):
     b_n=-2*a_n
     b_barre=min(-3,(b_n-3)/2)
     tau=2/3
-    a=v_n+tau*2.5*a_n*(1-v_n/V_n)*((((0.025+v_n)/V_n))**0.5)
+    a=v_n+tau*2.5*a_n*(1-v_n/V_n)*(((0.025+v_n)/V_n)**0.5)
     # print(a)
     # c=((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre)
     # print(c)
@@ -59,7 +59,7 @@ for k in range(1,t_simul):
     posV.append(positionV(v,posV[k-1].y))
     speed.append(v)
 
-voie1[0]=moving.MovingObject(None,moving.TimeInterval(0,300),posV,speed,shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)]),2,None)
+voie_verticale[0]=moving.MovingObject(None,moving.TimeInterval(0,300),posV,speed,shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)]),2,None)
 
 #autres véhicules
 
@@ -69,8 +69,8 @@ y[0]=[]
 x=[None]*numofcars
 x[0]=[]
 
-for t in range(0,len(voie1[0].positions)):
-    y[0].append(voie1[0].positions[t].y)
+for t in range(0,len(voie_verticale[0].positions)):
+    y[0].append(voie_verticale[0].positions[t].y)
 
 
 
@@ -86,21 +86,22 @@ for k in range(1,numofcars):
 
     S.append(s_n)
 
-    voie1[k]=moving.MovingObject()
-    voie1[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
-    voie1[k].positions=[moving.Point(2000,0)]
-    voie1[k].velocities=[random.normalvariate(14,2)]
+    voie_verticale[k]=moving.MovingObject()
+    voie_verticale[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
+    voie_verticale[k].positions=[moving.Point(2000,0)]
+    voie_verticale[k].velocities=[random.normalvariate(14,2)]
     l=random.uniform(6,8)
-    voie1[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-    voie1[k].userType=2
-
+    voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
+    voie_verticale[k].userType=2
+    c=0
     for t in range(1,t_simul):
-        voie1[k].velocities.append(vitesse(a_n,voie1[k].velocities[t-1],voie1[k].positions[t-1].y,S[k],V_n,voie1[k-1].velocities[t-1],voie1[k-1].positions[t-1].y,S[k-1]))
-        voie1[k].positions.append(positionV(voie1[k].velocities[t-1],voie1[k].positions[t-1].y))
-        # acc.append(acceleration(voie1[k-1].positions[t].y,voie1[k].positions[t].y,voie1[k-1].velocities[t],voie1[k].velocities[t],voie1[k].velocities[t]))
+        c+=1
+        voie_verticale[k].velocities.append(vitesse(a_n,voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y,S[k],V_n,voie_verticale[k-1].velocities[t-1],voie_verticale[k-1].positions[t-1].y,S[k-1]))
+        voie_verticale[k].positions.append(positionV(voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y))
+        # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))
-        # acc.append(acceleration(voie1[k].positions[t-1],voie1[k].positions[t],voie1[k].velocities[t-1],voie1[k].velocities[t]))
-        y[k].append(voie1[k].positions[t].y)
+        # acc.append(acceleration(voie_verticale[k].positions[t-1],voie_verticale[k].positions[t],voie_verticale[k].velocities[t-1],voie_verticale[k].velocities[t]))
+        y[k].append(voie_verticale[k].positions[t].y)
         x[k].append(2000)
     plt.plot(intervals[k],y[k])
     plt.plot(x[k],y[k])
