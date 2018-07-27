@@ -31,16 +31,16 @@ def positionV(v,y):
 # def vitesse(v,a):
 #     return v+a*delta_t
 
-def vitesse(a_n,v_n,x_n,s_n,V_n,v_n1,x_n1,s_n1):
+def vitesse(a_n,v_n,x_n,V_n,v_n1,x_n1,s_n1):
     b_n=-2*a_n
     b_barre=min(-3,(b_n-3)/2)
     tau=2/3
-    a=v_n+tau*2.5*a_n*(1-v_n/V_n)*(((0.025+v_n)/V_n)**0.5)
+    a=v_n+2.5*a_n*tau*(1-v_n/V_n)*math.sqrt(0.025+v_n/V_n)
     # print(a)
     # c=((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre)
     # print(c)
     # return 1
-    b=b_n+math.sqrt(((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre))
+    b=b_n*tau+math.sqrt(((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre))
     return min(a,b)
 
 
@@ -50,8 +50,8 @@ def vitesse(a_n,v_n,x_n,s_n,V_n,v_n1,x_n1,s_n1):
 #initialiser le premier vehicule : MovingObject
 
 l=random.normalvariate(6.5,0.3)
-posV=[moving.Point(2000,0)]
-v=15
+posV=[moving.Point(2000,15)]
+v=30
 speed=[v]
 S=[]
 S.append(l)
@@ -81,20 +81,20 @@ for k in range(1,numofcars):
     s_n=random.normalvariate(6.5,0.3) #m
     V_n=random.normalvariate(20,3.2) #m/s
 
-    y[k]=[0]
+    y[k]=[15]
     x[k]=[2000]
 
     S.append(s_n)
 
     voie_verticale[k]=moving.MovingObject()
     voie_verticale[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
-    voie_verticale[k].positions=[moving.Point(2000,0)]
+    voie_verticale[k].positions=[moving.Point(2000,15)]
     voie_verticale[k].velocities=[random.normalvariate(14,2)]
     l=random.uniform(6,8)
     voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
     voie_verticale[k].userType=2
     for t in range(1,t_simul):
-        voie_verticale[k].velocities.append(vitesse(a_n,voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y,S[k],V_n,voie_verticale[k-1].velocities[t-1],voie_verticale[k-1].positions[t-1].y,S[k-1]))
+        voie_verticale[k].velocities.append(vitesse(a_n,voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y,V_n,voie_verticale[k-1].velocities[t-1],voie_verticale[k-1].positions[t-1].y,S[k-1]))
         voie_verticale[k].positions.append(positionV(voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y))
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))
