@@ -7,7 +7,7 @@ import csv
 import collections
 import itertools
 from scipy.stats import rv_continuous
-from trafficintelligence import moving
+from trafficintelligence import utils
 
 def generateSampleFromSample(sample_size):
     #ouverture du fichier csv
@@ -49,6 +49,6 @@ def generateSampleFromSample(sample_size):
     tivprobcum=list(itertools.accumulate(tivprob))
 
     #generation d'un échantillon
-    tivdistrib=moving.EmpiricalContinuousDistribution(tiv,tivprobcum)
+    tivdistrib=utils.EmpiricalContinuousDistribution(tiv,tivprobcum)
 
     return list(tivdistrib.rvs(size=sample_size))
