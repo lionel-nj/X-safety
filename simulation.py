@@ -9,7 +9,9 @@ import itertools
 import shapely.geometry
 from math import sqrt
 
-numofcars=7
+from shapely.geometry.polygon import LinearRing, Polygon
+
+numofcars=3
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
 delta_t=2/3
@@ -35,6 +37,7 @@ def vitesse(a_n,v_n,x_n,V_n,v_n1,x_n1,s_n1):
     b_n=-2*a_n
     b_barre=min(-3,(b_n-3)/2)
     tau=2/3
+
     a=v_n+2.5*a_n*tau*(1-v_n/V_n)*math.sqrt(0.025+v_n/V_n)
     # print(a)
     # c=((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre)
@@ -51,7 +54,7 @@ def vitesse(a_n,v_n,x_n,V_n,v_n1,x_n1,s_n1):
 
 l=random.normalvariate(6.5,0.3)
 posV=[moving.Point(2000,15)]
-v=30
+v=17
 speed=[v]
 S=[]
 S.append(l)
@@ -99,11 +102,20 @@ for k in range(1,numofcars):
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))
         # acc.append(acceleration(voie_verticale[k].positions[t-1],voie_verticale[k].positions[t],voie_verticale[k].velocities[t-1],voie_verticale[k].velocities[t]))
-        y[k].append(voie_verticale[k].positions[t].y)
-        x[k].append(2000)
-    plt.plot(intervals[k],y[k])
-    plt.plot(x[k],y[k])
+#         y[k].append(voie_verticale[k].positions[t].y)
+#         x[k].append(2000)
+#     plt.plot(intervals[k],y[k])
+#     plt.plot(x[k],y[k])
 
-plt.show()
-plt.draw()
-plt.close()
+poly = voie_verticale[2].geometry
+c,d = poly.exterior.xy
+
+ax = fig.add_subplot(111)
+plt.ax.plot(c, d, color='#6699cc', alpha=0.7,
+    linewidth=3, solid_capstyle='round', zorder=2)
+plt.ax.set_title('Polygon')
+
+#
+# plt.show()
+# plt.draw()
+# plt.close()
