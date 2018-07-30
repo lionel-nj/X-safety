@@ -6,14 +6,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import collections
-from toolkit import generateSampleFromSample
+from toolkit import *
 import itertools
 import shapely.geometry
 from math import sqrt
 
 from shapely.geometry.polygon import LinearRing, Polygon
 
-numofcars=6
+numofcars=3
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
 delta_t=2/3
@@ -109,9 +109,7 @@ for k in range(1,numofcars):
 #     plt.plot(intervals[k],y[k])
 #     plt.plot(x[k],y[k])
 
-utils.plotPolygon(voie_verticale[2].geometry)
-plt.show()
-plt.close()
+save_object_to_pickle(voie_verticale,'traffic_voie_verticale.pkl')
 
 #
 # plt.show()

@@ -66,8 +66,9 @@ def save_object_to_pickle(data,name):
 def open_pickel_file(file):
     pkl_file=open(file,'rb')
     data=pickle.load(pkl_file)
-    pprint.pprint(data)
     pkl_file.close()
+
+    return(data)
 
 
 def generateSampleFromSample(sample_size):
@@ -111,7 +112,7 @@ def generateSampleFromSample(sample_size):
 
     #generation d'un échantillon
     generateSampleFromSample.tivdistrib=utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
+    tempo=generateSampleFromSample.tivdistrib.rvs(size=sample_size)
+    save_object_to_pickle(tempo,'class_distrib.pkl')
 
-    save_object_to_pickle(generateSampleFromSample.tivdistrib.rvs(size=sample_size),'class_distrib.pkl')
-
-    return list(generateSampleFromSample.tivdistrib.rvs(size=sample_size))
+    return list(tempo)
