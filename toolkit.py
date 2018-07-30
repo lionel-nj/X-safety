@@ -10,6 +10,7 @@ import collections
 import itertools
 from scipy.stats import rv_continuous
 from trafficintelligence import utils
+import pprint, pickle
 
 def load(file):
     return yaml.safe_load(open(file))
@@ -57,8 +58,17 @@ def delete_yaml(file, key):
 # def save_scene():
 
 
-def save_sample_to_csv(data):
-    pd.DataFrame(data).to_csv('sample.csv',sep=',')
+def save_object_to_pickle(data,name):
+    with open(name, 'wb') as output:  # Overwrites any existing file.
+        pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
+    output.close()
+
+def open_pickel_file(file):
+    pkl_file=open(file,'rb')
+    data=pickle.load(pkl_file)
+    pprint.pprint(data)
+    pkl_file.close()
+
 
 def generateSampleFromSample(sample_size):
     #ouverture du fichier csv
@@ -67,40 +77,41 @@ def generateSampleFromSample(sample_size):
         a = list(liste)
 
     #initialisations
-    tiv=[]
-    tivprob=[]
-    tivprobcum=[]
+    generateSampleFromSample.tiv=[]
+    generateSampleFromSample.tivprob=[]
+    generateSampleFromSample.tivprobcum=[]
 
     #completion dela liste des tiv
     for k in range(0,len(a)):
-        tiv=tiv+[float(a[k][0])]
+        generateSampleFromSample.tiv=generateSampleFromSample.tiv+[float(a[k][0])]
 
     #suppression des zéros
-    tiv = [i for i in tiv if i != 0]
+    generateSampleFromSample.tiv = [i for i in generateSampleFromSample.tiv if i != 0]
 
     #tri de la liste des tiv
-    tiv=sorted(tiv)
+    generateSampleFromSample.tiv=sorted(generateSampleFromSample.tiv)
 
     #comptage des élément => obtention des frequences
 
-    count=list(collections.Counter(tiv).values())
+    count=list(collections.Counter(generateSampleFromSample.tiv).values())
 
     #frequences
     for k in range(0,len(count)):
-        tivprob=tivprob+[count[k]/len(tiv)]
+        generateSampleFromSample.tivprob=generateSampleFromSample.tivprob+[count[k]/len(generateSampleFromSample.tiv)]
 
     #suppression des doublons de la liste des tiv
-    tiv=sorted(list(set(tiv)))
+    generateSampleFromSample.tiv=sorted(list(set(generateSampleFromSample.tiv)))
 
     #mettre la probabilite de 0 à 0
-    tiv=[0]+tiv
-    tivprob=[0]+tivprob
+    generateSampleFromSample.tiv=[0]+generateSampleFromSample.tiv
+    generateSampleFromSample.tivprob=[0]+generateSampleFromSample.tivprob
 
     #cumul des probabilités
-    tivprobcum=list(itertools.accumulate(tivprob))
+    generateSampleFromSample.tivprobcum=list(itertools.accumulate(generateSampleFromSample.tivprob))
 
     #generation d'un échantillon
-    tivdistrib=utils.EmpiricalContinuousDistribution(tiv,tivprobcum)
+    generateSampleFromSample.tivdistrib=utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
 
-    save_sample_to_csv(list(tivdistrib.rvs(size=sample_size)))
-    return list(tivdistrib.rvs(size=sample_size))
+    save_object_to_pickle(generateSampleFromSample.tivdistrib.rvs(size=sample_size),'class_distrib.pkl')
+
+    return list(generateSampleFromSample.tivdistrib.rvs(size=sample_size))
