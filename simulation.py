@@ -1,17 +1,19 @@
 from trafficintelligence import moving
+from trafficintelligence import utils
+
 import random
 import numpy as np
 import matplotlib.pyplot as plt
 import math
 import collections
-from sfroms import generateSampleFromSample
+from toolkit import generateSampleFromSample
 import itertools
 import shapely.geometry
 from math import sqrt
 
 from shapely.geometry.polygon import LinearRing, Polygon
 
-numofcars=3
+numofcars=6
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
 delta_t=2/3
@@ -97,8 +99,8 @@ for k in range(1,numofcars):
     voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
     voie_verticale[k].userType=2
     for t in range(1,t_simul):
-        voie_verticale[k].velocities.append(vitesse(a_n,voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y,V_n,voie_verticale[k-1].velocities[t-1],voie_verticale[k-1].positions[t-1].y,S[k-1]))
-        voie_verticale[k].positions.append(positionV(voie_verticale[k].velocities[t-1],voie_verticale[k].positions[t-1].y))
+        voie_verticale[k].velocities.append(vitesse(a_n,moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,V_n,moving.MovingObject.getVelocities(voie_verticale[k-1])[t-1],moving.MovingObject.getPositions(voie_verticale[k-1])[t-1].y,S[k-1]))
+        voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y))
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))
         # acc.append(acceleration(voie_verticale[k].positions[t-1],voie_verticale[k].positions[t],voie_verticale[k].velocities[t-1],voie_verticale[k].velocities[t]))
@@ -107,13 +109,9 @@ for k in range(1,numofcars):
 #     plt.plot(intervals[k],y[k])
 #     plt.plot(x[k],y[k])
 
-poly = voie_verticale[2].geometry
-c,d = poly.exterior.xy
-
-ax = fig.add_subplot(111)
-plt.ax.plot(c, d, color='#6699cc', alpha=0.7,
-    linewidth=3, solid_capstyle='round', zorder=2)
-plt.ax.set_title('Polygon')
+utils.plotPolygon(voie_verticale[2].geometry)
+plt.show()
+plt.close()
 
 #
 # plt.show()
