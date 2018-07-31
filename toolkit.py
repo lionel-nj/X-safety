@@ -12,31 +12,31 @@ from scipy.stats import rv_continuous
 from trafficintelligence import utils
 import pprint, pickle
 
-def load(file):
-    return yaml.safe_load(open(file))
+def load_yml(file):
+    return yaml.load(open(file))
 
 def create_yaml(name,data):
     with open(name, 'w') as outfile:
-        yaml.safe_dump(data,outfile,default_flow_style=False)
+        yaml.dump(data,outfile,default_flow_style=False)
 
 def copy_yaml(file,newname):
-    data=load(file)
+    data=load_yml(file)
     create_yaml(newname,data)
 
 def add_element_to_yaml(file,element,key):
-    data=load(file)
+    data=load_yml(file)
     try:
         with open(file, "w") as out:
-            yaml.safe_dump(data, out)
+            yaml.dump(data, out)
         with open(file) as out:
-            newdata = yaml.safe_load(out)
+            newdata = yaml.load_yml(out)
         newdata[key] = element
         create_yaml(file,newdata)
     except:
         print("the key requested does not exist in the yaml file")
 
 def update_yaml(file,element,key):
-    data=load(file)
+    data=load_yml(file)
     try:
         data[key] = element
         create_yaml(file,data)
@@ -44,7 +44,7 @@ def update_yaml(file,element,key):
         print("the key requested does not exist in the yaml file")
 
 def delete_yaml(file, key):
-    data=load(file)
+    data=load_yml(file)
     try:
         del data[key]
         create_yaml(file,data)
@@ -113,6 +113,6 @@ def generateSampleFromSample(sample_size):
     #generation d'un échantillon
     generateSampleFromSample.tivdistrib=utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
     tempo=generateSampleFromSample.tivdistrib.rvs(size=sample_size)
-    save_object_to_pickle(tempo,'class_distrib.pkl')
+    create_yaml('headway_sample.yml',generateSampleFromSample.tivdistrib)
 
     return list(tempo)

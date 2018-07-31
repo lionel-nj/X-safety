@@ -11,7 +11,6 @@ import itertools
 import shapely.geometry
 from math import sqrt
 
-from shapely.geometry.polygon import LinearRing, Polygon
 
 numofcars=3
 tiv=generateSampleFromSample(numofcars)
@@ -97,7 +96,7 @@ for k in range(1,numofcars):
     voie_verticale[k].velocities=[random.normalvariate(14,2)]
     l=random.uniform(6,8)
     voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-    voie_verticale[k].userType=2
+    voie_verticale[k].userType=1 # 1 pour les voitures 2 pour les piétons
     for t in range(1,t_simul):
         voie_verticale[k].velocities.append(vitesse(a_n,moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,V_n,moving.MovingObject.getVelocities(voie_verticale[k-1])[t-1],moving.MovingObject.getPositions(voie_verticale[k-1])[t-1].y,S[k-1]))
         voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y))
@@ -109,7 +108,7 @@ for k in range(1,numofcars):
 #     plt.plot(intervals[k],y[k])
 #     plt.plot(x[k],y[k])
 
-save_object_to_pickle(voie_verticale,'traffic_voie_verticale.pkl')
+create_yaml('traffic_voie_verticale.yml',voie_verticale)
 
 #
 # plt.show()
