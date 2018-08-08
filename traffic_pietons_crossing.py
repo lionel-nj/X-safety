@@ -62,6 +62,11 @@ phi=math.acos(moving.Point.cosine(dest_car,n_car))
 pi=math.pi
 # beta=[pi,3*pi/4,pi/2,3*pi/8,pi/4,pi/8,0,-pi/8,-pi/4,-3*pi/8,-pi/2,-3*pi/4]
 beta=[0,pi/8,pi/4,3*pi/8,pi/2,3*pi/4,pi,pi+pi/8,pi+pi/4,pi+3*pi/8,pi+pi/2,pi+3*pi/4]
+rose=[]
+for k in range (0,len(beta)):
+    u=moving.NormAngle(norm=1,angle=beta[k])
+    rose.append(u)
+
 proba_direction_m=[]
 proba_direction_n=[]
 
@@ -122,28 +127,35 @@ fn=[0]*len(beta)
 for i in range(0,len(beta)):
     if (in_cone(beta[i],alpha_m_to_n+alpha1/2,alpha_m_to_n-alpha1/2)):
         fm[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
-
-
-    if (in_cone(beta[i],alpha_n_to_m+alpha2/2,alpha_n_to_m-alpha2/2)):
-        fn[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
+    #
+    #
+    # if (in_cone(beta[i],alpha_n_to_m+alpha2/2,alpha_n_to_m-alpha2/2)):
+    #     fn[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
 
 
 s_m=sum(fm)
-s_n=sum(fn)
+# s_n=sum(fn)
 
 denom_m=0
 denom_n=0
+
+angles_m=[]
+angles_n=[]
+
 for k in range(0,len(beta)):
-    denom_m=denom_m+math.exp(l*max(0,math.cos(beta[k]))-s_m)
-    denom_n=denom_n+math.exp(l*max(0,math.cos(beta[k]))-s_n)
+    angles_m.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_m_to_n)))
+    angles_n.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_n_to_m)))
+for k in range(0,len(beta)):
+    denom_m+=math.exp(l*max(0,math.cos(angles_m[k]))-s_m)
+    denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_m)
 
 denom_m=1+denom_m
 denom_n=1+denom_n
 
 
 for k in range(0,len(beta)):
-    p_m=math.exp(l*(max(0,math.cos(beta[k]))-s_m))/denom_m
-    p_n=math.exp(l*(max(0,math.cos(beta[k]))-s_n))/denom_n
+    p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_m))/denom_m
+    p_n=math.exp(l*(max(0,math.cos(angles_n[k]))-s_m))/denom_n
     proba_direction_m.append(p_m)
     proba_direction_n.append(p_n)
 
