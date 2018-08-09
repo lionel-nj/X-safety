@@ -170,6 +170,10 @@ p_0_m=1/denom_m
 #
 print(proba_direction_m,proba_direction_n)
 
+choosen_dir_m=beta[proba_direction_m.index(max(proba_direction_m))]
+choosen_dir_n=beta[proba_direction_m.index(max(proba_direction_n))]
+
+
 "##########################################################################################"
 "calcul des step size : K_n"
 "##########################################################################################"
@@ -179,10 +183,13 @@ def choix_pas():
 
 step=choix_pas()
 
-d1=m_car+moving.NormAngle.getPoint(moving.NormAngle(norm=step,angle=choosen_angle))+moving.NormAngle(norm=r_m,angle=n_cur.angle)
-d2=m_car+moving.NormAngle(norm=r_m+step,angle=n_cur.angle)
-d3=
+d1=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m)-math.sin(choosen_dir_m),math.cos(choosen_dir_m)+math.sin(choosen_dir_m)),r_m/math.sqrt(2))
+d2=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),r_m+step)
+d3=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_m)+math.cos(choosen_dir_m),math.sin(choosen_dir_m)-math.cos(choosen_dir_m)),r_m/math.sqrt(2))
 
-e1=
-e2=
-e3=
+
+e1=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n)-math.sin(choosen_dir_n),math.cos(choosen_dir_n)+math.sin(choosen_dir_n)),r_n/math.sqrt(2))
+e2=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),r_n+step)
+e3=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_n)+math.cos(choosen_dir_n),math.sin(choosen_dir_n)-math.cos(choosen_dir_n)),r_n/math.sqrt(2))
+
+moving.Point.plotAll([m_car,n_car,d1,d2,d3,e1,e2,e3,dest_car])
