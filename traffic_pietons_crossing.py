@@ -1,7 +1,7 @@
 from trafficintelligence import moving
 from shapely.geometry import Point as shapelyPoint
 import math
-
+import matplotlib.pyplot as plt
 
 position=[]
 speed=[]
@@ -9,11 +9,11 @@ time_interval=[]
 
 "définition de 2 points d'essai "
 
-m_cur=moving.NormAngle(norm=10,angle=5*math.pi/4)
+m_cur=moving.NormAngle(norm=5,angle=5*math.pi/4)
 m_car=moving.NormAngle.getPoint(m_cur)
 # geometrie1=moving.shapelyPoint(m_car.x,m_car.y).buffer(math.sqrt(1))
 
-n_cur=moving.NormAngle(norm=4,angle=math.pi)
+n_cur=moving.NormAngle(norm=10,angle=math.pi)
 n_car=p=moving.NormAngle.getPoint(n_cur)
 # geometrie2=moving.shapelyPoint(n_car.x,n_car.y).buffer(math.sqrt(1))
 
@@ -21,11 +21,11 @@ n_car=p=moving.NormAngle.getPoint(n_cur)
 "point de destination "
 
 
-dest_cur=moving.NormAngle(norm=math.sqrt(10001),angle=0.197)
+dest_cur=moving.NormAngle(norm=10,angle=3*math.pi/8)
 dest_car=p=moving.NormAngle.getPoint(dest_cur)
 geometrie_dest=moving.shapelyPoint(dest_car.x,dest_car.y).buffer(math.sqrt(0.4))
 
-
+"fonction à améliorer"
 def in_cone(direction,l1,l2):
     answer = False
     # if l2>l1:
@@ -38,9 +38,6 @@ def in_cone(direction,l1,l2):
     return answer
 
 "interaction des points entre eux jusqu'au point de destination"
-
-
-
 
 d=moving.Point.distanceNorm2(m_car,dest_car)
 
@@ -60,7 +57,6 @@ phi=math.acos(moving.Point.cosine(dest_car,n_car))
 
 
 pi=math.pi
-# beta=[pi,3*pi/4,pi/2,3*pi/8,pi/4,pi/8,0,-pi/8,-pi/4,-3*pi/8,-pi/2,-3*pi/4]
 beta=[0,pi/8,pi/4,3*pi/8,pi/2,3*pi/4,pi,pi+pi/8,pi+pi/4,pi+3*pi/8,pi+pi/2,pi+3*pi/4]
 rose=[]
 for k in range (0,len(beta)):
@@ -96,8 +92,8 @@ I=moving.intersection(moving.NormAngle.getPoint(E),moving.NormAngle.getPoint(G),
 # m_car=moving.NormAngle.getPoint(m_cur)
 # d=moving.Point.distanceNorm2(m_car,dest_car
 
-O=moving.NormAngle(norm=100,angle=3*pi/4)
-O_car=moving.NormAngle.getPoint(O)
+# O=moving.NormAngle(norm=100,angle=3*pi/2)
+# O_car=moving.NormAngle.getPoint(O)
 
 "distance entre I et F"
 a1= moving.Point.distanceNorm2(I,moving.NormAngle.getPoint(F))
@@ -118,8 +114,10 @@ s=I-moving.NormAngle.getPoint(D)
 alpha2=math.acos(moving.Point.cosine(w,s))
 
 "angle de la direction entre les deux piétons : alpha_mn"
-alpha_m_to_n=math.cos(moving.Point.cosine(O_car,direct_path_m_to_n))
-alpha_n_to_m=math.cos(moving.Point.cosine(O_car,direct_path_n_to_m))
+alpha_m_to_n=moving.Point.angle(direct_path_m_to_n)
+alpha_n_to_m=moving.Point.angle(direct_path_n_to_m)
+# alpha_m_to_n=math.cos(moving.Point.cosine(O_car,direct_path_m_to_n))
+# alpha_n_to_m=math.cos(moving.Point.cosine(O_car,direct_path_n_to_m))
 
 "forces de répulsion entre deux piétons"
 
@@ -129,19 +127,16 @@ fn=[0]*len(beta)
 for i in range(0,len(beta)):
     if (in_cone(beta[i],alpha_m_to_n+alpha1/2,alpha_m_to_n-alpha1/2)):
         fm[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
-    #
-    #
-    # if (in_cone(beta[i],alpha_n_to_m+alpha2/2,alpha_n_to_m-alpha2/2)):
-    #     fn[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
 
+    if (in_cone(beta[i],alpha_n_to_m+alpha2/2,alpha_n_to_m-alpha2/2)):
+        fn[i]=tau*(max(0,math.cos(omega))+ksi)*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n))
 
 s_m=sum(fm)
-# s_n=sum(fn)
+s_n=sum(fn)
+
 "calcul des probabilités"
 denom_m=0
 denom_n=0
-
-
 
 "Création de la rose des vents : vecteurs des directions possibles"
 angles_m=[]
@@ -150,17 +145,17 @@ for k in range(0,len(beta)):
     angles_m.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_m_to_n)))
     angles_n.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_n_to_m)))
 
-"calcul des dénomintauers : utiles pour les probabilités"
+"calcul des dénominateurs : utiles pour le calcul des probabilités"
 for k in range(0,len(beta)):
     denom_m+=math.exp(l*max(0,math.cos(angles_m[k]))-s_m)
-    denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_m)
+    denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_n)
 
 denom_m=1+denom_m
 denom_n=1+denom_n
 
 "calcul des numérateurs"
 for k in range(0,len(beta)):
-    p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_m))/denom_m
+    p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_n))/denom_m
     p_n=math.exp(l*(max(0,math.cos(angles_n[k]))-s_m))/denom_n
     proba_direction_m.append(p_m)
     proba_direction_n.append(p_n)
@@ -170,26 +165,38 @@ p_0_m=1/denom_m
 #
 print(proba_direction_m,proba_direction_n)
 
-choosen_dir_m=beta[proba_direction_m.index(max(proba_direction_m))]
-choosen_dir_n=beta[proba_direction_m.index(max(proba_direction_n))]
+choosen_dir_m=0
+choosen_dir_n=0
+step_m=0
+step_n=0
+
+if min(proba_direction_m)>p_0_m:
+    choosen_dir_m=0
+    step_m=0
+else:
+    choosen_dir_m=beta[proba_direction_m.index(min(proba_direction_m))]
+    step_m=0.8
+
+if min(proba_direction_n)>p_0_n:
+        choosen_dir_n=0
+        step_n=0
+else:
+    choosen_dir_n=beta[proba_direction_n.index(min(proba_direction_n))]
+    step_n=0.8
 
 
 "##########################################################################################"
 "calcul des step size : K_n"
 "##########################################################################################"
 
-def choix_pas():
-    return 0.8
 
-step=choix_pas()
-
-d1=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m)-math.sin(choosen_dir_m),math.cos(choosen_dir_m)+math.sin(choosen_dir_m)),r_m/math.sqrt(2))
-d2=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),r_m+step)
-d3=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_m)+math.cos(choosen_dir_m),math.sin(choosen_dir_m)-math.cos(choosen_dir_m)),r_m/math.sqrt(2))
+d1=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step_m)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m)-math.sin(choosen_dir_m),math.cos(choosen_dir_m)+math.sin(choosen_dir_m)),r_m/math.sqrt(2))
+d2=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),r_m+step_m)
+d3=m_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_m),math.sin(choosen_dir_m)),step_m)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_m)+math.cos(choosen_dir_m),math.sin(choosen_dir_m)-math.cos(choosen_dir_m)),r_m/math.sqrt(2))
 
 
-e1=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n)-math.sin(choosen_dir_n),math.cos(choosen_dir_n)+math.sin(choosen_dir_n)),r_n/math.sqrt(2))
-e2=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),r_n+step)
-e3=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_n)+math.cos(choosen_dir_n),math.sin(choosen_dir_n)-math.cos(choosen_dir_n)),r_n/math.sqrt(2))
+e1=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step_n)+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n)-math.sin(choosen_dir_n),math.cos(choosen_dir_n)+math.sin(choosen_dir_n)),r_n/math.sqrt(2))
+e2=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),r_n+step_n)
+e3=n_car+moving.Point.__mul__(shapelyPoint(math.cos(choosen_dir_n),math.sin(choosen_dir_n)),step_n)+moving.Point.__mul__(shapelyPoint(math.sin(choosen_dir_n)+math.cos(choosen_dir_n),math.sin(choosen_dir_n)-math.cos(choosen_dir_n)),r_n/math.sqrt(2))
 
-moving.Point.plotAll([m_car,n_car,d1,d2,d3,e1,e2,e3,dest_car])
+moving.Point.plotAll([m_car,n_car,e1,e2,e3,d1,d2,d3,dest_car])
