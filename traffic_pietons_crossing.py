@@ -11,11 +11,11 @@ time_interval=[]
 
 m_cur=moving.NormAngle(norm=10,angle=5*math.pi/4)
 m_car=moving.NormAngle.getPoint(m_cur)
-geometrie1=moving.shapelyPoint(m_car.x,m_car.y).buffer(math.sqrt(1))
+# geometrie1=moving.shapelyPoint(m_car.x,m_car.y).buffer(math.sqrt(1))
 
 n_cur=moving.NormAngle(norm=4,angle=math.pi)
 n_car=p=moving.NormAngle.getPoint(n_cur)
-geometrie2=moving.shapelyPoint(n_car.x,n_car.y).buffer(math.sqrt(1))
+# geometrie2=moving.shapelyPoint(n_car.x,n_car.y).buffer(math.sqrt(1))
 
 #a faire : déterminer les caractéristiques du buffer d'un piéton dans la vraie vie ? : forme et taille (ovale)
 "point de destination "
@@ -121,6 +121,8 @@ alpha2=math.acos(moving.Point.cosine(w,s))
 alpha_m_to_n=math.cos(moving.Point.cosine(O_car,direct_path_m_to_n))
 alpha_n_to_m=math.cos(moving.Point.cosine(O_car,direct_path_n_to_m))
 
+"forces de répulsion entre deux piétons"
+
 fm=[0]*len(beta)
 fn=[0]*len(beta)
 
@@ -135,16 +137,20 @@ for i in range(0,len(beta)):
 
 s_m=sum(fm)
 # s_n=sum(fn)
-
+"calcul des probabilités"
 denom_m=0
 denom_n=0
 
+
+
+"Création de la rose des vents : vecteurs des directions possibles"
 angles_m=[]
 angles_n=[]
-
 for k in range(0,len(beta)):
     angles_m.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_m_to_n)))
     angles_n.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_n_to_m)))
+
+"calcul des dénomintauers : utiles pour les probabilités"
 for k in range(0,len(beta)):
     denom_m+=math.exp(l*max(0,math.cos(angles_m[k]))-s_m)
     denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_m)
@@ -152,7 +158,7 @@ for k in range(0,len(beta)):
 denom_m=1+denom_m
 denom_n=1+denom_n
 
-
+"calcul des numérateurs"
 for k in range(0,len(beta)):
     p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_m))/denom_m
     p_n=math.exp(l*(max(0,math.cos(angles_n[k]))-s_m))/denom_n
@@ -164,12 +170,19 @@ p_0_m=1/denom_m
 #
 print(proba_direction_m,proba_direction_n)
 
+"##########################################################################################"
+"calcul des step size : K_n"
+"##########################################################################################"
 
-#
-    # next_point_1.angle=None
-    # next_point_2.angle=None
-    # next_point_3.angle=None
+def choix_pas():
+    return 0.8
 
+step=choix_pas()
 
+d1=m_car+moving.NormAngle.getPoint(moving.NormAngle(norm=step,angle=choosen_angle))+moving.NormAngle(norm=r_m,angle=n_cur.angle)
+d2=m_car+moving.NormAngle(norm=r_m+step,angle=n_cur.angle)
+d3=
 
- #def step_choice():
+e1=
+e2=
+e3=
