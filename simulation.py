@@ -12,7 +12,7 @@ import shapely.geometry
 from math import sqrt
 
 
-numofcars=3
+numofcars=5
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
 delta_t=2/3
@@ -28,30 +28,50 @@ for k in range(0,numofcars):
     for t in range(1,t_simul):
         intervals[k].append(a[t-1]+1)
 
-def positionV(v,y):
-    return moving.Point(2000,y+v*delta_t)
+def s_etoile(v,delta_v):
+    s0+max(0,v*T+v*delta_v/(2*sqrt(a*b)))
+    
+def acc():
+    '''a : acceleration amximale
+       v0: vitesse desiree
+       delta : exposant pour controler la reduction d'acceleration
+       '''
+    return a*(1-(v/v0)**delta-(s_etoile(v,delta_v)/s))
 
-# def vitesse(v,a):
-#     return v+a*delta_t
+def positionV(v,y,a):
+    # k1=v_1
+    # k3=v_1+0.25*(v-v_1)
+    # k4=v_1+0.5*(v-v_1)
+    # k5=v_1+0.75*(v-v_1)
+    # k6=v
+    return moving.Point(2000,y+v*delta_t+0.5*a*(delta_t**2))
 
-def vitesse(a_n,v_n,x_n,V_n,v_n1,x_n1,s_n1):
-    b_n=-2*a_n
-    b_barre=min(-3,(b_n-3)/2)
-    tau=2/3
+def gap(x_l,L,x_t):
+    return x_l-x-L
 
-    a=v_n+2.5*a_n*tau*(1-v_n/V_n)*math.sqrt(0.025+v_n/V_n)
-    # print(a)
-    # c=((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre)
-    # print(c)
-    # return 1
-    b=b_n*tau+math.sqrt(((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre))
-    return min(a,b)
+    # return moving.Point(2000,y+1/90*(7*k1+32*k3+12*k4+32*k5+7*k6))
+
+def vitesse(v,a):
+    return v+a*delta_t
+
+# def vitesse(a_n,v_n,x_n,V_n,v_n1,x_n1,s_n1):
+#     b_n=-2*a_n
+#     b_barre=min(-3,(b_n-3)/2)
+#     tau=2/3
+#
+#     a=v_n+2.5*a_n*tau*(1-v_n/V_n)*math.sqrt(0.025+v_n/V_n)
+#     # print(a)
+#     # c=((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre)
+#     # print(c)
+#     # return 1
+#     b=b_n*tau+math.sqrt(((b_n*tau)**2)-b_n*(2*(x_n1-s_n1-x_n)-v_n*tau-(v_n1**2)/b_barre))
+#     return min(a,b)
 
 
 # def acceleration(x0,x1,v0,v1,v):
 #     return 0.78*v*(v0-v1)/(x0-x1)
 
-#initialiser le premier vehicule : MovingObject
+"initialiser le premier vehicule : MovingObject"
 
 l=random.normalvariate(6.5,0.3)
 posV=[moving.Point(2000,15)]
@@ -60,12 +80,14 @@ speed=[v]
 S=[]
 S.append(l)
 for k in range(1,t_simul):
+    # posV.append(positionV(v,posV[k-1].y,speed[k-1]))
     posV.append(positionV(v,posV[k-1].y))
+
     speed.append(v)
 
 voie_verticale[0]=moving.MovingObject(None,moving.TimeInterval(0,300),posV,speed,shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)]),2,None)
 
-#autres véhicules
+"autres véhicules"
 
 y=[None]*numofcars
 y[0]=[]
@@ -99,18 +121,21 @@ for k in range(1,numofcars):
     voie_verticale[k].userType=1 # 1 pour les voitures 2 pour les piétons
     for t in range(1,t_simul):
         voie_verticale[k].velocities.append(vitesse(a_n,moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,V_n,moving.MovingObject.getVelocities(voie_verticale[k-1])[t-1],moving.MovingObject.getPositions(voie_verticale[k-1])[t-1].y,S[k-1]))
+        # voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,voie_verticale[k].velocities[t-1]))
         voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y))
+
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))
         # acc.append(acceleration(voie_verticale[k].positions[t-1],voie_verticale[k].positions[t],voie_verticale[k].velocities[t-1],voie_verticale[k].velocities[t]))
-#         y[k].append(voie_verticale[k].positions[t].y)
-#         x[k].append(2000)
-#     plt.plot(intervals[k],y[k])
-#     plt.plot(x[k],y[k])
+        y[k].append(voie_verticale[k].positions[t].y)
+        x[k].append(2000)
+
+    plt.plot(intervals[k],y[k])
+    plt.plot(x[k],y[k])
 
 create_yaml('traffic_voie_verticale.yml',voie_verticale)
 
 #
-# plt.show()
-# plt.draw()
-# plt.close()
+plt.show()
+plt.draw()
+plt.close()
