@@ -19,7 +19,7 @@ tiv=generateSampleFromSample(number_of_cars)
 h=list(itertools.accumulate(tiv))
 
 delta_t=1
-t_simul=300
+t_simul=600
 intervals=[None]*t_simul
 
 for k in range(0,number_of_cars):
@@ -94,6 +94,7 @@ voie_verticale[0].userType=1
 # Initialisation des autres véhicules
 ##########################################################
 
+accel=[[]]
 
 for k in range(1,number_of_cars):
     # a=random.normalvariate(1.7,0.3) #m.s-2 acceleration maximale
@@ -101,6 +102,7 @@ for k in range(1,number_of_cars):
     v0=random.normalvariate(30,3.2)
     l=random.uniform(6,8)
     L.append(l)
+    accel.append([])
 
     voie_verticale[k]=moving.MovingObject()
     voie_verticale[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
@@ -116,17 +118,20 @@ for k in range(1,number_of_cars):
         s=gap(moving.MovingObject.getPositions(voie_verticale[k-1])[t-1].y,moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,L[k-1])
         T=h[k]-h[k-1]
         acc=acceleration(a,b,v,v0,DV,s,T)
-
+        accel[k].append(acc)
         velocite=vitesse(v,acc)
         if velocite<0:
             velocite=0
         voie_verticale[k].velocities.append(velocite)
 
-        if velocite==0:
-            voie_verticale[k].positions.append(moving.MovingObject.getPositions(voie_verticale[k])[t-1])
-        
-        else:
-            voie_verticale[k].positions.append(position(p,1,v,acc))
+        new_position=position(p,1,v,acc)
+        # if new_position.y<moving.MovingObject.getPositions(voie_verticale[k])[t-1].y:
+        #     new_position=moving.MovingObject.getPositions(voie_verticale[k])[t-1]
+        #
+        # if velocite==0:
+        #     voie_verticale[k].positions.append(moving.MovingObject.getPositions(voie_verticale[k])[t-1])
+        # else:
+        voie_verticale[k].positions.append(new_position)
 
 
 
@@ -147,8 +152,6 @@ for k in range (0,len(voie_verticale)):
         p[k].append(voie_verticale[k].positions[time].y)
 
     plt.plot(t[k],v[k])
-    # plt.plot(p[k],v[k])
-
     # plt.plot(t[k],p[k])
 # plt.plot(t,p)
 #
