@@ -15,7 +15,7 @@ from math import sqrt
 numofcars=5
 tiv=generateSampleFromSample(numofcars)
 h=list(itertools.accumulate(tiv))
-delta_t=2/3
+delta_t=1
 t_simul=30
 
 voie_verticale=dict()
@@ -28,15 +28,20 @@ for k in range(0,numofcars):
     for t in range(1,t_simul):
         intervals[k].append(a[t-1]+1)
 
-def s_etoile(v,delta_v):
-    s0+max(0,v*T+v*delta_v/(2*sqrt(a*b)))
-    
-def acc():
-    '''a : acceleration amximale
+def s_etoile(v,delta_v,T):
+    ''' a : acceleration
+        b : deceleration confortable
+        T : time headway
+        s0 : gap minimum'''
+    return s0+max(0,v*T+v*delta_v/(2*sqrt(a*b)))
+
+def acc(v,delta_v,T,v0,a):
+    '''a : acceleration maximale
        v0: vitesse desiree
+       v : vitesse
        delta : exposant pour controler la reduction d'acceleration
        '''
-    return a*(1-(v/v0)**delta-(s_etoile(v,delta_v)/s))
+    return a*(1-(v/v0)**delta-(s_etoile(v,delta_v,T)/s))
 
 def positionV(v,y,a):
     # k1=v_1
@@ -81,8 +86,7 @@ S=[]
 S.append(l)
 for k in range(1,t_simul):
     # posV.append(positionV(v,posV[k-1].y,speed[k-1]))
-    posV.append(positionV(v,posV[k-1].y))
-
+    posV.append(positionV(v,posV[k-1].y,0))
     speed.append(v)
 
 voie_verticale[0]=moving.MovingObject(None,moving.TimeInterval(0,300),posV,speed,shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)]),2,None)
@@ -97,7 +101,6 @@ x[0]=[]
 
 for t in range(0,len(voie_verticale[0].positions)):
     y[0].append(voie_verticale[0].positions[t].y)
-
 
 
 for k in range(1,numofcars):
@@ -120,9 +123,10 @@ for k in range(1,numofcars):
     voie_verticale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
     voie_verticale[k].userType=1 # 1 pour les voitures 2 pour les piétons
     for t in range(1,t_simul):
-        voie_verticale[k].velocities.append(vitesse(a_n,moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,V_n,moving.MovingObject.getVelocities(voie_verticale[k-1])[t-1],moving.MovingObject.getPositions(voie_verticale[k-1])[t-1].y,S[k-1]))
+        acceleration=acc(v,delta_v,T,v0,a)
+        voie_verticale[k].velocities.append(vitesse("vitesse,acceleration"))
         # voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y,voie_verticale[k].velocities[t-1]))
-        voie_verticale[k].positions.append(positionV(moving.MovingObject.getVelocities(voie_verticale[k])[t-1],moving.MovingObject.getPositions(voie_verticale[k])[t-1].y))
+        voie_verticale[k].positions.append(positionV("vitesse,position,acceleration"))
 
         # acc.append(acceleration(voie_verticale[k-1].positions[t].y,voie_verticale[k].positions[t].y,voie_verticale[k-1].velocities[t],voie_verticale[k].velocities[t],voie_verticale[k].velocities[t]))
         # posV.append(position(speed[t-1],pos[t-1]))

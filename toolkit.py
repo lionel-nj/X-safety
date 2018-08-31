@@ -116,3 +116,15 @@ def generateSampleFromSample(sample_size):
     create_yaml('headway_sample.yml',generateSampleFromSample.tivdistrib)
 
     return list(tempo)
+
+"fonction à améliorer"
+def in_cone(direction,l1,l2):
+    answer = False
+    # if l2>l1:
+    #     a=l1
+    #     b=l2
+    #     in_cone(direction,b,a)
+    # else:
+    if (direction<=l1) and (l2<=direction):
+        answer = True
+    return answer

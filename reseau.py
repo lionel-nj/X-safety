@@ -3,7 +3,7 @@
 #intégration d'un feu dans un second temps
 #coordonnées curvilignes
 
-from trafficintelligence import *
+from trafficintelligence import moving
 
 
 segmentV=dict()

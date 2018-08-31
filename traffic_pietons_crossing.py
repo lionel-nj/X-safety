@@ -85,13 +85,6 @@ def next_point(origine_m,origine_n,destination):
 
     I=moving.intersection(moving.NormAngle.getPoint(E),moving.NormAngle.getPoint(G),moving.NormAngle.getPoint(D),moving.NormAngle.getPoint(F))
 
-    #
-    # m_car=moving.NormAngle.getPoint(m_cur)
-    # d=moving.Point.distanceNorm2(m_car,dest_car
-
-    # O=moving.NormAngle(norm=100,angle=3*pi/2)
-    # O_car=moving.NormAngle.getPoint(O)
-
     "distance entre I et F"
     a1= moving.Point.distanceNorm2(I,moving.NormAngle.getPoint(F))
 
@@ -102,20 +95,17 @@ def next_point(origine_m,origine_n,destination):
     c1=moving.Point.distanceNorm2(moving.NormAngle.getPoint(F),moving.NormAngle.getPoint(G))
 
     "angle (F,I,G) = angle entre l1 et l2"
-    u=I-moving.NormAngle.getPoint(F)
-    v=I-moving.NormAngle.getPoint(G)
+    u=moving.NormAngle.getPoint(F)-I
+    v=moving.NormAngle.getPoint(G)-I
     alpha1=math.acos(moving.Point.cosine(u,v))
 
-    w=I-moving.NormAngle.getPoint(E)
-    s=I-moving.NormAngle.getPoint(D)
+    w=moving.NormAngle.getPoint(E)-I
+    s=moving.NormAngle.getPoint(D)-I
     alpha2=math.acos(moving.Point.cosine(w,s))
 
     "angle de la direction entre les deux piétons : alpha_mn"
     alpha_m_to_n=moving.Point.angle(direct_path_m_to_n)
     alpha_n_to_m=moving.Point.angle(direct_path_n_to_m)
-    # alpha_m_to_n=math.cos(moving.Point.cosine(O_car,direct_path_m_to_n))
-    # alpha_n_to_m=math.cos(moving.Point.cosine(O_car,direct_path_n_to_m))
-
 
 
     "calcul des probabilités"
@@ -129,18 +119,22 @@ def next_point(origine_m,origine_n,destination):
         angles_m.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_m_to_n)))
         angles_n.append(math.acos(moving.Point.cosine(moving.NormAngle.getPoint(rose[k]),direct_path_n_to_m)))
 
+    for k in range(0,len(beta)):
+        if (toolkit.in_cone(beta[k])):
+            fm.append(tau*(max(0,math.cos(omega)))*(max(0,math.cos(phi))+epsilon)/(max(delta,dmn-r_m-r_n)))
+
     "calcul des dénominateurs : utiles pour le calcul des probabilités"
     for k in range(0,len(beta)):
-        denom_m+=math.exp(l*max(0,math.cos(angles_m[k]))-s_m)
-        denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_n)
+        denom_m+=math.exp(l*max(0,math.cos(angles_m[k]))-s_n)
+        denom_n+=math.exp(l*max(0,math.cos(angles_n[k]))-s_m)
 
     denom_m=1+denom_m
     denom_n=1+denom_n
 
     "calcul des numérateurs"
     for k in range(0,len(beta)):
-        p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_n))/denom_m
-        p_n=math.exp(l*(max(0,math.cos(angles_n[k]))-s_m))/denom_n
+        p_m=math.exp(l*(max(0,math.cos(angles_m[k]))-s_m))/denom_m
+        p_n=math.exp(l*(max(0,math.cos(angles_n[k]))-s_n))/denom_n
         proba_direction_m.append(p_m)
         proba_direction_n.append(p_n)
 
@@ -154,14 +148,14 @@ def next_point(origine_m,origine_n,destination):
     step_m=0
     step_n=0
 
-    if min(proba_direction_m)>p_0_m:
+    if max(proba_direction_m)<p_0_m:
         choosen_dir_m=0
         step_m=0
     else:
         choosen_dir_m=beta[proba_direction_m.index(min(proba_direction_m))]
-        step_m=0.8
+        step_m=0.2
 
-    if min(proba_direction_n)>p_0_n:
+    if max(proba_direction_n)<p_0_n:
             choosen_dir_n=0
             step_n=0
     else:

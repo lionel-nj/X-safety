@@ -1,0 +1,43 @@
+# ignore Eclipse stuff
+.project
+.settings
+log
+log4j.properties
+*/.project
+*/.settings/
+*/.classpath
+*/test-output
+*/.gitignore
+**/target/
+**/doc/
+bin/
+figs/
+csv/
+*.csv
+*.DS_Store
+.DS_Store?
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+._*
+*.internal_xml
+*.log
+*.log.*
+*.eps
+*~
+*.dot
+/.classpath
+# ignore others
+int
+*highscore*
+# ignore intellij
+.idea/
+*.iml
+# ignore tmp comments and mails
+README_xprj_addtl
+RoadSegment_Schelp.java
+Vehicle_Schelp.java
+sim/testing/*.txt
+/.metadata/
