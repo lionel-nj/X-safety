@@ -1,5 +1,0 @@
-# gnuplot command file
-
-ldm = "CCS"
-lang = "en"
-load "startStop.gpl"
