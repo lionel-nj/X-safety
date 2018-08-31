@@ -1,7 +1,7 @@
 
 from collections import deque # double-ended queue
 from numpy import random
-import simpy
+# import simpy
 from simpy import *
 
 
