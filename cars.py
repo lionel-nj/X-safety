@@ -25,6 +25,7 @@ def position_v(y,v,t):
 
 def position_h(y,v,t):
     return moving.Point(v*t+y,2000)
+
 number_of_cars=7
 
 class vehicules():
@@ -77,16 +78,17 @@ class vehicules():
 
         for t in range(0,t_simul):
             speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
-            # posV.append(position(posV[t-1].y,v0,1))
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
                 temp=position_v(posV[t-1].y,moving.Point.norm2(speed[t]),1)
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
+
         else:
             for t in range(1,t_simul):
                 temp=position_h(posV[t-1].x,moving.Point.norm2(speed[t]),1)
+
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
 
@@ -109,20 +111,22 @@ class vehicules():
 
             voie[k]=moving.MovingObject()
             voie[k].timeInterval=moving.Interval(intervals[k][0],300+intervals[k][0])
+
             if self.direction==moving.Point(0,1):
                 voie[k].positions=moving.Trajectory(positions=[[2000],[0]])
             else:
                 voie[k].positions=moving.Trajectory(positions=[[0],[2000]])
+
             voie[k].velocities=[moving.Point(0,0)]
             voie[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
             voie[k].userType=1
-
             for t in range(1,t_simul):
                 # p=moving.MovingObject.getPositions(voie[k])[t-1].y
                 if self.direction==moving.Point(0,1):
                     p=voie[k].positions[t-1].y
                 else:
                     p=voie[k].positions[t-1].x
+
                 v=moving.Point.norm2(moving.MovingObject.getVelocities(voie[k-1])[t])
                 velocite=self.direction.__mul__(moving.Point.norm2(v0))
                 new_position=position_v(p,moving.Point.norm2(velocite),t)
@@ -140,8 +144,8 @@ class vehicules():
                 if self.direction==moving.Point(0,1):
                     if velocite.y<0:
                         velocite=moving.Point(0,0)
-                        voie[k].velocities.append(velocite)
-                        voie[k].positions.addPosition(position_v(p,moving.Point.norm2(velocite),1))
+                    voie[k].velocities.append(velocite)
+                    voie[k].positions.addPosition(position_v(p,moving.Point.norm2(velocite),1))
                 else:
                     if velocite.x<0:
                         velocite=moving.Point(0,0)
