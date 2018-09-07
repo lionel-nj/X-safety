@@ -73,7 +73,7 @@ for t in range(0,t_simul):
 for t in range(1,t_simul):
     posH.append(position(posH[t-1].x,moving.Point.norm2(speed[t]),1))
 
-voie_horizontale[0].timeInterval=[0,300]
+voie_horizontale[0].timeInterval=moving.Interval(0,300)
 voie_horizontale[0].positions=posH
 voie_horizontale[0].velocities=speed
 voie_horizontale[0].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
@@ -91,7 +91,7 @@ for k in range(1,number_of_cars):
     L.append(l)
 
     voie_horizontale[k]=moving.MovingObject()
-    voie_horizontale[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
+    voie_horizontale[k].timeInterval=moving.Interval(intervals[k][0],300+intervals[k][0])
     voie_horizontale[k].positions=[moving.Point(0,2000)]
     voie_horizontale[k].velocities=[moving.Point(0,0)]
     voie_horizontale[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
