@@ -5,15 +5,20 @@ import random
 voie_verticale=cars.voie(moving.Point(0,1),'verticale.yml')
 voie_horizontale=cars.voie(moving.Point(1,0),'horizontale.yml')
 
-traj=cars.voie.generate_trajectories(voie_verticale)[0]
+traj_v=cars.voie.generate_trajectories(voie_verticale)[0]
+traj_h=cars.voie.generate_trajectories(voie_horizontale)[0]
+
 
 p=moving.Point(0,1000)
 n=10
 v=moving.Point(1,0).__mul__(random.normalvariate(1,0.2))
 ped=moving.MovingObject()
 ped.userType=2 #pieton
+ped.timeInterval=moving.Interval(30,40)
 ped.positions=moving.Trajectory.generate(p,v,n)[0]
 ped.velocities=[]
+
+traj_h[7]=ped
 
 def calcul_DY(obj1,obj2):
     a=moving.MovingObject.getPositionAt(obj1,0).y
@@ -45,7 +50,7 @@ def existing_users(voie1,voie2,t):
             rep.append(voie1[k])
     for k in range(0,len(voie2)):
         if moving.Interval.contains(voie2[k].getTimeInterval(),t):
-            rep.append(voie1[k])
+            rep.append(voie2[k])
     return rep
 
 def type_of_user_ahead(objet,t,voie1,voie2):
@@ -58,9 +63,10 @@ def type_of_user_ahead(objet,t,voie1,voie2):
             dist.append(calcul_DY(objet,k))
     return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
+t=30
 
-for k in range(0,len(traj)):
-    type_of_user_ahead(traj[k],t,voie_verticale,voie_horizontale)
+for k in range(0,len(traj_v)):
+    print(type_of_user_ahead(traj_h[k],t,traj_v,traj_h))
 
 # if ped.commonTimeInterval(voie_verticale[0].getTimeInterval()) not None:
     # k=0
