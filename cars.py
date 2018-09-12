@@ -13,10 +13,6 @@ from math import sqrt
 # import position from toolkit
 # import gap from toolkit
 
-
-
-
-
 t_stop=30
 t_marche1=30
 t_marche2=30
@@ -36,11 +32,11 @@ class voie():
 
     "fonctions de maj des positions"
 
-    def position_v(y,v,t):
-        return moving.Point(2000,v*t+y)
+    def position_v(y,v,t,p):
+        return moving.Point(p,v*t+y)
 
-    def position_h(y,v,t):
-        return moving.Point(v*t+y,2000)
+    def position_h(y,v,t,p):
+        return moving.Point(v*t+y,p)
 
     #fonction de génération des trajectoires
     def generate_trajectories(self):
@@ -89,13 +85,13 @@ class voie():
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
-                temp=voie.position_v(posV[t-1].y,moving.Point.norm2(speed[t]),1)
+                temp=voie.position_v(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
-                temp=voie.position_h(posV[t-1].x,moving.Point.norm2(speed[t]),1)
+                temp=voie.position_h(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
 
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
@@ -139,7 +135,7 @@ class voie():
 
                 v=moving.Point.norm2(moving.MovingObject.getVelocities(data_voie[k-1])[t])
                 velocite=self.direction.__mul__(moving.Point.norm2(v0))
-                new_position=voie.position_v(p,moving.Point.norm2(velocite),t)
+                new_position=voie.position_v(p,moving.Point.norm2(velocite),t,2000)
                 # s=gap(moving.MovingObject.getPositions(data_voie[k-1])[t].y,new_position.y,L[k-1])
                 if self.direction==moving.Point(0,1):
                     s=voie.gap(data_voie[k-1].positions[t].y,new_position.y,L[k-1])
@@ -182,7 +178,7 @@ class voie():
 
             for time in range(0,t_simul):
                 if self.direction==moving.Point(0,1):
-                    p[k].append(objet[0][k].positions[time].y)
+                    p[k].append  (objet[0][k].positions[time].y)
                     ylabel="position selon l'axe x"
                 else:
                     p[k].append(objet[0][k].positions[time].x)
