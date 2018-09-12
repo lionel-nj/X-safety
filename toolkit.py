@@ -117,14 +117,14 @@ def generateSampleFromSample(sample_size):
 
     return list(tempo)
 
-"fonction à améliorer"
-def in_cone(direction,l1,l2):
-    answer = False
-    # if l2>l1:
-    #     a=l1
-    #     b=l2
-    #     in_cone(direction,b,a)
-    # else:
-    if (direction<=l1) and (l2<=direction):
-        answer = True
-    return answer
+
+
+"fonction de mise a jour des gaps"
+
+def gap(x_leader,x_following,L_leader):
+    return x_leader-x_following-L_leader
+
+"fonction de maj des positions"
+
+def position(y,v,t):
+    return moving.Point(2000,v*t+y)
