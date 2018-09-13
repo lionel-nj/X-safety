@@ -8,6 +8,11 @@ voie_horizontale=cars.voie(moving.Point(1,0),'horizontale.yml')
 traj_v=cars.voie.generate_trajectories(voie_verticale)[0]
 traj_h=cars.voie.generate_trajectories(voie_horizontale)[0]
 
+for k in traj_v:
+    traj_v[k].type_voie='verticale'
+
+for k in traj_h:
+    traj_h[k].type_voie='horizontale'
 
 p=moving.Point(0,1000)
 n=10
@@ -17,8 +22,9 @@ ped.userType=2 #pieton
 ped.timeInterval=moving.Interval(30,40)
 ped.positions=moving.Trajectory.generate(p,v,n)[0]
 ped.velocities=[]
+ped.type_voie="test"
 
-traj_h[7]=ped
+# traj_h[7]=ped
 
 def calcul_DY(obj1,obj2):
     a=moving.MovingObject.getPositionAt(obj1,0).y
@@ -63,10 +69,17 @@ def type_of_user_ahead(objet,t,voie1,voie2):
             dist.append(calcul_DY(objet,k))
     return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
-t=30
-
-for k in range(0,len(traj_v)):
-    print(type_of_user_ahead(traj_h[k],t,traj_v,traj_h))
+# t=30
+#
+# def calcul_vitesse_distance(leader,follower,t):
+#     if not distance_min_verifiee_y(leader,follower,t):
+#         v=moving.Point.norm2(leader.velocities[t])
+#         L=leader.geometry.length-2*1.8)/2
+#         new_speed=(v*t-L-10)/t
+#         modifier_vitesse(follower,t,new_speed)
+#
+# for k in range(0,len(traj_v)):
+#     print(type_of_user_ahead(traj_h[k],t,traj_v,traj_h))
 
 # if ped.commonTimeInterval(voie_verticale[0].getTimeInterval()) not None:
     # k=0
