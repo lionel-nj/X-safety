@@ -151,12 +151,12 @@ class voie():
                     if velocite.y<0:
                         velocite=moving.Point(0,0)
                     data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.position_v(p,moving.Point.norm2(velocite),1))
+                    data_voie[k].positions.addPosition(voie.position_v(p,moving.Point.norm2(velocite),1,2000))
                 else:
                     if velocite.x<0:
                         velocite=moving.Point(0,0)
                     data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.position_h(p,moving.Point.norm2(velocite),1))
+                    data_voie[k].positions.addPosition(voie.position_h(p,moving.Point.norm2(velocite),1,2000))
 
 
                 # data_voie[k].positions.append(position(p,moving.Point.norm2(velocite),1))
@@ -178,7 +178,7 @@ class voie():
 
             for time in range(0,t_simul):
                 if self.direction==moving.Point(0,1):
-                    p[k].append  (objet[0][k].positions[time].y)
+                    p[k].append(objet[0][k].positions[time].y)
                     ylabel="position selon l'axe x"
                 else:
                     p[k].append(objet[0][k].positions[time].x)
