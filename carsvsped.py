@@ -77,14 +77,19 @@ class essai():
                 rep.append(self.ped[k])
         return rep
 
-    def type_of_user_ahead(self,objet,t):
+    def typeOfUserAhead(self,objet,t):
         dist=[]
         utilisateurs_existants=essai.existingUsers(self,t)
 
+        for k in range(0,len(utilisateurs_existants)):
+            if utilisateurs_existants[k]==objet:
+                utilisateurs_existants.pop(k)
+                break
+
         if objet.etiquette=='verticale':
             a=objet.positions[t].y
-            for k in utilisateurs_existants:
-                b=k.positions[t].y
+            for k in range (len(utilisateurs_existants)):
+                b=utilisateurs_existants[k].positions[t].y
                 d=b-a
                 if d<0:
                     dist.append(float('inf'))
@@ -93,8 +98,8 @@ class essai():
 
         elif objet.etiquette=='horizontale':
             a=objet.positions[t].x
-            for k in utilisateurs_existants:
-                b=k.positions[t].x
+            for k in range (len(utilisateurs_existants)):
+                b=utilisateurs_existants[k].positions[t].y
                 d=b-a
                 if d<0:
                     dist.append(float('inf'))
