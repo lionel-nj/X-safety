@@ -32,14 +32,14 @@ class voie():
 
     "fonctions de maj des positions"
 
-    def position_v(y,v,t,p):
+    def positionV(y,v,t,p):
         return moving.Point(p,v*t+y)
 
-    def position_h(y,v,t,p):
+    def positionH(y,v,t,p):
         return moving.Point(v*t+y,p)
 
     #fonction de génération des trajectoires
-    def generate_trajectories(self):
+    def generateTrajectories(self):
 
         "définition des instants de création des véhicules"
 
@@ -85,13 +85,13 @@ class voie():
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
-                temp=voie.position_v(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
+                temp=voie.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
-                temp=voie.position_h(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+                temp=voie.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
 
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
@@ -135,7 +135,7 @@ class voie():
 
                 v=moving.Point.norm2(moving.MovingObject.getVelocities(data_voie[k-1])[t])
                 velocite=self.direction.__mul__(moving.Point.norm2(v0))
-                new_position=voie.position_v(p,moving.Point.norm2(velocite),t,2000)
+                new_position=voie.positionV(p,moving.Point.norm2(velocite),t,2000)
                 # s=gap(moving.MovingObject.getPositions(data_voie[k-1])[t].y,new_position.y,L[k-1])
                 if self.direction==moving.Point(0,1):
                     s=voie.gap(data_voie[k-1].positions[t].y,new_position.y,L[k-1])
@@ -151,12 +151,12 @@ class voie():
                     if velocite.y<0:
                         velocite=moving.Point(0,0)
                     data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.position_v(p,moving.Point.norm2(velocite),1,2000))
+                    data_voie[k].positions.addPosition(voie.positionV(p,moving.Point.norm2(velocite),1,2000))
                 else:
                     if velocite.x<0:
                         velocite=moving.Point(0,0)
                     data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.position_h(p,moving.Point.norm2(velocite),1,2000))
+                    data_voie[k].positions.addPosition(voie.positionH(p,moving.Point.norm2(velocite),1,2000))
 
 
                 # data_voie[k].positions.append(position(p,moving.Point.norm2(velocite),1))
@@ -168,7 +168,7 @@ class voie():
         t=[]
         p=[]
         v=[]
-        objet=data_voie.generate_trajectories()
+        objet=data_voie.generateTrajectories()
         ylabel=''
 
         for k in range (0,number_of_cars):
