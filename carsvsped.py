@@ -77,23 +77,31 @@ class essai():
                 rep.append(self.ped[k])
         return rep
 
-    def type_of_user_ahead(objet,t,voie1,voie2):
+    def type_of_user_ahead(self,objet,t):
         dist=[]
-        utilisateurs_existants=existingUsers(voie1,voie2,t)
+        utilisateurs_existants=essai.existingUsers(self,t)
+
         if objet.etiquette=='verticale':
+            a=objet.positions[t].y
             for k in utilisateurs_existants:
-                if calcul_DY(objet,k)<0:
+                b=k.positions[t].y
+                d=b-a
+                if d<0:
                     dist.append(float('inf'))
                 else:
-                    dist.append(calcul_DY(objet,k))
-            return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
+                    dist.append(d)
+
         elif objet.etiquette=='horizontale':
+            a=objet.positions[t].x
             for k in utilisateurs_existants:
-                if calcul_DX(objet,k)<0:
+                b=k.positions[t].x
+                d=b-a
+                if d<0:
                     dist.append(float('inf'))
                 else:
-                    dist.append(calcul_DX(objet,k))
-            return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
+                    dist.append(d)
+
+        return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
 # t=30
 #
