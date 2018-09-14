@@ -15,7 +15,7 @@ for k in traj_h:
     traj_h[k].etiquette='horizontale'
 
 p=moving.Point(0,1000)
-n=10
+n=90
 v=moving.Point(1,0).__mul__(random.normalvariate(1,0.2))
 ped=moving.MovingObject()
 ped.userType=2 #pieton
@@ -35,15 +35,15 @@ class essai():
         self.voie2=voie2
         self.ped=ped
 
-    def calcul_DY(self,i,j,t):
-        a=moving.MovingObject.getPositionAt(self.voie1[i],t).y
-        b=moving.MovingObject.getPositionAt(self.voie2[j],t).y
-        return a-b
-
-    def calcul_DX(self,i,j,t):
-        a=moving.MovingObject.getPositionAt(self.voie1[i],t).x
-        b=moving.MovingObject.getPositionAt(self.voie2[j],t).x
-        return a-b
+    # def calcul_DY(self,i,j,t):
+    #     a=moving.MovingObject.getPositionAt(self.voie1[i],t).y
+    #     b=moving.MovingObject.getPositionAt(self.voie2[j],t).y
+    #     return a-b
+    #
+    # def calcul_DX(self,i,j,t):
+    #     a=moving.MovingObject.getPositionAt(self.voie1[i],t).x
+    #     b=moving.MovingObject.getPositionAt(self.voie2[j],t).x
+    #     return a-b
 
     def distanceMinVerifiee(self,direction,voie,i,j,t,dmin):
         if direction=='horizontale':
