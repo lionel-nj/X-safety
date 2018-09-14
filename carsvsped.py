@@ -107,31 +107,3 @@ class essai():
                     dist.append(d)
 
         return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
-
-# t=30
-#
-# def calcul_vitesse_distance(leader,follower,t):
-#     if not distanceMinVerifiee(leader,follower,t):
-#         v=moving.Point.norm2(leader.velocities[t])
-#         L=leader.geometry.length-2*1.8)/2
-#         new_speed=(v*t-L-10)/t
-#         modifier_vitesse(follower,t,new_speed)
-#
-# for k in range(0,len(traj_v)):
-#     print(type_of_user_ahead(traj_h[k],t,traj_v,traj_h))
-
-# if ped.commonTimeInterval(voie_verticale[0].getTimeInterval()) not None:
-    # k=0
-#     while traj[0].position[k].y<1000:
-#         calculer_DTy(car)
-#         calculder_DTx(ped)
-#         if DTy<DTx:
-#             modifier_vitesse(voiture,ped)
-#             distance_min_verifiee(leader,follower)
-    # k=k+1
-
-    # traj[0].velocities[k].y=v_souhaitee
-    # if not distance_min_verifiee(leader,follower):
-    #     modifier_vitesse(voiture,voiture)
-
-# ped.timeInterval=
