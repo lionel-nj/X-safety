@@ -19,7 +19,7 @@ t_marche2=30
 t_simul=t_marche1+t_marche2+t_stop
 number_of_cars=7
 
-class voie():
+class flow():
 
     def __init__(self,direction,nom_fichier_sortie): #direction est un vecteur de la forme moving.Point(x,y)
         self.direction=direction
@@ -64,8 +64,8 @@ class voie():
                 # Initialisation du premier véhicule
         ##########################################################
 
-        data_voie=dict()
-        data_voie[0]=moving.MovingObject()
+        data_flow=dict()
+        data_flow[0]=moving.MovingObject()
 
         l=random.normalvariate(6.5,0.3)
         L=[]
@@ -85,23 +85,23 @@ class voie():
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
-                temp=voie.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
+                temp=flow.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
-                temp=voie.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+                temp=flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
 
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
 
-        # data_voie[0].timeInterval=[0,300]
-        data_voie[0].timeInterval=moving.TimeInterval(0,300)
-        data_voie[0].positions=posV
-        data_voie[0].velocities=speed
-        data_voie[0].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-        data_voie[0].userType=1
+        # data_flow[0].timeInterval=[0,300]
+        data_flow[0].timeInterval=moving.TimeInterval(0,300)
+        data_flow[0].positions=posV
+        data_flow[0].velocities=speed
+        data_flow[0].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
+        data_flow[0].userType=1
 
 
         ##########################################################
@@ -114,33 +114,33 @@ class voie():
             l=random.uniform(6,8)
             L.append(l)
 
-            data_voie[k]=moving.MovingObject()
-            # data_voie[k].timeInterval=[intervals[k][0],300+intervals[k][0]]
-            data_voie[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
+            data_flow[k]=moving.MovingObject()
+            # data_flow[k].timeInterval=[intervals[k][0],300+intervals[k][0]]
+            data_flow[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
 
             if self.direction==moving.Point(0,1):
-                data_voie[k].positions=moving.Trajectory(positions=[[2000],[0]])
+                data_flow[k].positions=moving.Trajectory(positions=[[2000],[0]])
             else:
-                data_voie[k].positions=moving.Trajectory(positions=[[0],[2000]])
+                data_flow[k].positions=moving.Trajectory(positions=[[0],[2000]])
 
-            data_voie[k].velocities=[moving.Point(0,0)]
-            data_voie[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-            data_voie[k].userType=1
+            data_flow[k].velocities=[moving.Point(0,0)]
+            data_flow[k].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
+            data_flow[k].userType=1
             for t in range(1,t_simul):
-                # p=moving.MovingObject.getPositions(data_voie[k])[t-1].y
+                # p=moving.MovingObject.getPositions(data_flow[k])[t-1].y
                 if self.direction==moving.Point(0,1):
-                    p=data_voie[k].positions[t-1].y
+                    p=data_flow[k].positions[t-1].y
                 else:
-                    p=data_voie[k].positions[t-1].x
+                    p=data_flow[k].positions[t-1].x
 
-                v=moving.Point.norm2(moving.MovingObject.getVelocities(data_voie[k-1])[t])
+                v=moving.Point.norm2(moving.MovingObject.getVelocities(data_flow[k-1])[t])
                 velocite=self.direction.__mul__(moving.Point.norm2(v0))
-                new_position=voie.positionV(p,moving.Point.norm2(velocite),t,2000)
-                # s=gap(moving.MovingObject.getPositions(data_voie[k-1])[t].y,new_position.y,L[k-1])
+                new_position=flow.positionV(p,moving.Point.norm2(velocite),t,2000)
+                # s=gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
                 if self.direction==moving.Point(0,1):
-                    s=voie.gap(data_voie[k-1].positions[t].y,new_position.y,L[k-1])
+                    s=flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
                 else:
-                    s=voie.gap(data_voie[k-1].positions[t].x,new_position.x,L[k-1])
+                    s=flow.gap(data_flow[k-1].positions[t].x,new_position.x,L[k-1])
 
                 smin=7
 
@@ -150,25 +150,25 @@ class voie():
                 if self.direction==moving.Point(0,1):
                     if velocite.y<0:
                         velocite=moving.Point(0,0)
-                    data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.positionV(p,moving.Point.norm2(velocite),1,2000))
+                    data_flow[k].velocities.append(velocite)
+                    data_flow[k].positions.addPosition(flow.positionV(p,moving.Point.norm2(velocite),1,2000))
                 else:
                     if velocite.x<0:
                         velocite=moving.Point(0,0)
-                    data_voie[k].velocities.append(velocite)
-                    data_voie[k].positions.addPosition(voie.positionH(p,moving.Point.norm2(velocite),1,2000))
+                    data_flow[k].velocities.append(velocite)
+                    data_flow[k].positions.addPosition(flow.positionH(p,moving.Point.norm2(velocite),1,2000))
 
 
-                # data_voie[k].positions.append(position(p,moving.Point.norm2(velocite),1))
+                # data_flow[k].positions.append(position(p,moving.Point.norm2(velocite),1))
 
-        create_yaml(self.nom_fichier_sortie,data_voie)
-        return data_voie, intervals
+        create_yaml(self.nom_fichier_sortie,data_flow)
+        return data_flow, intervals
 
-    def trace(self,data_voie):
+    def trace(self,data_flow):
         t=[]
         p=[]
         v=[]
-        objet=data_voie.generateTrajectories()
+        objet=data_flow.generateTrajectories()
         ylabel=''
 
         for k in range (0,number_of_cars):
