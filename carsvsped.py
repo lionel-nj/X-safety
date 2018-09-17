@@ -5,8 +5,8 @@ import random
 voie_verticale=cars.voie(moving.Point(0,1),'verticale.yml')
 voie_horizontale=cars.voie(moving.Point(1,0),'horizontale.yml')
 
-traj_v=cars.voie.generate_trajectories(voie_verticale)[0]
-traj_h=cars.voie.generate_trajectories(voie_horizontale)[0]
+traj_v=voie_verticale.generateTrajectories()[0]
+traj_h=cars.voie.generateTrajectories(voie_horizontale)[0]
 
 for k in traj_v:
     traj_v[k].etiquette='verticale'
