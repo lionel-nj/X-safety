@@ -97,7 +97,7 @@ class voie():
                 posV.positions[1].append(temp.y)
 
         # data_voie[0].timeInterval=[0,300]
-        data_voie[0].timeInterval=moving.Interval(0,300)
+        data_voie[0].timeInterval=moving.TimeInterval(0,300)
         data_voie[0].positions=posV
         data_voie[0].velocities=speed
         data_voie[0].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
@@ -116,7 +116,7 @@ class voie():
 
             data_voie[k]=moving.MovingObject()
             # data_voie[k].timeInterval=[intervals[k][0],300+intervals[k][0]]
-            data_voie[k].timeInterval=moving.Interval(intervals[k][0],300+intervals[k][0])
+            data_voie[k].timeInterval=moving.TimeInterval(intervals[k][0],300+intervals[k][0])
 
             if self.direction==moving.Point(0,1):
                 data_voie[k].positions=moving.Trajectory(positions=[[2000],[0]])
