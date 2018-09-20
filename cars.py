@@ -25,17 +25,18 @@ class flow():
         self.direction=direction
         self.nom_fichier_sortie=nom_fichier_sortie
 
-    "fonction de mise a jour des gaps"
 
     def gap(x_leader,x_following,L_leader):
+        "fonction de mise a jour des gaps"
         return x_leader-x_following-L_leader
 
-    "fonctions de maj des positions"
 
     def positionV(y,v,t,p):
+        "fonctions de maj des positions"
         return moving.Point(p,v*t+y)
 
     def positionH(y,v,t,p):
+        "fonctions de maj des positions"
         return moving.Point(v*t+y,p)
 
     #fonction de génération des trajectoires
@@ -142,7 +143,7 @@ class flow():
                 else:
                     s=flow.gap(data_flow[k-1].positions[t].x,new_position.x,L[k-1])
 
-                smin=7
+                smin=25
 
                 if s<smin:
                     velocite=self.direction.__mul__((v*t-L[k-1]-smin)/t)
