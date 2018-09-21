@@ -21,7 +21,7 @@ Exemple de cr"ation d'une scène :
 ```
 test_mone=world(None,None,None)
 test.initialise()
-
+```
 
 ## descritipn du toolkit
 
