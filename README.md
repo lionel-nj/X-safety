@@ -17,7 +17,7 @@ Ce fichier regroupe les éléments permettant de caractériser les relations ent
 
 world est la classe qui permet de lier les objets entre eux. 
 
-Exemple de cr"ation d'une scène : 
+Exemple de création d'une scène : 
 ```
 test_mone=world(None,None,None)
 test.initialise()
