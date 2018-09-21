@@ -123,16 +123,18 @@ class essai():
             return False,d
 
     def countEncounters(self,dmin):
+        #non fonctunneol pour 'instant'
         colonnes=len(self.flow_vertical)
         lignes=len(self.flow_horizontal)
         matrix=[([0]*colonnes)]*lignes
 
-        for v in self.flow_vertical:
-            v1
-            for h in self.flow_horizontal:
-                for t in range(0,90):
-                    if essai.isAnEncounter(self,v,h,t,dmin) == True:
-                        matrix[flow_vertical.keys())[flow_vertical.values().index(v)]][flow_horizontal.keys())[flow_horizontal.values().index(h)]]
+        for h in range (len(self.flow_horizontal)):
+            for v in range(len(self.flow_vertical)):
+                if matrix[h][v] == 0:
+                    matrix[h][v]=(h,None)
+                # for t in range(0,90):
+                #     if essai.isAnEncounter(self,v,h,t,dmin) == True:
+                #         matrix[flow_vertical.keys())[flow_vertical.values().index(v)]][flow_horizontal.keys())[flow_horizontal.values().index(h)]]
         return matrix
     # def countEncounters(self,dmin):
     #     colonnes=len(self.flow_vertical)
