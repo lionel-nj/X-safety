@@ -122,31 +122,33 @@ class world():
         else:
             return False,d
 
-    def countEncounters(self,dmin):
+    def matrixHV(self):
         #non fonctunneol pour 'instant'
         colonnes=len(self.flow_vertical)
         lignes=len(self.flow_horizontal)
         matrix=[([0]*colonnes)]*lignes
 
-        for h in range (len(self.flow_horizontal)):
-            for v in range(len(self.flow_vertical)):
-                if matrix[h][v] == 0:
-                    matrix[h][v]=(h,None)
+        for h in range(colonnes):
+            matrix[h]=[(h,None)]*lignes
+
+        for h in range(colonnes):
+            for v in range(lignes):
+                matrix[h][v]=(h,v)
+
                 # for t in range(0,90):
                 #     if world.isAnEncounter(self,v,h,t,dmin) == True:
                 #         matrix[flow_vertical.keys())[flow_vertical.values().index(v)]][flow_horizontal.keys())[flow_horizontal.values().index(h)]]
         return matrix
-    # def countEncounters(self,dmin):
-    #     colonnes=len(self.flow_vertical)
-    #     lignes=len(self.flow_horizontal)
-    #     matrix=[([0]*colonnes)]*lignes
-    #     c=0
-    #
-    #     for v in range(colonnes):
-    #         for h in range(lignes):
-    #             for t in range(len(self.flow_vertical[0].positions)):
-    #                 if world.isAnEncounter(self,v,h,t,dmin)[0]==True:
-    #                     matrix[h][v]=(v,h,t)
-    #             if matrix[h][v] !=0:
-    #                 c=c+1
-    #     return c,matrix
+
+    def countEncounters(self,dmin):
+        colonnes=len(self.flow_vertical)
+        lignes=len(self.flow_horizontal)
+        matrice=world.matrixHV(self)
+        c=0
+
+        for line in matrice:
+            for pair in range(0,len(line)):
+                for t in range(90):
+                    if world.isAnEncounter(self,line[pair][1],line[pair][0],t,dmin)[0]==True and :
+                        line[pair]=t
+        return matrice
