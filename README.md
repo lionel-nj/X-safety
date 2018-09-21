@@ -22,7 +22,7 @@ Exemple de création d'une scène :
 test_monde=world(None,None,None)
 test.initialise()
 ```
-
+* countEncounters : pas encore fonctionelle
 ## descritipn du toolkit
 
 * load_yml -> permet de charger un fichier yaml.  
