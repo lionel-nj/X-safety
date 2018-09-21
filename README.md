@@ -19,7 +19,7 @@ world est la classe qui permet de lier les objets entre eux.
 
 Exemple de création d'une scène : 
 ```
-test_mone=world(None,None,None)
+test_monde=world(None,None,None)
 test.initialise()
 ```
 
