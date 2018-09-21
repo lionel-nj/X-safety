@@ -58,17 +58,17 @@ def delete_yaml(file, key):
 # def save_scene():
 
 
-def save_object_to_pickle(data,name):
-    with open(name, 'wb') as output:  # Overwrites any existing file.
-        pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
-    output.close()
-
-def open_pickel_file(file):
-    pkl_file=open(file,'rb')
-    data=pickle.load(pkl_file)
-    pkl_file.close()
-
-    return(data)
+# def save_object_to_pickle(data,name):
+#     with open(name, 'wb') as output:  # Overwrites any existing file.
+#         pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
+#     output.close()
+#
+# def open_pickel_file(file):
+#     pkl_file=open(file,'rb')
+#     data=pickle.load(pkl_file)
+#     pkl_file.close()
+#
+#     return(data)
 
 
 def generateSampleFromSample(sample_size):
@@ -118,13 +118,13 @@ def generateSampleFromSample(sample_size):
     return list(tempo)
 
 
-
-"fonction de mise a jour des gaps"
-
-def gap(x_leader,x_following,L_leader):
-    return x_leader-x_following-L_leader
-
-"fonction de maj des positions"
-
-def position(y,v,t):
-    return moving.Point(2000,v*t+y)
+#
+# "fonction de mise a jour des gaps"
+#
+# def gap(x_leader,x_following,L_leader):
+#     return x_leader-x_following-L_leader
+#
+# "fonction de maj des positions"
+#
+# def position(y,v,t):
+#     return moving.Point(2000,v*t+y)

@@ -1,6 +1,7 @@
 import csv
 import pandas as pd
 
+#extraction des TIV à partir d'un fichier NGSIM
 data=pd.read_csv('trajectories.csv',sep=';',header=0)
 
 lane=1

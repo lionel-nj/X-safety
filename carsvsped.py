@@ -28,7 +28,7 @@ cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0
 # pietons=dict()
 # pietons[0]=ped
 
-class essai():
+class world():
 
     def __init__(self,flow_vertical,flow_horizontal,ped):
         self.flow_vertical=flow_vertical
@@ -44,7 +44,7 @@ class essai():
     #     a=moving.MovingObject.getPositionAt(self.flow_vertical[i],t).x
     #     b=moving.MovingObject.getPositionAt(self.flow_horizontal[j],t).x
     #     return a-b
-    def initialize(self):
+    def initialise(self):
          self.flow_vertical=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
          self.flow_horizontal=cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
          self.ped=None
@@ -83,7 +83,7 @@ class essai():
 
     def typeOfUserAhead(self,objet,t):
         dist=[]
-        utilisateurs_existants=essai.existingUsers(self,t)
+        utilisateurs_existants=world.existingUsers(self,t)
 
         for k in range(0,len(utilisateurs_existants)):
             if utilisateurs_existants[k]==objet:
@@ -133,7 +133,7 @@ class essai():
                 if matrix[h][v] == 0:
                     matrix[h][v]=(h,None)
                 # for t in range(0,90):
-                #     if essai.isAnEncounter(self,v,h,t,dmin) == True:
+                #     if world.isAnEncounter(self,v,h,t,dmin) == True:
                 #         matrix[flow_vertical.keys())[flow_vertical.values().index(v)]][flow_horizontal.keys())[flow_horizontal.values().index(h)]]
         return matrix
     # def countEncounters(self,dmin):
@@ -145,7 +145,7 @@ class essai():
     #     for v in range(colonnes):
     #         for h in range(lignes):
     #             for t in range(len(self.flow_vertical[0].positions)):
-    #                 if essai.isAnEncounter(self,v,h,t,dmin)[0]==True:
+    #                 if world.isAnEncounter(self,v,h,t,dmin)[0]==True:
     #                     matrix[h][v]=(v,h,t)
     #             if matrix[h][v] !=0:
     #                 c=c+1

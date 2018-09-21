@@ -162,6 +162,7 @@ class flow():
 
                 # data_flow[k].positions.append(position(p,moving.Point.norm2(velocite),1))
 
+        #porttion de sauvegarde à séparer du reste
         create_yaml(self.nom_fichier_sortie,data_flow)
         return data_flow, intervals
 
