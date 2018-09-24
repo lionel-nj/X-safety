@@ -4,7 +4,7 @@
 
 Ce fichier regroupe les éléments qui permettent de créer un flow. Un flow
 est une flotte de véhicules circulant sur une voie.
-La classe flow prend comme attribut : un vecteur directiogn (0,1) ou (1,0), selon que le véhicule soit sur une voie horizontale ou verticale.  
+La classe flow prend comme attribut : un vecteur direction (0,1) ou (1,0), selon que le véhicule soit sur une voie horizontale ou verticale.  
 
 * generate_trajectories :  
 input : flow
