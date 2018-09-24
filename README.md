@@ -2,12 +2,8 @@
 
 ## Fichier cars.py
 
-<<<<<<< HEAD
-Ce fichier regroupe les éléments qui permettent de créer un flow. Un flow
-=======
 Ce fichier regroupe les éléments qui permettent de créer un flow. Un flow 
->>>>>>> 38b41e5e99ad6ee834712b182bff93648de3a21f
-est une flotte de véhicules ciruclant sur une voie.
+est une flotte de véhicules circulant sur une voie.
 La classe flow prend comme attribut : un vecteur direction (0,1) ou (1,0), selon que le véhicule soit sur une voie horizontale ou verticale.  
 
 * generate_trajectories :  
@@ -17,19 +13,11 @@ crée un fichier yaml où les données sont sauvegardée. (cette dernière parti
 
 ## Fichier carsvsped.py
 
-<<<<<<< HEAD
 Ce fichier regroupe les éléments permettant de caractériser les relations entre les objets mouvants présents.
 
 world est la classe qui permet de lier les objets entre eux.
 
 Exemple de création d'une scène :
-=======
-Ce fichier regroupe les éléments permettant de caractériser les relations entre les objets mouvants présents. 
-
-world est la classe qui permet de lier les objets entre eux. 
-
-Exemple de création d'une scène : 
->>>>>>> 38b41e5e99ad6ee834712b182bff93648de3a21f
 ```
 test_monde=world(None,None,None)
 test.initialise()
@@ -53,7 +41,6 @@ input : 'fichier d'origine', element à aouter, clé où ajouter l'élement au d
 input : 'nom du fichier à traiter', donnée, clé
 
 * delete_yaml -> permet de supprimer un element d'un fichier yaml.  
-<<<<<<< HEAD
 input : 'nom du fichier', clé de l'élement à supprimer.
 
 Les fonctions delete, add, update, supposent que l'on traite des données sous forme de dictionnaire.
@@ -62,14 +49,3 @@ Les fonctions delete, add, update, supposent que l'on traite des données sous f
 * generateSampleFromSample : permet de générer un échantillon à partir d'une distribution empirique.
 input : taille de l'échantillon.  
 Actuelemment, la fonction générèe les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique.
-=======
-input : 'nom du fichier', clé de l'élement à supprimer. 
-
-Les fonctions delete, add, update, supposent que l'on traite des données sous forme de dictionnaire. 
-
-
-* generateSampleFromSample : permet de générer un échantillon à partir d'une distribution empirique. 
-input : taille de l'échantillon.  
-Actuelemment, la fonction générèe les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique. 
-
->>>>>>> 38b41e5e99ad6ee834712b182bff93648de3a21f
