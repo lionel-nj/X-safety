@@ -29,10 +29,19 @@ import toolkit
 # pietons=dict()
 # pietons[0]=ped
 
+class Link():
+
+    def __init__(self,departure_point,arrival_point):
+        self.departure_point=departure_point
+        self.arrival_point=arrival_point
+
+
 class Alignment():
     #voie
-    def __init__(self,alignment_number,points,width,control_device,flow,pedestrians=None):
+    def __init__(self,alignment_number,points,links,width,control_device,flow,pedestrians=None):
+        self.alignment_number=alignment_number
         self.points=points
+        self.links=links
         self.width=width
         self.controlDevice=controlDevice
         self.flow=flow
@@ -41,9 +50,16 @@ class Alignment():
 
 class ControlDevice():
     #outil de control
-    def __init__(self,point,alignment):
+
+    types={'stop':0,
+          'yield':1,
+          'red light':2}
+          
+    def __init__(self,point,alignment,type):
         self.point=point
         self.alignment=alignment
+        self.type=type
+
 
     def getPositionOfControlDevice(self):
         return moving.MovingObject.Point(moving.MovingObject.getXCoordinates(self),moving.MovingObject.getYCoordinates(self))
@@ -150,7 +166,7 @@ class World():
         matrix=[([0]*colonnes)]*lignes
 
         for h in range(colonnes):
-            matrix[h]=[(h,None)]*lignes
+            matrix[h]=[(None,None)]*lignes
 
         for h in range(colonnes):
             for v in range(lignes):
@@ -165,10 +181,14 @@ class World():
         matrix=[([0]*columns)]*lines
         c=0
 
-        for v in range(columns):
-            for h in range(lines):
-                for t in range(90):
-                    if self.isAnEncounter(matrice[h][v][0],matrice[h][v][1],t,dmin)==True:
+        for h in range(columns):
+            matrix[h]=[(0,0)]*lines
+
+        for t in range(90):
+            for v in range(columns):
+                for h in range(lines):
+                    # print(h,v,self.isAnEncounter(h,v,t,500))
+                    if self.isAnEncounter(h,v,t,dmin)[0]==True and matrix[h][v]==(0,0) :
                         matrix[h][v]=(h,v,t)
-                        break
-        return matrix
+                        c=c+1
+        return matrix,c
