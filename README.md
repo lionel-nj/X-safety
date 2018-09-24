@@ -46,7 +46,7 @@ input : 'nom du fichier', clé de l'élement à supprimer.
 Les fonctions delete, add, update, supposent que l'on traite des données sous forme de dictionnaire. 
 
 
-* generateSampleFromSample : permet de géénrer un échantillon à partir d'une distribution empirique. 
+* generateSampleFromSample : permet de générer un échantillon à partir d'une distribution empirique. 
 input : taille de l'échantillon.  
 Actuelemment, la fonction générèe les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique. 
 
