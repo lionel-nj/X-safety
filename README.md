@@ -1,6 +1,6 @@
 # Outil de simulation des interactions entre usagers de la route
 
-## fichier cars.py
+## Fichier cars.py
 
 Ce fichier regroupe les éléments qui permettent de créer un flow. Un flow 
 est une flotte de véhicules ciruclant sur une voie.
@@ -11,7 +11,7 @@ input : flow
 output : données de flow d'une voie
 crée un fichier yaml où les données sont sauvegardée. (cette dernière partie sera détachée de la fonctin de génération).
 
-## fichier carsvsped.py
+## Fichier carsvsped.py
 
 Ce fichier regroupe les éléments permettant de caractériser les relations entre les objets mouvants présents. 
 
