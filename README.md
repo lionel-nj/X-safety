@@ -1,4 +1,4 @@
-# projetmaitrise
+# Outil de simulation des interactions entre usagers de la route
 
 ## fichier cars.py
 
