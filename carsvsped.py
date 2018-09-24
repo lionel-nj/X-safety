@@ -54,7 +54,7 @@ class ControlDevice():
     types={'stop':0,
           'yield':1,
           'red light':2}
-          
+
     def __init__(self,point,alignment,type):
         self.point=point
         self.alignment=alignment
@@ -85,6 +85,7 @@ class World():
          self.ped_v=None
 
     def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
+        
         if direction=='horizontale':
             if flow==1:
                 if cars.gap(self.flow_vertical[i].positions[t].x,self.flow_vertical[j].positions[t].x,(self.flow_vertical[i].geometry.length-2*1.8)/2)>dmin:
@@ -104,6 +105,7 @@ class World():
                 return False
 
     def existingUsers(self,t):
+
         rep=[]
         for k in range(0,len(self.flow_vertical)):
             if moving.Interval.contains(self.flow_vertical[k].getTimeInterval(),t):
@@ -120,6 +122,7 @@ class World():
         return rep
 
     def typeOfUserAhead(self,objet,t):
+
         dist=[]
         utilisateurs_existants=World.existingUsers(self,t)
 
@@ -151,6 +154,7 @@ class World():
         return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
     def isAnEncounter(self,i,j,t,dmin):
+
         p1=self.flow_vertical[i].positions[t]
         p2=self.flow_horizontal[j].positions[t]
         d=moving.Point.distanceNorm2(p1,p2)
@@ -160,21 +164,22 @@ class World():
         else:
             return False,d
 
-    def matrixHV(self):
-        colonnes=len(self.flow_vertical)
-        lignes=len(self.flow_horizontal)
-        matrix=[([0]*colonnes)]*lignes
-
-        for h in range(colonnes):
-            matrix[h]=[(None,None)]*lignes
-
-        for h in range(colonnes):
-            for v in range(lignes):
-                matrix[h][v]=(h,v)
-
-        return matrix
+    # def matrixHV(self):
+    #     colonnes=len(self.flow_vertical)
+    #     lignes=len(self.flow_horizontal)
+    #     matrix=[([0]*colonnes)]*lignes
+    #
+    #     for h in range(colonnes):
+    #         matrix[h]=[(None,None)]*lignes
+    #
+    #     for h in range(colonnes):
+    #         for v in range(lignes):
+    #             matrix[h][v]=(h,v)
+    #
+    #     return matrix
 
     def countEncounters(self,dmin):
+
         columns=len(self.flow_vertical)
         lines=len(self.flow_horizontal)
         matrice=World.matrixHV(self)
