@@ -23,7 +23,7 @@ test_monde=world(None,None,None)
 test.initialise()
 ```
 * countEncounters : pas encore fonctionelle
-## descritipn du toolkit
+## Descrition du toolkit
 
 * load_yml -> permet de charger un fichier yaml.  
 input : 'nom du fichier.yml'
