@@ -1,12 +1,13 @@
 import cars
 from trafficintelligence import moving
 import random
+import toolkit
 
-flow_verticale=cars.flow(moving.Point(0,1),'verticale.yml')
-flow_horizontale=cars.flow(moving.Point(1,0),'horizontale.yml')
-
-traj_v=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
+# flow_verticale=cars.flow(moving.Point(0,1),'verticale.yml')
+# flow_horizontale=cars.flow(moving.Point(1,0),'horizontale.yml')
+#
+# traj_v=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
+# cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
 #
 # for k in traj_v:
 #     traj_v[k].etiquette='verticale'
@@ -28,26 +29,44 @@ cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0
 # pietons=dict()
 # pietons[0]=ped
 
-class world():
+class Alignment():
+    #voie
+    def __init__(self,alignment_number,points,width,control_device,flow,pedestrians=None):
+        self.points=points
+        self.width=width
+        self.controlDevice=controlDevice
+        self.flow=flow
+        self.pedestrians=None
 
-    def __init__(self,flow_vertical,flow_horizontal,ped):
+
+class ControlDevice():
+    #outil de control
+    def __init__(self,point,alignment):
+        self.point=point
+        self.alignment=alignment
+
+    def getPositionOfControlDevice(self):
+        return moving.MovingObject.Point(moving.MovingObject.getXCoordinates(self),moving.MovingObject.getYCoordinates(self))
+
+    def getAlignmentOfControlDevice(self):
+        return self.alignment_number
+
+class World():
+    #monde
+    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v):
         self.flow_vertical=flow_vertical
         self.flow_horizontal=flow_horizontal
-        self.ped=ped
+        self.ped_h=ped_h
+        self.ped_v=ped_v
 
-    # def calcul_DY(self,i,j,t):
-    #     a=moving.MovingObject.getPositionAt(self.flow_vertical[i],t).y
-    #     b=moving.MovingObject.getPositionAt(self.flow_horizontal[j],t).y
-    #     return a-b
-    #
-    # def calcul_DX(self,i,j,t):
-    #     a=moving.MovingObject.getPositionAt(self.flow_vertical[i],t).x
-    #     b=moving.MovingObject.getPositionAt(self.flow_horizontal[j],t).x
-    #     return a-b
+    def saveWorld(self):
+        toolkit.create_yaml('World.yml',dict(self))
+
     def initialise(self):
          self.flow_vertical=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
          self.flow_horizontal=cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
-         self.ped=None
+         self.ped_h=None
+         self.ped_v=None
 
     def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
         if direction=='horizontale':
@@ -76,14 +95,17 @@ class world():
         for k in range(0,len(self.flow_horizontal)):
             if moving.Interval.contains(self.flow_horizontal[k].getTimeInterval(),t):
                 rep.append(self.flow_horizontal[k])
-        for k in range(0,len(self.ped)):
-            if moving.Interval.contains(self.ped[k].getTimeInterval(),t):
-                rep.append(self.ped[k])
+        for k in range(0,len(self.ped_h)):
+            if moving.Interval.contains(self.ped_h[k].getTimeInterval(),t):
+                rep.append(self.ped_h[k])
+        for k in range(0,len(self.ped_v)):
+            if moving.Interval.contains(self.ped_v[k].getTimeInterval(),t):
+                rep.append(self.ped_v[k])
         return rep
 
     def typeOfUserAhead(self,objet,t):
         dist=[]
-        utilisateurs_existants=world.existingUsers(self,t)
+        utilisateurs_existants=World.existingUsers(self,t)
 
         for k in range(0,len(utilisateurs_existants)):
             if utilisateurs_existants[k]==objet:
@@ -123,7 +145,6 @@ class world():
             return False,d
 
     def matrixHV(self):
-        #non fonctunneol pour 'instant'
         colonnes=len(self.flow_vertical)
         lignes=len(self.flow_horizontal)
         matrix=[([0]*colonnes)]*lignes
@@ -135,20 +156,19 @@ class world():
             for v in range(lignes):
                 matrix[h][v]=(h,v)
 
-                # for t in range(0,90):
-                #     if world.isAnEncounter(self,v,h,t,dmin) == True:
-                #         matrix[flow_vertical.keys())[flow_vertical.values().index(v)]][flow_horizontal.keys())[flow_horizontal.values().index(h)]]
         return matrix
 
     def countEncounters(self,dmin):
-        colonnes=len(self.flow_vertical)
-        lignes=len(self.flow_horizontal)
-        matrice=world.matrixHV(self)
+        columns=len(self.flow_vertical)
+        lines=len(self.flow_horizontal)
+        matrice=World.matrixHV(self)
+        matrix=[([0]*columns)]*lines
         c=0
 
-        for line in matrice:
-            for pair in range(0,len(line)):
+        for v in range(columns):
+            for h in range(lines):
                 for t in range(90):
-                    if world.isAnEncounter(self,line[pair][1],line[pair][0],t,dmin)[0]==True and :
-                        line[pair]=t
-        return matrice
+                    if self.isAnEncounter(matrice[h][v][0],matrice[h][v][1],t,dmin)==True:
+                        matrix[h][v]=(h,v,t)
+                        break
+        return matrix
