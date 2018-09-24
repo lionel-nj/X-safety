@@ -10,7 +10,6 @@ import collections
 import itertools
 from scipy.stats import rv_continuous
 from trafficintelligence import utils
-import pprint, pickle
 
 def load_yml(file):
     return yaml.load(open(file))
@@ -51,24 +50,16 @@ def delete_yaml(file, key):
     except:
         print("the key requested does not exist in the yaml file")
 
-# def load_scene(file_of_scene,file_of_parameters):
-#     load(file_of_scene) #file of scene is a yaml file
-#     load(file_of_parameters) #file of parameters is a yaml file
-#
-# def save_scene():
+def save_scene(alignments,controlDevice,world,name_of_file):
 
+    data = {'alignments' = alignments,
+              'controlDevice' = controlDevice,
+              'world' = world}
 
-# def save_object_to_pickle(data,name):
-#     with open(name, 'wb') as output:  # Overwrites any existing file.
-#         pickle.dump(data, output, pickle.HIGHEST_PROTOCOL)
-#     output.close()
-#
-# def open_pickel_file(file):
-#     pkl_file=open(file,'rb')
-#     data=pickle.load(pkl_file)
-#     pkl_file.close()
-#
-#     return(data)
+    return create_yaml(name_of_file,data)
+
+def load_scene(scene):
+    return load_yml(scene)
 
 
 def generateSampleFromSample(sample_size):
@@ -116,15 +107,3 @@ def generateSampleFromSample(sample_size):
     create_yaml('headway_sample.yml',generateSampleFromSample.tivdistrib)
 
     return list(tempo)
-
-
-#
-# "fonction de mise a jour des gaps"
-#
-# def gap(x_leader,x_following,L_leader):
-#     return x_leader-x_following-L_leader
-#
-# "fonction de maj des positions"
-#
-# def position(y,v,t):
-#     return moving.Point(2000,v*t+y)
