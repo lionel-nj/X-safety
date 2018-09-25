@@ -3,41 +3,17 @@ from trafficintelligence import moving
 import random
 import toolkit
 
-# flow_verticale=cars.flow(moving.Point(0,1),'verticale.yml')
-# flow_horizontale=cars.flow(moving.Point(1,0),'horizontale.yml')
-#
-# traj_v=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-# cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
-#
-# for k in traj_v:
-#     traj_v[k].etiquette='verticale'
-#
-# for k in traj_h:
-#     traj_h[k].etiquette='horizontale'
-#
-# p=moving.Point(0,1000)
-# n=90
-# v=moving.Point(1,0).__mul__(random.normalvariate(1,0.2))
-# ped=moving.MovingObject()
-# ped.userType=2 #pieton
-# ped.timeInterval=moving.Interval(30,40)
-# ped.positions=moving.Trajectory.generate(p,v,n)[0]
-# ped.velocities=[]
-# ped.type_flow='test'
-# ped.etiquette='horizontale'
-#
-# pietons=dict()
-# pietons[0]=ped
 
 
-
-class Alignment():
-    #représentation des voies
-    def __init__(self,alignment_number,points,links,width,control_device):
+class Alignment(object):
+    #représentation des voies : liste de points
+    def __init__(self,alignment_number=None,points=[],width=None):
         self.alignment_number=alignment_number
         self.points=points
         self.width=width
 
+    def __repr__(self):
+        return "alignment_number: {}, width:{}".format(self.alignment_number, self.width)
 
 class ControlDevice():
     #outil de control
@@ -46,10 +22,13 @@ class ControlDevice():
           'yield':1,
           'red light':2}
 
-    def __init__(self,point,alignment,type):
-        self.point=point
+    def __init__(self,position=None,alignment=None,type=None):
+        self.position=position
         self.alignment=alignment
         self.type=type
+
+    def __repr__(self):
+        return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment, self.type)
 
 
     def getPositionOfControlDevice(self):
@@ -60,22 +39,40 @@ class ControlDevice():
 
 class World():
     #monde
-    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v,horizontal_alignment,vertical_alignment):
+    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v,horizontal_alignment,vertical_alignment,control_device):
         self.flow_vertical=flow_vertical
         self.flow_horizontal=flow_horizontal
         self.ped_h=ped_h
         self.ped_v=ped_v
         self.horizontal_alignment=horizontal_alignment
         self.vertical_alignment=vertical_alignment
+        self.control_device=control_device
+
+    def __repr__(self):
+        return "flow_vertical: {}, flow_horizontal: {}, ped_h: {}, ped_v: {}, horizontal_alignment: {}, vertical_alignment: {}, control_device: {}".format(self.flow_vertical,self.flow_horizontal,self.ped_h,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
+
+    def loadWorld(self,file):
+        return toolkit.load_yml(file)
 
     def saveWorld(self):
-        toolkit.create_yaml('World.yml',dict(self))
+        data=dict()
+        data[0]=self.flow_vertical
+        data[1]=self.flow_horizontal
+        data[2]=self.ped_h
+        data[3]=self.ped_v
+        data[4]=self.horizontal_alignment
+        data[5]=self.vertical_alignment
+        data[6]=self.control_device
+
+        return toolkit.create_yaml('world.yml',data)
 
     def initialiseWorld(self):
          self.flow_vertical=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
          self.flow_horizontal=cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
          self.ped_h=None
          self.ped_v=None
+         self.horizontal_alignment=None
+         self.vertical_alignment=None
 
     def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
 
@@ -150,26 +147,12 @@ class World():
 
         p1=self.flow_vertical[i].positions[t]
         p2=self.flow_horizontal[j].positions[t]
-        d=moving.Point.distanceNorm2(p1,p2)
+        distance=moving.Point.distanceNorm2(p1,p2)
 
-        if d<=dmin:
-            return True,d
+        if distance<=dmin:
+            return True,distance
         else:
-            return False,d
-
-    # def matrixHV(self):
-    #     colonnes=len(self.flow_vertical)
-    #     lignes=len(self.flow_horizontal)
-    #     matrix=[([0]*colonnes)]*lignes
-    #
-    #     for h in range(colonnes):
-    #         matrix[h]=[(None,None)]*lignes
-    #
-    #     for h in range(colonnes):
-    #         for v in range(lignes):
-    #             matrix[h][v]=(h,v)
-    #
-    #     return matrix
+            return False,distance
 
     def countEncounters(self,dmin):
 
