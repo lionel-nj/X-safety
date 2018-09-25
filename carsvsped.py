@@ -29,23 +29,14 @@ import toolkit
 # pietons=dict()
 # pietons[0]=ped
 
-class Link():
-
-    def __init__(self,departure_point,arrival_point):
-        self.departure_point=departure_point
-        self.arrival_point=arrival_point
 
 
 class Alignment():
-    #voie
-    def __init__(self,alignment_number,points,links,width,control_device,flow,pedestrians=None):
+    #représentation des voies
+    def __init__(self,alignment_number,points,links,width,control_device):
         self.alignment_number=alignment_number
         self.points=points
-        self.links=links
         self.width=width
-        self.controlDevice=controlDevice
-        self.flow=flow
-        self.pedestrians=None
 
 
 class ControlDevice():
@@ -69,23 +60,25 @@ class ControlDevice():
 
 class World():
     #monde
-    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v):
+    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v,horizontal_alignment,vertical_alignment):
         self.flow_vertical=flow_vertical
         self.flow_horizontal=flow_horizontal
         self.ped_h=ped_h
         self.ped_v=ped_v
+        self.horizontal_alignment=horizontal_alignment
+        self.vertical_alignment=vertical_alignment
 
     def saveWorld(self):
         toolkit.create_yaml('World.yml',dict(self))
 
-    def initialise(self):
+    def initialiseWorld(self):
          self.flow_vertical=cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
          self.flow_horizontal=cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
          self.ped_h=None
          self.ped_v=None
 
     def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
-        
+
         if direction=='horizontale':
             if flow==1:
                 if cars.gap(self.flow_vertical[i].positions[t].x,self.flow_vertical[j].positions[t].x,(self.flow_vertical[i].geometry.length-2*1.8)/2)>dmin:
@@ -194,6 +187,6 @@ class World():
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
                     if self.isAnEncounter(h,v,t,dmin)[0]==True and matrix[h][v]==(0,0) :
-                        matrix[h][v]=(h,v,t)
+                        matrix[h][v]=(h,v,t,moving.MovingObject.getPositionAt(self.flow_horizontal[h],t),moving.MovingObject.getPositionAt(self.flow_vertical[h],t))
                         c=c+1
         return matrix,c
