@@ -187,6 +187,6 @@ class World():
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
                     if self.isAnEncounter(h,v,t,dmin)[0]==True and matrix[h][v]==(0,0) :
-                        matrix[h][v]=(h,v,t,moving.MovingObject.getPositionAt(self.flow_horizontal[h],t),moving.MovingObject.getPositionAt(self.flow_vertical[h],t))
+                        matrix[h][v]=(h,v,t,moving.MovingObject.getPositionAt(self.flow_horizontal[h],t),moving.MovingObject.getPositionAt(self.flow_vertical[v],t))
                         c=c+1
         return matrix,c
