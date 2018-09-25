@@ -52,9 +52,9 @@ def delete_yaml(file, key):
 
 def save_scene(alignments,controlDevice,world,name_of_file):
 
-    data = {'alignments' = alignments,
-              'controlDevice' = controlDevice,
-              'world' = world}
+    data = {'alignments' : alignments,
+              'controlDevice' : controlDevice,
+              'world' : world}
 
     return create_yaml(name_of_file,data)
 

@@ -32,12 +32,6 @@ class ControlDevice():
         return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment_number, self.type)
 
 
-    def getPositionOfControlDevice(self):
-        return moving.MovingObject.Point(moving.MovingObject.getXCoordinates(self),moving.MovingObject.getYCoordinates(self))
-
-    def getAlignmentOfControlDevice(self):
-        return self.alignment_number
-
 class World():
     #monde
     def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v,horizontal_alignment,vertical_alignment,control_device):
