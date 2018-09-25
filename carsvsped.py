@@ -7,10 +7,11 @@ import toolkit
 
 class Alignment(object):
     #représentation des voies : liste de points
-    def __init__(self,alignment_number=None,points=[],width=None):
+    def __init__(self,alignment_number=None,points=[],width=None,control_device=None):
         self.alignment_number=alignment_number
         self.points=points
         self.width=width
+        self.control_device=control_device
 
     def __repr__(self):
         return "alignment_number: {}, width:{}".format(self.alignment_number, self.width)
@@ -22,13 +23,13 @@ class ControlDevice():
           'yield':1,
           'red light':2}
 
-    def __init__(self,position=None,alignment=None,type=None):
+    def __init__(self,position=None,alignment_number=None,type=None):
         self.position=position
-        self.alignment=alignment
+        self.alignment_number=alignment_number
         self.type=type
 
     def __repr__(self):
-        return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment, self.type)
+        return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment_number, self.type)
 
 
     def getPositionOfControlDevice(self):
