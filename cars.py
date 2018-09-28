@@ -170,11 +170,11 @@ class flow():
 
                 smin = 25 #a revoir .. distance de sécurité posée arbitrairement
 
-                if s<smin:
+                if s < smin:
                     velocite = (v*t-L[k-1]-smin)/t
 
                 # if self.direction == moving.Point(0,1):
-                if velocite<0:
+                if velocite < 0:
                     velocite = 0
 
                 data_flow[k].velocities.append(velocite)
