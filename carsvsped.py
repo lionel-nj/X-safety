@@ -4,7 +4,6 @@ import random
 import toolkit
 
 
-
 class Alignment(object):
     #représentation des voies : liste de points
     def __init__(self,alignment_number=None,points=[],width=None,control_device=None):
@@ -32,9 +31,10 @@ class ControlDevice():
         return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment_number, self.type)
 
 
+
 class World():
     #monde
-    def __init__(self,flow_vertical,flow_horizontal,ped_h,ped_v,horizontal_alignment,vertical_alignment,control_device):
+    def __init__(self,flow_vertical=None,flow_horizontal=None,ped_h=None,ped_v=None,horizontal_alignment=None,vertical_alignment=None,control_device=None):
         self.flow_vertical=flow_vertical
         self.flow_horizontal=flow_horizontal
         self.ped_h=ped_h
@@ -160,7 +160,7 @@ class World():
         for h in range(columns):
             matrix[h]=[(0,0)]*lines
 
-        for t in range(90):
+        for t in range(90): #90=t_simul, a mettre en parametre
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))

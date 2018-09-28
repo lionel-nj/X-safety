@@ -68,34 +68,47 @@ class flow():
         data_flow=dict()
         data_flow[0]=moving.MovingObject()
 
-        l=random.normalvariate(6.5,0.3)
+        l=random.normalvariate(6.5,0.3) #longueur du vehicule, random suivant une loi normale. a rectifier
         L=[]
         L.append(l)
         # l=7
         if self.direction==moving.Point(0,1):
-            posV=moving.Trajectory(positions=[[2000],[0]])
-        else:
-            posV=moving.Trajectory(positions=[[0],[2000]])
+            S=[2000]
+            Y=[0]
+            lanes=[None]
 
-        v0=self.direction.__mul__(random.normalvariate(30,3.2))
-        speed=[moving.Point(0,0)]
+            # posV=moving.Trajectory(positions=[[2000],[0]])
+        else:
+            S=[0]
+            Y=[2000]
+            lanes=[None]
+
+        posV=moving.CurvilinearTrajectory(S,Y,lanes)
+        # posV=moving.Trajectory(positions=[[0],[2000]])
+        v0=random.normalvariate(30,3.2)
+        # v0=self.direction.__mul__(random.normalvariate(30,3.2))
+        # speed=[moving.Point(0,0)]
+        speed=[v0]
 
 
         for t in range(0,t_simul):
-            speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
+            # speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
+            speed.append(v)
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
-                temp=flow.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
-                posV.positions[0].append(temp.x)
-                posV.positions[1].append(temp.y)
+                temp=flow.positionV(posV[t-1][1],v0,1,2000)
+                posV.addPositionSYL(temp.x,temp.y,None)
+                # posV.positions[0].append(temp.x)
+                # posV.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
                 temp=flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+                posV.addPositionSYL(temp.x,temp.y,None)
 
-                posV.positions[0].append(temp.x)
-                posV.positions[1].append(temp.y)
+                # posV.positions[0].append(temp.x)
+                # posV.positions[1].append(temp.y)
 
         # data_flow[0].timeInterval=[0,300]
         data_flow[0].timeInterval=moving.TimeInterval(0,300)
