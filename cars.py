@@ -33,11 +33,11 @@ class flow():
 
     def positionV(y,v,t,p):
         "fonctions de maj des positions"
-        return moving.Point(p,v*t+y)
+        return v*t+y
 
-    def positionH(y,v,t,p):
-        "fonctions de maj des positions"
-        return moving.Point(v*t+y,p)
+    # def positionH(y,v,t,p):
+    #     "fonctions de maj des positions"
+    #     return moving.Point(v*t+y,p)
 
     #fonction de génération des trajectoires
     def generateTrajectories(self):
@@ -72,24 +72,22 @@ class flow():
         L=[]
         L.append(l)
         # l=7
+        S=[0]
+
         if self.direction==moving.Point(0,1):
-            S=[2000]
-            Y=[0]
-            lanes=[None]
-
-            # posV=moving.Trajectory(positions=[[2000],[0]])
-        else:
-            S=[0]
             Y=[2000]
-            lanes=[None]
+            lanes=[1]
+            # list_of_curvilinear_positions=moving.Trajectory(positions=[[2000],[0]])
+        else:
+            Y=[2000]
+            lanes=[2]
 
-        posV=moving.CurvilinearTrajectory(S,Y,lanes)
-        # posV=moving.Trajectory(positions=[[0],[2000]])
+        list_of_curvilinear_positions=moving.CurvilinearTrajectory(S,Y,lanes)
+        # list_of_curvilinear_positions=moving.Trajectory(positions=[[0],[2000]])
         v0=random.normalvariate(30,3.2)
         # v0=self.direction.__mul__(random.normalvariate(30,3.2))
         # speed=[moving.Point(0,0)]
         speed=[v0]
-
 
         for t in range(0,t_simul):
             # speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
@@ -97,22 +95,24 @@ class flow():
 
         if self.direction==moving.Point(0,1):
             for t in range(1,t_simul):
-                temp=flow.positionV(posV[t-1][1],v0,1,2000)
-                posV.addPositionSYL(temp.x,temp.y,None)
-                # posV.positions[0].append(temp.x)
-                # posV.positions[1].append(temp.y)
+                temp=flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1,2000)
+                list_of_curvilinear_positions.addPositionSYL(temp,2000,1)
+                # list_of_curvilinear_positions.positions[0].append(temp.x)
+                # list_of_curvilinear_positions.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
-                temp=flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
-                posV.addPositionSYL(temp.x,temp.y,None)
+                temp=flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1,2000)
+                list_of_curvilinear_positions.addPositionSYL(temp,2000,2)
+                # temp=flow.positionH(list_of_curvilinear_positions[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+                # list_of_curvilinear_positions.addPositionSYL(temp.x,temp.y,2)
 
-                # posV.positions[0].append(temp.x)
-                # posV.positions[1].append(temp.y)
+                # list_of_curvilinear_positions.positions[0].append(temp.x)
+                # list_of_curvilinear_positions.positions[1].append(temp.y)
 
         # data_flow[0].timeInterval=[0,300]
         data_flow[0].timeInterval=moving.TimeInterval(0,300)
-        data_flow[0].positions=posV
+        data_flow[0].curvilinearPositions=list_of_curvilinear_positions
         data_flow[0].velocities=speed
         data_flow[0].geometry=shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
         data_flow[0].userType=1
