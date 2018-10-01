@@ -79,18 +79,25 @@ class World():
     def existingUsers(self,t):
 
         rep = []
-        for k in range(0,len(self.flow_vertical)):
-            if moving.Interval.contains(self.flow_vertical[k].getTimeInterval(),t):
-                rep.append(self.flow_vertical[k])
-        for k in range(0,len(self.flow_horizontal)):
-            if moving.Interval.contains(self.flow_horizontal[k].getTimeInterval(),t):
-                rep.append(self.flow_horizontal[k])
-        for k in range(0,len(self.ped_h)):
-            if moving.Interval.contains(self.ped_h[k].getTimeInterval(),t):
-                rep.append(self.ped_h[k])
-        for k in range(0,len(self.ped_v)):
-            if moving.Interval.contains(self.ped_v[k].getTimeInterval(),t):
-                rep.append(self.ped_v[k])
+        if self.flow_vertical is not None:
+            for k in range(0,len(self.flow_vertical)):
+                if moving.Interval.contains(self.flow_vertical[k].getTimeInterval(),t):
+                    rep.append(self.flow_vertical[k])
+
+        if self.flow_horizontal is not None:
+            for k in range(0,len(self.flow_horizontal)):
+                if moving.Interval.contains(self.flow_horizontal[k].getTimeInterval(),t):
+                    rep.append(self.flow_horizontal[k])
+
+        if self.ped_h is not None:
+            for k in range(0,len(self.ped_h)):
+                if moving.Interval.contains(self.ped_h[k].getTimeInterval(),t):
+                    rep.append(self.ped_h[k])
+
+        if self.ped_v is not None:
+            for k in range(0,len(self.ped_v)):
+                if moving.Interval.contains(self.ped_v[k].getTimeInterval(),t):
+                    rep.append(self.ped_v[k])
         return rep
 
     def typeOfUserAhead(self,objet,t):
@@ -107,7 +114,7 @@ class World():
             a = objet.positions[t].y
             for k in range (len(utilisateurs_existants)):
                 b = utilisateurs_existants[k].positions[t].y
-                d = b-a
+                d = b - a
                 if d<0:
                     dist.append(float('inf'))
                 else:
@@ -117,7 +124,7 @@ class World():
             a = objet.positions[t].x
             for k in range (len(utilisateurs_existants)):
                 b = utilisateurs_existants[k].positions[t].y
-                d = b-a
+                d = b - a
                 if d < 0:
                     dist.append(float('inf'))
                 else:
@@ -135,7 +142,7 @@ class World():
     def isAnEncounter(self,i,j,t,dmin):
 
         s1 = moving.Point(moving.CurvilinearTrajectory.getSCoordinates(self.flow_horizontal[j].curvilinearPositions)[t],2000)
-        s2 = moving.Point(moving.CurvilinearTrajectory.getSCoordinates(self.flow_vertical[i].curvilinearPositions)[t],2000)
+        s2 = moving.Point(2000,moving.CurvilinearTrajectory.getSCoordinates(self.flow_vertical[i].curvilinearPositions)[t])
 
         # p1 = self.flow_vertical[i].positions[t]
         # p2 = self.flow_horizontal[j].positions[t]
@@ -162,8 +169,8 @@ class World():
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
                     if self.isAnEncounter(h,v,t,dmin)[0] == True and matrix[h][v] == (0,0) :
-                        matrix[h][v] = (t)
+                        matrix[h][v] = t
                         c +=  1
-        if c > 49:
+        if c > lines*columns:
             print("something went wrong")
         return matrix,c
