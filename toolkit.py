@@ -16,14 +16,14 @@ def load_yml(file):
 
 def create_yaml(name,data):
     with open(name, 'w') as outfile:
-        yaml.dump(data,outfile,default_flow_style=False)
+        yaml.dump(data,outfile,default_flow_style = False)
 
 def copy_yaml(file,newname):
-    data=load_yml(file)
+    data = load_yml(file)
     create_yaml(newname,data)
 
 def add_element_to_yaml(file,element,key):
-    data=load_yml(file)
+    data = load_yml(file)
     try:
         with open(file, "w") as out:
             yaml.dump(data, out)
@@ -35,7 +35,7 @@ def add_element_to_yaml(file,element,key):
         print("the key requested does not exist in the yaml file")
 
 def update_yaml(file,element,key):
-    data=load_yml(file)
+    data = load_yml(file)
     try:
         data[key] = element
         create_yaml(file,data)
@@ -43,7 +43,7 @@ def update_yaml(file,element,key):
         print("the key requested does not exist in the yaml file")
 
 def delete_yaml(file, key):
-    data=load_yml(file)
+    data = load_yml(file)
     try:
         del data[key]
         create_yaml(file,data)
@@ -69,41 +69,41 @@ def generateSampleFromSample(sample_size):
         a = list(liste)
 
     #initialisations
-    generateSampleFromSample.tiv=[]
-    generateSampleFromSample.tivprob=[]
-    generateSampleFromSample.tivprobcum=[]
+    generateSampleFromSample.tiv = []
+    generateSampleFromSample.tivprob = []
+    generateSampleFromSample.tivprobcum = []
 
     #completion dela liste des tiv
     for k in range(0,len(a)):
-        generateSampleFromSample.tiv=generateSampleFromSample.tiv+[float(a[k][0])]
+        generateSampleFromSample.tiv = generateSampleFromSample.tiv + [float(a[k][0])]
 
     #suppression des zéros
-    generateSampleFromSample.tiv = [i for i in generateSampleFromSample.tiv if i != 0]
+    generateSampleFromSample.tiv = [i for i in generateSampleFromSample.tiv if i !=  0]
 
     #tri de la liste des tiv
-    generateSampleFromSample.tiv=sorted(generateSampleFromSample.tiv)
+    generateSampleFromSample.tiv = sorted(generateSampleFromSample.tiv)
 
-    #comptage des élément => obtention des frequences
+    #comptage des élément  = > obtention des frequences
 
-    count=list(collections.Counter(generateSampleFromSample.tiv).values())
+    count = list(collections.Counter(generateSampleFromSample.tiv).values())
 
     #frequences
     for k in range(0,len(count)):
-        generateSampleFromSample.tivprob=generateSampleFromSample.tivprob+[count[k]/len(generateSampleFromSample.tiv)]
+        generateSampleFromSample.tivprob = generateSampleFromSample.tivprob + [count[k]/len(generateSampleFromSample.tiv)]
 
     #suppression des doublons de la liste des tiv
-    generateSampleFromSample.tiv=sorted(list(set(generateSampleFromSample.tiv)))
+    generateSampleFromSample.tiv = sorted(list(set(generateSampleFromSample.tiv)))
 
     #mettre la probabilite de 0 à 0
-    generateSampleFromSample.tiv=[0]+generateSampleFromSample.tiv
-    generateSampleFromSample.tivprob=[0]+generateSampleFromSample.tivprob
+    generateSampleFromSample.tiv = [0] + generateSampleFromSample.tiv
+    generateSampleFromSample.tivprob = [0] + generateSampleFromSample.tivprob
 
     #cumul des probabilités
-    generateSampleFromSample.tivprobcum=list(itertools.accumulate(generateSampleFromSample.tivprob))
+    generateSampleFromSample.tivprobcum = list(itertools.accumulate(generateSampleFromSample.tivprob))
 
     #generation d'un échantillon
-    generateSampleFromSample.tivdistrib=utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
-    tempo=generateSampleFromSample.tivdistrib.rvs(size=sample_size)
+    generateSampleFromSample.tivdistrib = utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
+    tempo = generateSampleFromSample.tivdistrib.rvs(size = sample_size)
     create_yaml('headway_sample.yml',generateSampleFromSample.tivdistrib)
 
     return list(tempo)
