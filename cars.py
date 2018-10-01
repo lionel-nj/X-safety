@@ -31,7 +31,7 @@ class flow():
         return x_leader-x_following-L_leader
 
 
-    def positionV(preceding_position,speed,time,p):
+    def positionV(preceding_position,speed,time):
         "fonctions de maj des positions"
         return speed*time+preceding_position
 
@@ -90,18 +90,19 @@ class flow():
 
         for t in range(0,t_simul):
             # speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
-            speed.append(v)
+            speed.append(v0)
 
         if self.direction == moving.Point(0,1):
             for t in range(1,t_simul):
-                temp = flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1,2000)
+
+                temp = flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1)
                 list_of_curvilinear_positions.addPositionSYL(temp,2000,1)
                 # list_of_curvilinear_positions.positions[0].append(temp.x)
                 # list_of_curvilinear_positions.positions[1].append(temp.y)
 
         else:
             for t in range(1,t_simul):
-                temp = flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1,2000)
+                temp = flow.positionV(list_of_curvilinear_positions[t-1][0],v0,1)
                 list_of_curvilinear_positions.addPositionSYL(temp,2000,2)
                 # temp = flow.positionH(list_of_curvilinear_positions[t-1].x,moving.Point.norm2(speed[t]),1,2000)
                 # list_of_curvilinear_positions.addPositionSYL(temp.x,temp.y,2)
@@ -140,9 +141,9 @@ class flow():
             else:
                 lane = 2
 
-            lanes = [lane]
 
-            data_flow[k].curvilinearPositions = moving.curvilinearPositions(S,Y,lanes)
+            lanes = [lane]
+            data_flow[k].curvilinearPositions = moving.CurvilinearTrajectory(S,Y,lanes)
 
             # if self.direction == moving.Point(0,1):
             #     data_flow[k].curvilinearPositions = moving.Trajectory(positions=[[2000],[0]])
@@ -178,7 +179,9 @@ class flow():
                     velocite = 0
 
                 data_flow[k].velocities.append(velocite)
-                data_flow[k].curvilinearPositions.addPositionSYL(flow.positionV(p,moving.Point.norm2(velocite),1),2000,lane)
+                data_flow[k].curvilinearPositions.addPositionSYL(flow.positionV(data_flow[k-1].curvilinearPositions[t-1][0],velocite,1),2000,lane)
+                y_temp=copy.deepcopy(data_flow[k].flow_vertical.curvilinearPositions[]
+                # data_flow[k].curvilinearPositions.addPositionSYL(flow.positionV(flow.gap(data_flow[k-1].curvilinearPositions[t-1][0],velocite,1)),2000,lane)
 
                 # data_flow[k].positions.append(position(p,moving.Point.norm2(velocite),1))
 
@@ -186,7 +189,7 @@ class flow():
         create_yaml(self.nom_fichier_sortie,data_flow)
         return data_flow, intervals
 
-    def trace(self,data_flow):
+    def trace(self,data_flow): # à adapter pour utiliser les curvilinearPositions
         t = []
         p = []
         v = []
