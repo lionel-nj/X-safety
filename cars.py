@@ -21,7 +21,7 @@ number_of_cars = 7
 
 class flow():
 
-    def __init__(self,direction,nom_fichier_sortie): #direction est un vecteur de la forme moving.Point(x,y)
+    def __init__(self,direction=None,nom_fichier_sortie=None): #direction est un vecteur de la forme moving.Point(x,y)
         self.direction = direction
         self.nom_fichier_sortie = nom_fichier_sortie
 
@@ -169,7 +169,7 @@ class flow():
                 # else:
                 #     s = flow.gap(data_flow[k-1].positions[t].x,new_position.x,L[k-1])
 
-                smin = 25 #a revoir .. distance de sécurité posée arbitrairement
+                smin = 50 #a revoir .. distance de sécurité posée arbitrairement
 
                 if s < smin:
                     velocite = (v * t - L[k-1] - smin)/t
@@ -189,11 +189,11 @@ class flow():
         create_yaml(self.nom_fichier_sortie,data_flow)
         return data_flow, intervals
 
-    def trace(self,data_flow): # à adapter pour utiliser les curvilinearPositions
+    def trace(self): # à adapter pour utiliser les curvilinearPositions
         t = []
         p = []
         v = []
-        objet = data_flow.generateTrajectories()
+        objet = self.generateTrajectories()
         ylabel = ''
 
         for k in range (0,number_of_cars):
@@ -202,14 +202,13 @@ class flow():
             t.append(objet[1][k])
 
             for time in range(0,t_simul):
+                p[k].append(objet[0][k].curvilinearPositions[time][0])
                 if self.direction == moving.Point(0,1):
-                    p[k].append(objet[0][k].positions[time].y)
                     ylabel = "position selon l'axe x"
                 else:
-                    p[k].append(objet[0][k].positions[time].x)
                     ylabel = "position selon l'axe y"
 
-                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
+                v[k].append(objet[0][k].velocities[time])
 
             plt.plot(t[k],p[k])
             # plt.plot(t[k],p[k])

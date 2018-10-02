@@ -13,6 +13,7 @@ class Alignment(object):
         self.control_device = control_device
 
     def __repr__(self):
+
         return "alignment_number: {}, width:{}".format(self.alignment_number, self.width)
 
 class ControlDevice():
@@ -23,11 +24,13 @@ class ControlDevice():
           'red light':2}
 
     def __init__(self,curvilinear_position = None,alignment_number = None,type = None):
+
         self.curvilinearPositions = curvilinear_position
         self.alignment_number = alignment_number
         self.type = type
 
     def __repr__(self):
+
         return "abscisse curviligne:{}, alignment:{}, type{}".format(self.curvilinear_position, self.alignment_number, self.type)
 
 
@@ -44,12 +47,15 @@ class World():
         self.control_device = control_device
 
     def __repr__(self):
+
         return "flow_vertical: {}, flow_horizontal: {}, ped_h: {}, ped_v: {}, horizontal_alignment: {}, vertical_alignment: {}, control_device: {}".format(self.flow_vertical,self.flow_horizontal,self.ped_h,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
 
     def loadWorld(self,file):
+
         return toolkit.load_yml(file)
 
     def saveWorld(self):
+
         data = dict()
         data[0] = self.flow_vertical
         data[1] = self.flow_horizontal
@@ -62,6 +68,7 @@ class World():
         return toolkit.create_yaml('world.yml',data)
 
     def initialiseWorld(self):
+
          self.flow_vertical = cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
          self.flow_horizontal = cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
          self.ped_h = None
@@ -70,6 +77,7 @@ class World():
          self.vertical_alignment = None
 
     def addPedestriansToWorld(self,pedestrians_horizontal = None,pedestrians_vertical = None):
+
         if self.ped_h is None:
             self.ped_h = pedestrians_horizontal
         if self.ped_v is None:
@@ -100,49 +108,43 @@ class World():
                     rep.append(self.ped_v[k])
         return rep
 
-    def typeOfUserAhead(self,objet,t):
-
-        dist = []
-        utilisateurs_existants = World.existingUsers(self,t)
-
-        for k in range(0,len(utilisateurs_existants)):
-            if utilisateurs_existants[k] == objet:
-                utilisateurs_existants.pop(k)
-                break
-
-        if objet.etiquette  ==   'verticale':
-            a = objet.positions[t].y
-            for k in range (len(utilisateurs_existants)):
-                b = utilisateurs_existants[k].positions[t].y
-                d = b - a
-                if d<0:
-                    dist.append(float('inf'))
-                else:
-                    dist.append(d)
-
-        elif objet.etiquette  ==   'horizontale':
-            a = objet.positions[t].x
-            for k in range (len(utilisateurs_existants)):
-                b = utilisateurs_existants[k].positions[t].y
-                d = b - a
-                if d < 0:
-                    dist.append(float('inf'))
-                else:
-                    dist.append(d)
-
-        return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
-
-    # def matrixHV(self):
-    #     h = len(self.flow_horizontal)
-    #     v = len(self.flow_vertical)
-    #     matrix = []
-    #     for h in range(h):
+    # def typeOfUserAhead(self,objet,t):
+    #
+    #     dist = []
+    #     utilisateurs_existants = World.existingUsers(self,t)
+    #
+    #     for k in range(0,len(utilisateurs_existants)):
+    #         if utilisateurs_existants[k] == objet:
+    #             utilisateurs_existants.pop(k)
+    #             break
+    #
+    #     if objet.etiquette  ==   'verticale':
+    #         a = objet.positions[t].y
+    #         for k in range (len(utilisateurs_existants)):
+    #             b = utilisateurs_existants[k].positions[t].y
+    #             d = b - a
+    #             if d<0:
+    #                 dist.append(float('inf'))
+    #             else:
+    #                 dist.append(d)
+    #
+    #     elif objet.etiquette  ==   'horizontale':
+    #         a = objet.positions[t].x
+    #         for k in range (len(utilisateurs_existants)):
+    #             b = utilisateurs_existants[k].positions[t].y
+    #             d = b - a
+    #             if d < 0:
+    #                 dist.append(float('inf'))
+    #             else:
+    #                 dist.append(d)
+    #
+    #     return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
 
-    def isAnEncounter(self,i,j,t,dmin):
+    def isAnEncounter(self,h,v,t,dmin):
 
-        s1 = moving.Point(moving.CurvilinearTrajectory.getSCoordinates(self.flow_horizontal[j].curvilinearPositions)[t],2000)
-        s2 = moving.Point(2000,moving.CurvilinearTrajectory.getSCoordinates(self.flow_vertical[i].curvilinearPositions)[t])
+        s1 = moving.Point(2000,moving.CurvilinearTrajectory.getSCoordinates(self.flow_vertical[h].curvilinearPositions)[t])
+        s2 = moving.Point(moving.CurvilinearTrajectory.getSCoordinates(self.flow_horizontal[v].curvilinearPositions)[t],2000)
 
         # p1 = self.flow_vertical[i].positions[t]
         # p2 = self.flow_horizontal[j].positions[t]
@@ -157,19 +159,18 @@ class World():
 
         columns = len(self.flow_vertical)
         lines = len(self.flow_horizontal)
-        # matrice = World.matrixHV(self)
-        matrix = [([0]*columns)]*lines
+        matrix = [([0]*columns)] * lines
         c = 0
 
         for h in range(columns):
-            matrix[h] = [(0,0)]*lines
+            matrix[h] = [(0,0)] * lines
 
         for t in range(90): #90 = t_simul, a mettre en parametre
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
                     if self.isAnEncounter(h,v,t,dmin)[0] == True and matrix[h][v] == (0,0) :
-                        matrix[h][v] = t
+                        matrix[h][v] = self.isAnEncounter(h,v,t,dmin)[1]
                         c +=  1
         if c > lines*columns:
             print("something went wrong")
