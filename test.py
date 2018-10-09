@@ -14,11 +14,11 @@ align2=[]
 # v=moving.Point(0,20)
 # align2=moving.Trajectory.generate(p,v,150)[0]
 
-for k in range(255):
-    align1.append(Point(k,2*k))
-    align2.append(Point(2000,k))
+# for k in range(255):
+#     align1.append(Point(k,2*k))
+#     align2.append(Point(2000,k))
 
-align=Trajectory.fromPointList([Point(0,0), Point(125,255), Point(250,500)])
+align=Trajectory.fromPointList([Point(0,0), Point(125,255), Point(200,344), Point(250,500)])
 #align.computeDistances()
 # align.append(align2)
 alignments = [align]
@@ -30,9 +30,30 @@ p=Point(1,1)
 v=Point(1,2)
 
 test=MovingObject.generate(3,p,v,TimeInterval(0,90))
-a=getSYfromXY(test.getPositionAt(60),alignments)
+a=getSYfromXY(test.getPositionAt(50),alignments)
 print(a)
 
-    # monde=carsvsped.World()
-# monde.initialiseWorld()
-# monde.flow_horizontal[0]
+def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
+    '''trajectory is a moving.Trajectory object
+    alignment is a list of trajectories (moving.Trajectory object)'''
+
+    CT = None
+    # preparation des splines
+    for elements in alignments:
+        elements.computeCumulativeDistances()
+    prepareSplines(alignments)
+
+    #XY->SY pour chaque moving.Point de la trajectory
+    S=[]
+    Y=[]
+    lanes=[]
+    for t in range(len(trajectory.positions[0])):
+
+        sy = getSYfromXY(Point(trajectory.positions[0][t],trajectory.positions[1][t]),alignments)
+        S.append(sy[4])
+        Y.append(sy[5])
+        lanes.append(sy[0])
+
+    CT = CurvilinearTrajectory(S,Y,lanes)
+
+    return CT

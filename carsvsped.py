@@ -2,6 +2,8 @@ import cars
 from trafficintelligence import moving
 import random
 import toolkit
+from shapely.geometry import Polygon, Point as shapelyPoint
+
 
 
 class Alignment(object):
@@ -56,6 +58,7 @@ class World():
         self.horizontal_alignment = horizontal_alignment
         self.vertical_alignment = vertical_alignment
         self.control_device = control_device
+        self.crossing_point = crossing_point
         self.crossing_zone = crossing_zone
 
     def __repr__(self):
@@ -88,12 +91,12 @@ class World():
          self.horizontal_alignment = None
          self.vertical_alignment = None
          self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
-         p1 = Point(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
-         p2 = Point(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
-         p3 = Point(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
-         p4 = Point(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
+         p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
+         p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
+         p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
+         p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
          pointList = p1, p2, p3, p4]
-         self.crossing_zone = geometry.Polygon([[p.x, p.y] for p in pointList])
+         self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
 
     def addPedestriansToWorld(self,pedestrians_horizontal = None,pedestrians_vertical = None):
         ''' add pedestrian to world class'''
