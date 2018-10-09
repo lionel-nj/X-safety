@@ -110,10 +110,10 @@ def generateSampleFromSample(sample_size):
 
 def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
     '''trajectory is a moving.Trajectory object
-    alignment is a list of trajectories (moving.Trajectory object)'''
+    alignments is a list of moving.Trajectory objects '''
 
-    CT = None
-    # preparation des splines
+    curvilinear_trajectory = None
+    #Prepares the splines
     for elements in alignments:
         elements.computeCumulativeDistances()
     moving.prepareSplines(alignments)
@@ -129,6 +129,6 @@ def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
         Y.append(sy[5])
         lanes.append(sy[0])
 
-    CT = moving.CurvilinearTrajectory(S,Y,lanes)
+    curvilinear_trajectory = moving.CurvilinearTrajectory(S,Y,lanes)
 
-    return CT
+    return curvilinear_trajectory
