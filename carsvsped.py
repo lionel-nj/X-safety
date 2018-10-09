@@ -190,6 +190,6 @@ class World():
             for vehicles in self.flow_vertical:
                 while distance_to_stop(vehicle(t))>2:
                     t += 1
-                
+
         elif self.control_device_vertical.category == 3 and self.control_device_horizontal.category == 0:
             #modifier les vitesse des vehicules sur la voie horizontale

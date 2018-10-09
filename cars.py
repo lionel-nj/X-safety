@@ -119,7 +119,7 @@ class flow():
         #     next_veh_to_exit=detect_next_vehicle_to_exit_crossing_zone()
         #
         #
-        # 
+        #
         # elif control_device.category == 1:
         #     #blabla en cas de yield
         #
