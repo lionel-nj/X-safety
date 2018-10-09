@@ -108,27 +108,27 @@ def generateSampleFromSample(sample_size):
 
     return list(tempo)
 
-    def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
-        '''trajectory is a moving.Trajectory object
-        alignment is a list of trajectories (moving.Trajectory object)'''
+def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
+    '''trajectory is a moving.Trajectory object
+    alignment is a list of trajectories (moving.Trajectory object)'''
 
-        CT = None
-        # preparation des splines
-        for elements in alignments:
-            elements.computeCumulativeDistances()
-        moving.prepareSplines(alignments)
+    CT = None
+    # preparation des splines
+    for elements in alignments:
+        elements.computeCumulativeDistances()
+    moving.prepareSplines(alignments)
 
-        #XY->SY pour chaque moving.Point de la trajectory
-        S=[]
-        Y=[]
-        lanes=[]
-        for t in range(len(trajectory.positions[0])):
+    #XY->SY pour chaque moving.Point de la trajectory
+    S=[]
+    Y=[]
+    lanes=[]
+    for t in range(len(trajectory.positions[0])):
 
-            sy = moving.getSYfromXY(moving.Point(trajectory.positions[0][t],trajectory.positions[1][t]),alignments)
-            S.append(sy[4])
-            Y.append(sy[5])
-            lanes.append(sy[0])
+        sy = moving.getSYfromXY(moving.Point(trajectory.positions[0][t],trajectory.positions[1][t]),alignments)
+        S.append(sy[4])
+        Y.append(sy[5])
+        lanes.append(sy[0])
 
-        CT = moving.CurvilinearTrajectory(S,Y,lanes)
+    CT = moving.CurvilinearTrajectory(S,Y,lanes)
 
-        return CT
+    return CT
