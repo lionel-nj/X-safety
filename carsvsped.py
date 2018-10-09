@@ -8,29 +8,30 @@ import toolkit
 
 class Alignment(object):
     #représentation des voies : liste de points
-    def __init__(self,alignment_number = None,points = [],width = None,control_device = None):
-        self.alignment_number = alignment_number
+    def __init__(self,id = None,points = [],width = None,control_device = None):
+        self.id = id
         self.points = points
         self.width = width
         self.control_device = control_device
 
     def __repr__(self):
-        return "alignment_number: {}, width:{}".format(self.alignment_number, self.width)
+        return "id: {}, width:{}".format(self.id, self.width)
 
 class ControlDevice():
     #outil de control
 
     types = {'stop':0,
           'yield':1,
-          'red light':2}
+          'red light':2,
+          'free':3}
 
-    def __init__(self,position = None,alignment_number = None,type = None):
+    def __init__(self, position = None, alignment_id = None, category = None):
         self.position = position
-        self.alignment_number = alignment_number
-        self.type = type
+        self.alignment_id = alignment_id
+        self.category = category
 
     def __repr__(self):
-        return "position:{}, alignment:{}, type{}".format(self.posiion, self.alignment_number, self.type)
+        return "position:{}, alignment:{}, type{}".format(self.position, self.alignment_id, self.type)
 
 
 class World():
@@ -69,6 +70,7 @@ class World():
          self.ped_v = None
          self.horizontal_alignment = None
          self.vertical_alignment = None
+         self.control_device = None
 
          for k in range(0,len(self.flow_vertical)):
              if self.horizontal_alignment == None:
@@ -180,3 +182,14 @@ class World():
                         matrix[h][v] = self.isAnEncounter(h,v,t,dmin)[1]
                         c = c+1
         return matrix,c
+
+    def adaptSpeedsAccordingToControlDeviceOnWays(self):
+        if self.control_device_vertical.category == 0 and self.control_device_horizontal.category == 3:
+            #blabla en cas de présence de stop sur la voie
+            #modifier les vitesses des vehicules sur la voie verticale
+            for vehicles in self.flow_vertical:
+                while distance_to_stop(vehicle(t))>2:
+                    t += 1
+                
+        elif self.control_device_vertical.category == 3 and self.control_device_horizontal.category == 0:
+            #modifier les vitesse des vehicules sur la voie horizontale

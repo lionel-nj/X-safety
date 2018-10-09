@@ -79,7 +79,8 @@ class flow():
         v0 = self.direction.__mul__(random.normalvariate(30,3.2))
         speed = [moving.Point(0,0)]
 
-
+        # if control_device.category == 3:
+            #bla bla en cas d'absence de controlDevice
         for t in range(0,t_simul):
             speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
 
@@ -95,6 +96,35 @@ class flow():
 
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
+        #
+        # elif control_device.category == 0:
+        #     #blabla en cas de stop
+        #     while distance_to_stop > 2:
+        #         for t in range(0,t_simul):
+        #             speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
+        #
+        #         if self.direction == moving.Point(0,1):
+        #             for t in range(1,t_simul):
+        #                 temp = flow.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
+        #                 posV.positions[0].append(temp.x)
+        #                 posV.positions[1].append(temp.y)
+        #
+        #         else:
+        #             for t in range(1,t_simul):
+        #                 temp = flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+        #
+        #                 posV.positions[0].append(temp.x)
+        #                 posV.positions[1].append(temp.y)
+        #
+        #     next_veh_to_exit=detect_next_vehicle_to_exit_crossing_zone()
+        #
+        #
+        # 
+        # elif control_device.category == 1:
+        #     #blabla en cas de yield
+        #
+        # elif control_device.category == 2:
+        #     #blabla redlight
 
         # data_flow[0].timeInterval = [0,300]
         data_flow[0].timeInterval = moving.TimeInterval(0,300)
@@ -126,6 +156,8 @@ class flow():
             data_flow[k].velocities = [moving.Point(0,0)]
             data_flow[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
             data_flow[k].userType = 1
+
+
             for t in range(1,t_simul):
                 # p = moving.MovingObject.getPositions(data_flow[k])[t-1].y
                 if self.direction == moving.Point(0,1):
