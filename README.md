@@ -19,11 +19,11 @@ world est la classe qui permet de lier les objets entre eux.
 
 Exemple de création d'une scène :
 ```
-test_monde=world(None,None,None)
+test_monde=world()
 test.initialise()
 ```
 * countEncounters : pas encore fonctionelle
-## Descrition du toolkit
+## Description du toolkit
 
 * load_yml -> permet de charger un fichier yaml.  
 input : 'nom du fichier.yml'
@@ -48,4 +48,4 @@ Les fonctions delete, add, update, supposent que l'on traite des données sous f
 
 * generateSampleFromSample : permet de générer un échantillon à partir d'une distribution empirique.
 input : taille de l'échantillon.  
-Actuelemment, la fonction générèe les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique.
+Actuellemment, la fonction génère les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique.

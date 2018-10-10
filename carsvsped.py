@@ -20,10 +20,10 @@ class Alignment(object):
 class ControlDevice():
     #outil de control
 
-    types = {'stop':0,
-          'yield':1,
-          'red light':2,
-          'free':3}
+    cat = {'stop' : 0,
+          'yield' : 1,
+          'red light' : 2,
+          'free' : 3}
 
     def __init__(self, position = None, alignment_id = None, category = None):
         self.position = position
@@ -36,14 +36,17 @@ class ControlDevice():
 
 class World():
     #monde
-    def __init__(self,flow_vertical = None ,flow_horizontal = None,ped_h = None,ped_v = None,horizontal_alignment = None,vertical_alignment = None,control_device = None):
+    def __init__(self,flow_vertical = None ,flow_horizontal = None,ped_h = None,ped_v = None,horizontal_alignment = None,vertical_alignment = None,control_device_horizontal = None, control_device_vertical = None, crossing_zone = None, crossing_point = None):
         self.flow_vertical = flow_vertical
         self.flow_horizontal = flow_horizontal
         self.ped_h = ped_h
         self.ped_v = ped_v
         self.horizontal_alignment = horizontal_alignment
         self.vertical_alignment = vertical_alignment
-        self.control_device = control_device
+        self.control_device_vertical = control_device_vertical
+        self.control_device_horizontal = control_device_horizontal
+        self.crossing_point = crossing_point
+        self.crossing_zone = crossing_zone
 
     def __repr__(self):
         return "flow_vertical: {}, flow_horizontal: {}, ped_h: {}, ped_v: {}, horizontal_alignment: {}, vertical_alignment: {}, control_device: {}".format(self.flow_vertical,self.flow_horizontal,self.ped_h,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
@@ -59,18 +62,30 @@ class World():
         data[3] = self.ped_v
         data[4] = self.horizontal_alignment
         data[5] = self.vertical_alignment
-        data[6] = self.control_device
+        data[6] = self.control_device_vertical
+        data[7] = self.control_device_horizontal
+        data[8] = self.crossing_zone
+        data[9] = self.crossing_point
 
         return create_yaml('world.yml',data)
 
     def initialiseWorld(self):
-         self.flow_vertical = cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-         self.flow_horizontal = cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
-         self.ped_h = None
-         self.ped_v = None
-         self.horizontal_alignment = None
-         self.vertical_alignment = None
-         self.control_device = None
+        self.flow_vertical = cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
+        self.flow_horizontal = cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
+        self.ped_h = None
+        self.ped_v = None
+        self.horizontal_alignment = None
+        self.vertical_alignment = None
+        self.control_device = None
+        self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
+        self.p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
+        self.p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
+        self.pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
+        self.pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
+        self.p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
+        self.p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
+        self.pointList = p1, p2, p3, p4]
+        self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
 
          for k in range(0,len(self.flow_vertical)):
              if self.horizontal_alignment == None:
@@ -178,18 +193,81 @@ class World():
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(h,v,t,dmin)[0] == True and matrix[h][v] == (0,0) :
+                    if self.isAnEncounter(h,v,t,dmin)[0] == True and matrix[h][v] == (0,0):
                         matrix[h][v] = self.isAnEncounter(h,v,t,dmin)[1]
                         c = c+1
         return matrix,c
 
-    def adaptSpeedsAccordingToControlDeviceOnWays(self):
-        if self.control_device_vertical.category == 0 and self.control_device_horizontal.category == 3:
-            #blabla en cas de présence de stop sur la voie
-            #modifier les vitesses des vehicules sur la voie verticale
-            for vehicles in self.flow_vertical:
-                while distance_to_stop(vehicle(t))>2:
-                    t += 1
+    def distanceToCD(vehicle,time,control_device):
+        p1=vehicle.positions[time]
+        p2=control_device.position
+        return moving.distanceNorm2(p1,p2)
 
-        elif self.control_device_vertical.category == 3 and self.control_device_horizontal.category == 0:
-            #modifier les vitesse des vehicules sur la voie horizontale
+    def stopsAt(vehicle,time):
+        for k in range(time,len(vehicle.positions)):
+            vehicle.velocities[k] = moving.Point(0,0)
+            vehicle.positions[k] = vehicle.positions[k-1]
+    #
+    # def followingVehiclesAdapt(veh_key,flow,time,stopped):
+    #     if stopped == True:
+    #         #blabla d'Adaptation des vitesses/position des vehicules suiveurs
+    #         for k in range(veh_key+1,len(flow_horizontal)):
+    #             for t in range(time+1,len(flow_horizontal.positions)):
+
+
+
+
+    def detectNextVehiclesToEnterZone(self,flow,time):
+        zone = self.crossing_zone
+        result = []
+        distance_list = []
+
+        for key,veh in self.flow_horizontal.items():
+            distance_list.append(moving.distanceNorm2(self.pi1,veh.positions[time]))
+        result.append(min(distance_list))
+        return result
+
+    # def go(vehicle,time):
+
+    def adaptSpeedsAccordingToControlDeviceOnWays(self):
+        stopped = False
+        pointI = self.p4
+        pointD = self.p1
+        if self.control_device_vertical.category == 0 and self.control_device_horizontal.category == 3:
+            for key, value in self.flow_vertical.items():
+                for t in range(len(self.flow_vertical)):
+                    s = 0
+                    if distanceToCD(value,t,stop_sign) > 1:
+                        stopped = False
+                        followingVehiclesAdapt(self.flow_vertical,time,stopped)
+                    else:
+                        stopped = True
+                        stopsAt(value,time)
+                        followingVehiclesAdapt(self.flow_vertical,time,stopped)
+                        # waitNSecondsAtStop(2)
+                        next_vehicles_to_enter_zone = detectNextVehiclesToEnterZone(self.flow_horizontal,time)
+                        d = moving.distanceNorm2(next_vehicles_to_enter_zone[0].positions[time],pointI)
+                        v = next_vehicle_to_enter_zone.velocities[time]
+                        time_window = d/v
+
+                        d = moivng.distanceNorm2(value.positions[t],pointD)
+                        v = value.velocites[time]
+                        time_to_pass = d/v
+
+                        c = 0
+
+                        while time_window > time_to_pass:
+                            c += 1
+                            d = moving.distanceNorm2(next_vehicles_to_enter_zone[c].positions[time],pointI)
+                            v = next_vehiclse_to_enter_zone[c].velocities[time]
+                            time_window = d/v #avec le prochain vehicule a entrer la zone
+                            s += time_window
+                            stopped = True
+                            followingVehiclesAdapt(self.flow_vertical,time,stopped)
+
+
+
+                        stopped = False
+                        go(value,time+t_stop+s)
+                        followingVehiclesAdapt(self.flow_vertical,time,stopped)
+                    break
