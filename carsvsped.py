@@ -215,21 +215,44 @@ class World():
     #             for t in range(time+1,len(flow_horizontal.positions)):
 
 
+    def hasPassedCrossingZoneAt(vehicle,t,crossing_point):
+        x_veh = vehicle.positions[t].x
+        y_veh = vehicle.positions[t].y
+        right_edge = moving.Point(crossing_point.x+3.5/2,crossing_point.y)
+        upper_edge = moving.Point(crossing_point.x,crossing_point.y+3.5/2)
+        if (x_veh > right_edge.x) or (y_veh > upper_edge.y):
+            return True
+        else:
+            return False
 
+    def takeSecond(elem):
+        return elem[1]
+
+    def getDistanceToZone(vehicle,t,crossing_point):
+        left_edge=moving.Point(crossing_point.x-3.5/2,crossing_point.y)
+
+        d = moving.distanceNorm2(vehicle.positions[t],left_edge)
+        return d
+
+
+    def sortListOfVehiclesByDistanceToCrossingZone(liste_of_vehicles,crossing_point,t):
+        temp = [] #liste de la forme [(vehicle,distance to zone),...,(vehicle,distance to zone)]
+        for key, value in liste_of_vehicles:
+            temp.append((value,getDistanceToZone(value,t,crossing_point))
+        return sorted(temp, key = takeSecond)
 
     def detectNextVehiclesToEnterZone(self,flow,time):
+        list_of_vehicles = []
         zone = self.crossing_zone
-        result = []
-        distance_list = []
+        for key, value in self.flow_horizontal.items():
+            if not hasPassedCrossingZoneAt(value,time,self.crossing_point):
+                list_of_vehicles.append(value)
+        return sortListOfVehiclesByDistanceToCrossingZone(list_of_vehicles,zone,time)
 
-        for key,veh in self.flow_horizontal.items():
-            distance_list.append(moving.distanceNorm2(self.pi1,veh.positions[time]))
-        result.append(min(distance_list))
-        return result
 
     # def go(vehicle,time):
 
-    def adaptSpeedsAccordingToControlDeviceOnWays(self):
+    def adaptSpeedsByControlDevice(self):
         stopped = False
         pointI = self.p4
         pointD = self.p1
@@ -259,7 +282,7 @@ class World():
                         while time_window > time_to_pass:
                             c += 1
                             d = moving.distanceNorm2(next_vehicles_to_enter_zone[c].positions[time],pointI)
-                            v = next_vehiclse_to_enter_zone[c].velocities[time]
+                            v = next_vehicles_to_enter_zone[c].velocities[time]
                             time_window = d/v #avec le prochain vehicule a entrer la zone
                             s += time_window
                             stopped = True
