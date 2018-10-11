@@ -207,13 +207,6 @@ class World():
         for k in range(time,len(vehicle.positions)):
             vehicle.velocities[k] = moving.Point(0,0)
             vehicle.positions[k] = vehicle.positions[k-1]
-    #
-    # def followingVehiclesAdapt(veh_key,flow,time,stopped):
-    #     if stopped == True:
-    #         #blabla d'Adaptation des vitesses/position des vehicules suiveurs
-    #         for k in range(veh_key+1,len(flow_horizontal)):
-    #             for t in range(time+1,len(flow_horizontal.positions)):
-
 
     def hasPassedCrossingZoneAt(vehicle,t,crossing_point):
         x_veh = vehicle.positions[t].x
@@ -226,9 +219,11 @@ class World():
             return False
 
     def takeSecond(elem):
+        '''utile pour la fonction getDistanceToZone, permet par la suite d'effectuer un tri'''
         return elem[1]
 
     def getDistanceToZone(vehicle,t,crossing_point):
+        '''renvoiela distance d'un vehicule a la zone de croisement au moment t'''
         left_edge=moving.Point(crossing_point.x-3.5/2,crossing_point.y)
 
         d = moving.distanceNorm2(vehicle.positions[t],left_edge)
@@ -236,12 +231,14 @@ class World():
 
 
     def sortListOfVehiclesByDistanceToCrossingZone(liste_of_vehicles,crossing_point,t):
+        ''' fonctin de tri des vehicules selon la distance à la zone de croisement'''
         temp = [] #liste de la forme [(vehicle,distance to zone),...,(vehicle,distance to zone)]
         for key, value in liste_of_vehicles:
             temp.append((value,getDistanceToZone(value,t,crossing_point))
         return sorted(temp, key = takeSecond)
 
     def detectNextVehiclesToEnterZone(self,flow,time):
+        '''fonction de détection qui renvoie les prochains vehicules à pénétrer la zone, au moment t'''
         list_of_vehicles = []
         zone = self.crossing_zone
         for key, value in self.flow_horizontal.items():
@@ -249,8 +246,22 @@ class World():
                 list_of_vehicles.append(value)
         return sortListOfVehiclesByDistanceToCrossingZone(list_of_vehicles,zone,time)
 
+    def getCurvilinearTrajectoryFromTrajectoryUntil(ct,t):
+    def putCurvilinearTrajectoriesTogetherFrom(ct1,ct2,t):
 
-    # def go(vehicle,time):
+    def go(vehicle,time,t_simul):
+        v0 = moving.Point(2,3).__mul__(45) #récupérer vitesse souhaitée par le véhicule à l'instant  t=0 so .. ligne à modifier radicalement
+        for time in range (time, len(t_simul)):
+            vehicle.velocities.append(v0)
+            vehicle.positions[t] = cars.flow.positionV(vehicle.positions[t-1],v0,t,2000)
+        vehicle.getCurvilinearTrajectoryFromTrajectoryUntil(time)
+        vehicle.putTogetherCurvilinearTrajectoriesFrom(time)
+    #
+    # def followingVehiclesAdapt(veh_key,flow,time,stopped):
+    #     if stopped == True:
+    #         #blabla d'Adaptation des vitesses/position des vehicules suiveurs
+    #         for k in range(veh_key+1,len(flow_horizontal)):
+    #             for t in range(time+1,len(flow_horizontal.positions)):
 
     def adaptSpeedsByControlDevice(self):
         stopped = False
