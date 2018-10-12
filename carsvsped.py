@@ -212,12 +212,16 @@ class World():
 
 
 
-    def stopsAt(vehicle,time):
+    def stopsAt(self,vehicle,time):
+        '''arrête un véhicule à partir d'un instant t
+        TODO : mettre à jour les curvilinearPosition: necessitera les alignements'''
         for k in range(time,len(vehicle.positions)):
-            vehicle.velocities[k] = moving.Point(0,0)
-            vehicle.positions[k] = vehicle.positions[k-1]
 
-    def hasPassedCrossingZoneAt(vehicle,t,crossing_point):
+            vehicle.velocities[k] = moving.Point(0,0)
+            vehicle.positions.setPositionXY(k,vehicle.positions[k-1].x,vehicle.positions[k-1].y)
+
+    def hasPassedCrossingZoneAt(self,vehicle,t,crossing_point):
+        '''fonction retournant True si le vehicule etudie a dépassé la zone de croisement, False sinon'''
         x_veh = vehicle.positions[t].x
         y_veh = vehicle.positions[t].y
         right_edge = moving.Point(crossing_point.x+3.5/2,crossing_point.y)
@@ -228,26 +232,25 @@ class World():
             return False
 
     def takeSecond(elem):
-        '''utile pour la fonction getDistanceToZone, permet par la suite d'effectuer un tri'''
+        #utile pour la fonction getDistanceToZone, permet par la suite d'effectuer un tri'''
         return elem[1]
 
     def getDistanceToZone(vehicle,t,crossing_point):
         '''renvoiela distance d'un vehicule a la zone de croisement au moment t'''
         left_edge=moving.Point(crossing_point.x-3.5/2,crossing_point.y)
-
-        d = moving.distanceNorm2(vehicle.positions[t],left_edge)
+        d = moving.Point.distanceNorm2(vehicle.positions[t],left_edge)
         return d
 
 
     def sortListOfVehiclesByDistanceToCrossingZone(liste_of_vehicles,crossing_point,t):
-        ''' fonction de tri des vehicules selon la distance à la zone de croisement, au temps t'''
+        # fonction de tri des vehicules selon la distance à la zone de croisement, au temps t'''
         temp = [] #liste de la forme [(vehicle,distance to zone),...,(vehicle,distance to zone)]
         for key, value in liste_of_vehicles:
             temp.append((value,getDistanceToZone(value,t,crossing_point)))
         return sorted(temp, key = takeSecond)
 
     def detectNextVehiclesToEnterZone(self,flow,time):
-        '''fonction de détection qui renvoie les prochains vehicules à pénétrer la zone, au moment t'''
+        #fonction de détection qui renvoie les prochains vehicules à pénétrer la zone, au moment t'''
         list_of_vehicles = []
         zone = self.crossing_zone
         for key, value in self.flow_horizontal.items():
@@ -257,6 +260,7 @@ class World():
 
 
     def go(vehicle,time,t_simul):
+        #
         v0 = moving.Point(2,3).__mul__(45) #récupérer vitesse souhaitée par le véhicule à l'instant  t=0 so .. ligne à modifier radicalement
         for time in range (time, len(t_simul)):
             vehicle.velocities.append(v0)
