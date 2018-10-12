@@ -10,6 +10,7 @@ import collections
 import itertools
 from scipy.stats import rv_continuous
 from trafficintelligence import utils
+from trafficintelligence import moving
 
 def load_yml(file):
     return yaml.load(open(file))
@@ -110,25 +111,25 @@ def generateSampleFromSample(sample_size):
 
 def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
     '''trajectory is a moving.Trajectory object
-    alignments is a list of moving.Trajectory objects '''
+    alignment is a list of trajectories (moving.Trajectory object)'''
 
-    curvilinear_trajectory = None
-    #Prepares the splines
+    CT = None
+    # preparation des splines
     for elements in alignments:
-        elements.computeCumulativeDistances()
+        moving.elements.computeCumulativeDistances()
     moving.prepareSplines(alignments)
 
     #XY->SY pour chaque moving.Point de la trajectory
     S=[]
     Y=[]
     lanes=[]
-    for t in range(len(trajectory.positions[0])):
+    for t in range(len(trajectory.positions)):
 
-        sy = moving.getSYfromXY(moving.Point(trajectory.positions[0][t],trajectory.positions[1][t]),alignments)
+        sy = moving.getSYfromXY(Point(trajectory.positions[t].x,trajectory.positions[t].y),alignments)
         S.append(sy[4])
         Y.append(sy[5])
         lanes.append(sy[0])
 
-    curvilinear_trajectory = moving.CurvilinearTrajectory(S,Y,lanes)
+    CT = moving.CurvilinearTrajectory(S,Y,lanes)
 
-    return curvilinear_trajectory
+    return CT

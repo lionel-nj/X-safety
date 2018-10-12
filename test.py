@@ -47,9 +47,9 @@ def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
     S=[]
     Y=[]
     lanes=[]
-    for t in range(len(trajectory.positions[0])):
+    for t in range(len(trajectory.positions)):
 
-        sy = getSYfromXY(Point(trajectory.positions[0][t],trajectory.positions[1][t]),alignments)
+        sy = getSYfromXY(Point(trajectory.positions[t].x,trajectory.positions[t].y),alignments)
         S.append(sy[4])
         Y.append(sy[5])
         lanes.append(sy[0])
