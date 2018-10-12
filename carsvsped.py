@@ -77,27 +77,39 @@ class World():
         self.horizontal_alignment = None
         self.vertical_alignment = None
         self.control_device = None
-        self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
-        self.p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
-        self.p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
-        self.pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
-        self.pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
-        self.p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
-        self.p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
-        self.pointList = p1, p2, p3, p4]
-        self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
 
-         for k in range(0,len(self.flow_vertical)):
-             if self.horizontal_alignment == None:
-                 self.flow_vertical[k].curvilinearPositions = moving.CurvilinearTrajectory()
-             else:
-                 self.flow_vertical[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
+        if self.horizontal_alignment == None or self.vertical_alignment == None :
+            self.crossing_point = None
+            self.p1 = None
+            self.p2 = None
+            self.pi1 = None
+            self.pi2 = None
+            self.p3 = None
+            self.p4 = None
+            self.pointList = None
+            self.crossing_zone = None
+        else:
+            self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
+            self.p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
+            self.p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
+            self.pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
+            self.pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
+            self.p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
+            self.p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
+            self.pointList = [p1, p2, p3, p4]
+            self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
 
-         for k in range(0,len(self.flow_horizontal)):
-             if self.vertical_alignment == None:
-                 self.flow_horizontal[k].curvilinearPositions = moving.CurvilinearTrajectory()
-             else:
-                 self.flow_horizontal[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
+        for k in range(0,len(self.flow_vertical)):
+            if self.horizontal_alignment == None:
+                self.flow_vertical[k].curvilinearPositions = moving.CurvilinearTrajectory()
+            else:
+                self.flow_vertical[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
+
+        for k in range(0,len(self.flow_horizontal)):
+            if self.vertical_alignment == None:
+                self.flow_horizontal[k].curvilinearPositions = moving.CurvilinearTrajectory()
+            else:
+                self.flow_horizontal[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
 
 
     def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
@@ -198,10 +210,7 @@ class World():
                         c = c+1
         return matrix,c
 
-    def distanceToCD(vehicle,time,control_device):
-        p1=vehicle.positions[time]
-        p2=control_device.position
-        return moving.distanceNorm2(p1,p2)
+
 
     def stopsAt(vehicle,time):
         for k in range(time,len(vehicle.positions)):
@@ -231,10 +240,10 @@ class World():
 
 
     def sortListOfVehiclesByDistanceToCrossingZone(liste_of_vehicles,crossing_point,t):
-        ''' fonctin de tri des vehicules selon la distance à la zone de croisement'''
+        ''' fonction de tri des vehicules selon la distance à la zone de croisement, au temps t'''
         temp = [] #liste de la forme [(vehicle,distance to zone),...,(vehicle,distance to zone)]
         for key, value in liste_of_vehicles:
-            temp.append((value,getDistanceToZone(value,t,crossing_point))
+            temp.append((value,getDistanceToZone(value,t,crossing_point)))
         return sorted(temp, key = takeSecond)
 
     def detectNextVehiclesToEnterZone(self,flow,time):
@@ -246,16 +255,14 @@ class World():
                 list_of_vehicles.append(value)
         return sortListOfVehiclesByDistanceToCrossingZone(list_of_vehicles,zone,time)
 
-    def getCurvilinearTrajectoryFromTrajectoryUntil(ct,t):
-    def putCurvilinearTrajectoriesTogetherFrom(ct1,ct2,t):
 
     def go(vehicle,time,t_simul):
         v0 = moving.Point(2,3).__mul__(45) #récupérer vitesse souhaitée par le véhicule à l'instant  t=0 so .. ligne à modifier radicalement
         for time in range (time, len(t_simul)):
             vehicle.velocities.append(v0)
             vehicle.positions[t] = cars.flow.positionV(vehicle.positions[t-1],v0,t,2000)
-        vehicle.getCurvilinearTrajectoryFromTrajectoryUntil(time)
-        vehicle.putTogetherCurvilinearTrajectoriesFrom(time)
+        vehicle.getCurvilinearTrajectoryUntil(time)
+        vehicle.putCurvilinearTrajectoriesTogetherFrom(time)
     #
     # def followingVehiclesAdapt(veh_key,flow,time,stopped):
     #     if stopped == True:
@@ -305,3 +312,26 @@ class World():
                         go(value,time+t_stop+s)
                         followingVehiclesAdapt(self.flow_vertical,time,stopped)
                     break
+
+def getCurvilinearTrajectoryUntil(ct,t):
+    '''récupère les informations d'une curvilinear trajectory jusqu'à l'instant t'''
+    new_ct = moving.CurvilinearTrajectory()
+    for k in range(t+1):
+        new_ct.addPositionSYL(ct[k][0],ct[k][1],ct[k][2])
+    return new_ct
+
+def putCurvilinearTrajectoriesTogetherFrom(ct1,ct2,t):
+    '''assemble deux curvilinear trajectory, à partir d'un instant t'''
+    new_ct = getCurvilinearTrajectoryUntil(ct1,t)
+    for k in range(t,len(ct2)):
+        new_ct.addPositionSYL(ct2[k][0],ct2[k][1],ct2[k][2])
+    return new_ct
+
+def distanceToCD(vehicle,time,control_device):
+    '''calcule la distance restante a l'outil de controle'''
+    if control_device.alignment_id == vehicle.curvilinearPositions.lanes[0]:
+        p1=vehicle.positions[time]
+        p2=control_device.position
+        return moving.Point.distanceNorm2(p1,p2)
+    else:
+        return ('Erreur, vehicule et CD pas sur le même alignement : calcul non realisable')
