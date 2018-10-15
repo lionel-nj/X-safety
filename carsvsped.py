@@ -239,41 +239,41 @@ class World():
             if not self.hasPassedCrossingZoneAt(value,time,crossing_point):
                 result.append(value)
         return result
-    #
-    # def followingVehiclesAdapt(self,stopped_vehicle_key,time,stopped):
-    #     ''' fonction d'adaptation des vitesses/position des vehicules suiveurs'''
-    #     if stopped == True: # si le vehicule est arrêté alors on adapte la vitesse des vehicules suiveurs.
-    #
-    #         p1 = self.flow_vertical[stopped_vehicle_key].positions[time]
-    #         v1 = self.flow_vertical[stopped_vehicle_key].velocities[time]
-    #
-    #         for k in range(stopped_vehicle_key+1,len(self.flow_vertical)): #a partir du premier vehicule suiveur
-    #
-    #             v0 = self.direction.__mul__(random.normalvariate(30,3.2)) #vitesse random..idéalement récupérer la vitesse souhaitée initialement !!
-    #             l = #a faire : récupérer la longueur du vehicule present
-    #
-    #             for t in range(time,len(self.flow_vertical.positions)):
-    #
-    #                 p = self.flow_vertical[k].positions[t-1].y #position précédente du vehicule (à t-1)
-    #                 v = moving.Point.norm2(moving.MovingObject.getVelocities(self.flow_vertical[k-1])[t]) #vitesse du vehicule précédent à l'instant t
-    #                 velocite = moving.Point(0,1).__mul__(moving.Point.norm2(v0))
-    #                 new_position = flow.positionV(p,moving.Point.norm2(velocite),t,2000)
-    #                 # s = gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
-    #                 l=# a faire : longueur du vehicule precedent
-    #                 s = flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
-    #                 smin = 25
-    #
-    #                 if s < smin:
-    #                     velocite = self.direction.__mul__((v*t-L[k-1]-smin)/t)
-    #
-    #                 if velocite.y < 0:
-    #                     velocite = moving.Point(0,0)
-    #
-    #             self.flow_vertical[k].velocities = velocite
-    #             moving.Trajectory.setPositionXY(k,positionV(p,moving.Point.norm2(velocite),1,2000).x,positionV(p,moving.Point.norm2(velocite),1,2000).y)
-    #
-    #     else:
-    #         None
+
+    def followingVehiclesAdapt(self,stopped_vehicle_key,time,stopped):
+        ''' fonction d'adaptation des vitesses/position des vehicules suiveurs'''
+        if stopped == True: # si le vehicule est arrêté alors on adapte la vitesse des vehicules suiveurs.
+
+            p1 = self.flow_vertical[stopped_vehicle_key].positions[time]
+            v1 = self.flow_vertical[stopped_vehicle_key].velocities[time]
+
+            for k in range(stopped_vehicle_key+1,len(self.flow_vertical)): #a partir du premier vehicule suiveur
+
+                v0 = self.direction.__mul__(random.normalvariate(30,3.2)) #vitesse random..idéalement récupérer la vitesse souhaitée initialement !!
+                l = (monde.flow_horizontal[k].geometry.length-1.8-1.8)/2
+
+                for t in range(time,len(self.flow_vertical.positions)):
+
+                    p = self.flow_vertical[k].positions[t-1].y #position précédente du vehicule (à t-1)
+                    v = moving.Point.norm2(moving.MovingObject.getVelocities(self.flow_vertical[k-1])[t]) #vitesse du vehicule précédent à l'instant t
+                    velocite = moving.Point(0,1).__mul__(moving.Point.norm2(v0))
+                    new_position = flow.positionV(p,moving.Point.norm2(velocite),t,2000)
+                    # s = gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
+                    l = (monde.flow_horizontal[k-1].geometry.length-1.8-1.8)/2
+                    s = flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
+                    smin = 25
+
+                    if s < smin:
+                        velocite = self.direction.__mul__((v*t-L[k-1]-smin)/t)
+
+                    if velocite.y < 0:
+                        velocite = moving.Point(0,0)
+
+                self.flow_vertical[k].velocities = velocite
+                moving.Trajectory.setPositionXY(k,positionV(p,moving.Point.norm2(velocite),1,2000).x,positionV(p,moving.Point.norm2(velocite),1,2000).y)
+
+        else:
+            None
 
     def adaptSpeedsByControlDevice(self):
         stopped = False
