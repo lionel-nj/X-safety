@@ -49,3 +49,24 @@ Les fonctions delete, add, update, supposent que l'on traite des données sous f
 * generateSampleFromSample : permet de générer un échantillon à partir d'une distribution empirique.
 input : taille de l'échantillon.  
 Actuellemment, la fonction génère les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique.
+
+## Exemple pour le comptage de rencontres à moins de 25 mètres sur un lien :
+```
+import cars
+import carsvsped
+from toolkit import *
+import matplotlib.pyplot as plt
+
+parameters = load_yml('config.yml')
+
+monde = carsvsped.World()
+monde.initialiseWorld()
+
+#calculer le nombre d'interactions
+monde.countEncounters(25)
+
+#calculer les indices spatio temporels
+
+#tracer les trajectoires
+monde.trace()
+```
