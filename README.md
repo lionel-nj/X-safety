@@ -9,7 +9,7 @@ La classe flow prend comme attribut : un vecteur direction (0,1) ou (1,0), selon
 * generate_trajectories :  
 input : flow
 output : données de flow d'une voie
-crée un fichier yaml où les données sont sauvegardée. (cette dernière partie sera détachée de la fonctin de génération).
+crée un fichier yaml où les données sont sauvegardées. (cette dernière partie sera détachée de la fonctin de génération).
 
 ## Fichier carsvsped.py
 
@@ -50,23 +50,20 @@ Les fonctions delete, add, update, supposent que l'on traite des données sous f
 input : taille de l'échantillon.  
 Actuellemment, la fonction génère les échantillons à partir d'un fichier 'data.csv', que je pourrais placer en paramètre afin de rendre la fonction plus générique.
 
-## Exemple pour le comptage de rencontres à moins de 25 mètres sur un lien :
+## Exemple pour le comptage de rencontres à moins de 25 mètres sur un lien au croisement:
+
+Le passage des paramètres du fichier config.yml se fait à l'intérieur des fichier cars.py et carsvsped.py
 ```
 import cars
 import carsvsped
 from toolkit import *
 import matplotlib.pyplot as plt
 
-parameters = load_yml('config.yml')
 
 monde = carsvsped.World()
 monde.initialiseWorld()
 
-#calculer le nombre d'interactions
-monde.countEncounters(25)
+#calculer le nombre d'interactions à 25m (25 est un paramètre dans config.py)
+print(monde.countEncounters()[1])
 
-#calculer les indices spatio temporels
-
-#tracer les trajectoires
-monde.trace()
-```
+``
