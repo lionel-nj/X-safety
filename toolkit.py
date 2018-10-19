@@ -63,51 +63,56 @@ def load_scene(scene):
     return load_yml(scene)
 
 
-def generateSampleFromSample(sample_size):
+def generateDistribution(data):
     #ouverture du fichier csv
-    with open("data.csv", 'r') as f:
+    with open(data, 'r') as f:
         liste = csv.reader(f)
         a = list(liste)
 
     #initialisations
-    generateSampleFromSample.tiv = []
-    generateSampleFromSample.tivprob = []
-    generateSampleFromSample.tivprobcum = []
+    tiv = []
+    tivprob = []
+    tivprobcum = []
 
-    #completion dela liste des tiv
+    #completion de la liste des tiv
     for k in range(0,len(a)):
-        generateSampleFromSample.tiv = generateSampleFromSample.tiv + [float(a[k][0])]
+        tiv = tiv + [float(a[k][0])]
 
     #suppression des zéros
-    generateSampleFromSample.tiv = [i for i in generateSampleFromSample.tiv if i !=  0]
+    tiv = [i for i in tiv if i !=  0]
 
     #tri de la liste des tiv
-    generateSampleFromSample.tiv = sorted(generateSampleFromSample.tiv)
+    tiv = sorted(tiv)
 
-    #comptage des élément  = > obtention des frequences
+    #comptage des élément  = > obtention des fréquences
 
-    count = list(collections.Counter(generateSampleFromSample.tiv).values())
+    count = list(collections.Counter(tiv).values())
 
     #frequences
     for k in range(0,len(count)):
-        generateSampleFromSample.tivprob = generateSampleFromSample.tivprob + [count[k]/len(generateSampleFromSample.tiv)]
+        tivprob = tivprob + [count[k]/len(tiv)]
 
     #suppression des doublons de la liste des tiv
-    generateSampleFromSample.tiv = sorted(list(set(generateSampleFromSample.tiv)))
+    tiv = sorted(list(set(tiv)))
 
     #mettre la probabilite de 0 à 0
-    generateSampleFromSample.tiv = [0] + generateSampleFromSample.tiv
-    generateSampleFromSample.tivprob = [0] + generateSampleFromSample.tivprob
+    tiv = [0] + tiv
+    tivprob = [0] + tivprob
 
     #cumul des probabilités
-    generateSampleFromSample.tivprobcum = list(itertools.accumulate(generateSampleFromSample.tivprob))
+    tivprobcum = list(itertools.accumulate(tivprob))
 
     #generation d'un échantillon
-    generateSampleFromSample.tivdistrib = utils.EmpiricalContinuousDistribution(generateSampleFromSample.tiv,generateSampleFromSample.tivprobcum)
-    tempo = generateSampleFromSample.tivdistrib.rvs(size = sample_size)
-    create_yaml('headway_sample.yml',generateSampleFromSample.tivdistrib)
+    #tiv : x
+    #tivprob : probailité, y
+    tivdistrib = utils.EmpiricalContinuousDistribution(tiv,tivprobcum)
+    create_yaml('distribution.yml',tivdistrib)
+    return tivdistrib
 
-    return list(tempo)
+def generateSampleFromSample(sample_size,distribution):
+    result = distribution.rvs(size = sample_size)
+    create_yaml('headway_sample.yml',list(result))
+    return list(result)
 
 def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
     '''trajectory is a moving.Trajectory object
