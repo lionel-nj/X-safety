@@ -11,7 +11,6 @@ indices=a.drop_duplicates("last",False)
 
 tivbyvehid=[]
 
-
 for k in indices :
     a=data[data.vehid==k]
     tivbyvehid = tivbyvehid +[a[a.localy>=800].headway.iloc[0]]
@@ -20,13 +19,3 @@ outfile = open('data.csv','w')
 out = csv.writer(outfile)
 out.writerows(map(lambda x: [x], tivbyvehid))
 outfile.close()
-
-#
-# myData = tivbyvehid
-#
-# myFile = open('example2.csv', 'w')
-# with myFile:
-#     writer = csv.writer(myFile)
-#     writer.writerows(myData)
-#
-# print("Writing complete")
