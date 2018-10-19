@@ -13,17 +13,18 @@ from math import sqrt
 # import position from toolkit
 # import gap from toolkit
 
-t_stop = 30
-t_marche1 = 30
-t_marche2 = 30
-t_simul = t_marche1+t_marche2+t_stop
-number_of_cars = 7
+parameters = load_yml('config.yml')
+
+t_simul = parameters['simulation']['t_simulation']
+delta_t = parameters['simulation']['delta_t']
+number_of_cars = parameters['simulation']['number_of_cars']
 
 class flow():
 
     def __init__(self,direction,nom_fichier_sortie): #direction est un vecteur de la forme moving.Point(x,y)
         self.direction = direction
         self.nom_fichier_sortie = nom_fichier_sortie
+        self.number_of_cars = number_of_cars
 
 
     def gap(x_leader,x_following,L_leader):
@@ -43,14 +44,11 @@ class flow():
 
         "définition des instants de création des véhicules"
 
-        tiv = generateSampleFromSample(number_of_cars)
+        tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv'))
         h = list(itertools.accumulate(tiv))
 
-        delta_t = 1
-        t_stop = 30
-        t_marche1 = 30
-        t_marche2 = 30
-        t_simul = t_marche1+t_marche2+t_stop
+        # delta_t = 1
+        # t_simul = t_marche1+t_marche2+t_stop
 
         intervals = [None]*t_simul
 
@@ -96,35 +94,6 @@ class flow():
 
                 posV.positions[0].append(temp.x)
                 posV.positions[1].append(temp.y)
-        #
-        # elif control_device.category == 0:
-        #     #blabla en cas de stop
-        #     while distance_to_stop > 2:
-        #         for t in range(0,t_simul):
-        #             speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
-        #
-        #         if self.direction == moving.Point(0,1):
-        #             for t in range(1,t_simul):
-        #                 temp = flow.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
-        #                 posV.positions[0].append(temp.x)
-        #                 posV.positions[1].append(temp.y)
-        #
-        #         else:
-        #             for t in range(1,t_simul):
-        #                 temp = flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
-        #
-        #                 posV.positions[0].append(temp.x)
-        #                 posV.positions[1].append(temp.y)
-        #
-        #     next_veh_to_exit=detect_next_vehicle_to_exit_crossing_zone()
-        #
-        #
-        #
-        # elif control_device.category == 1:
-        #     #blabla en cas de yield
-        #
-        # elif control_device.category == 2:
-        #     #blabla redlight
 
         # data_flow[0].timeInterval = [0,300]
         data_flow[0].timeInterval = moving.TimeInterval(0,300)
@@ -195,33 +164,6 @@ class flow():
 
         #porttion de sauvegarde à séparer du reste
         create_yaml(self.nom_fichier_sortie,data_flow)
+        create_yaml('intervals.yml',intervals)
+
         return data_flow, intervals
-
-    def trace(self,data_flow):
-        t = []
-        p = []
-        v = []
-        objet = data_flow.generateTrajectories()
-        ylabel = ''
-
-        for k in range (0,number_of_cars):
-            p.append([])
-            v.append([])
-            t.append(objet[1][k])
-
-            for time in range(0,t_simul):
-                if self.direction == moving.Point(0,1):
-                    p[k].append(objet[0][k].positions[time].y)
-                    ylabel = "position selon l'axe x"
-                else:
-                    p[k].append(objet[0][k].positions[time].x)
-                    ylabel = "position selon l'axe y"
-
-                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
-
-            plt.plot(t[k],p[k])
-            # plt.plot(t[k],p[k])
-        plt.xlabel('temps')
-        plt.ylabel(ylabel)
-
-        plt.show()

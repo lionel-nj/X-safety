@@ -1,10 +1,15 @@
 import cars
 from trafficintelligence import moving
 import random
-# from toolkit import *
+from toolkit import *
 import toolkit
 
+parameters = load_yml('config.yml')
 
+t_simul = parameters['simulation']['t_simulation']
+delta_t = parameters['simulation']['delta_t']
+number_of_cars = parameters['simulation']['number_of_cars']
+dmin = parameters['interactions']['dmin']
 
 class Alignment(object):
     #représentation des voies : liste de points
@@ -71,7 +76,7 @@ class World():
 
     def initialiseWorld(self):
         self.flow_vertical = cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-        self.flow_horizontal = cars.flow.generateTrajectories(cars.flow(moving.Point(1,0),'horizontale.yml'))[0]
+        self.flow_horizontal = cars.flow(moving.Point(1,0),'horizontale.yml').generateTrajectories()[0]
         self.ped_h = None
         self.ped_v = None
         self.horizontal_alignment = None
@@ -180,7 +185,7 @@ class World():
 
         return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
 
-    def isAnEncounter(self,i,j,t,dmin):
+    def isAnEncounter(self,i,j,t):
 
         p1 = self.flow_vertical[i].positions[t]
         p2 = self.flow_horizontal[j].positions[t]
@@ -191,7 +196,7 @@ class World():
         else:
             return False,distance
 
-    def countEncounters(self,dmin):
+    def countEncounters(self):
 
         columns = len(self.flow_vertical)
         lines = len(self.flow_horizontal)
@@ -205,8 +210,8 @@ class World():
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(h,v,t,dmin)[0] == True and matrix[h][v] == (0,0):
-                        matrix[h][v] = self.isAnEncounter(h,v,t,dmin)[1]
+                    if self.isAnEncounter(h,v,t)[0] == True and matrix[h][v] == (0,0):
+                        matrix[h][v] = self.isAnEncounter(h,v,t)[1]
                         c = c+1
         return matrix,c
 
@@ -250,7 +255,7 @@ class World():
             for k in range(stopped_vehicle_key+1,len(self.flow_vertical)): #a partir du premier vehicule suiveur
 
                 v0 = self.direction.__mul__(random.normalvariate(30,3.2)) #vitesse random..idéalement récupérer la vitesse souhaitée initialement !!
-                l = (monde.flow_horizontal[k].geometry.length-1.8-1.8)/2
+                l = (monde.flow_horizontal[k].geometry.length-3.6)/2
 
                 for t in range(time,len(self.flow_vertical.positions)):
 
@@ -259,7 +264,7 @@ class World():
                     velocite = moving.Point(0,1).__mul__(moving.Point.norm2(v0))
                     new_position = flow.positionV(p,moving.Point.norm2(velocite),t,2000)
                     # s = gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
-                    l = (monde.flow_horizontal[k-1].geometry.length-1.8-1.8)/2
+                    l = (monde.flow_horizontal[k-1].geometry.length-3.6)/2
                     s = flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
                     smin = 25
 
@@ -297,6 +302,7 @@ class World():
 
                         c = 0
 
+
                         while time_window > time_to_pass:
                             c += 1
                             d = moving.distanceNorm2(next_vehicles_to_enter_zone[c].positions[time],pointI)
@@ -313,6 +319,58 @@ class World():
                         followingVehiclesAdapt(self.flow_vertical,time,stopped)
                     break
         create_yaml('horizontale.yml',self)
+
+    def trace(self):
+        ob1 = toolkit.load_yml('verticale.yml')
+        ob2 = toolkit.load_yml('intervals.yml')
+
+        t = []
+        p = []
+        v = []
+        objet = []
+        objet.append(ob1)
+        objet.append(ob2)
+        ylabel = ''
+
+        for k in range (0,len(self.flow_vertical)):
+            p.append([])
+            v.append([])
+            t.append(objet[1][k])
+
+            for time in range(0,len(self.flow_vertical[0].positions)):
+                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
+                p[k].append(objet[0][k].positions[time].y)
+                ylabel = "position selon l'axe x"
+
+            plt.plot(t[k],p[k])
+
+        plt.figure()
+
+        ob1 = load_yml('horizontal.yml')
+        t = []
+        p = []
+        v = []
+        objet = []
+        objet.append(ob1)
+        objet.append(ob2)
+
+        for k in range (0,len(self.flow_horizontal)):
+            v.append([])
+            t.append(objet[1][k])
+            p.append([])
+
+            for time in range(0,len(self.flow_horizontal[0].positions)):
+                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
+                p[k].append(objet[0][k].positions[time].x)
+                ylabel = "position selon l'axe y"
+
+            plt.plot(t[k],p[k])
+            # plt.plot(t[k],p[k])
+        plt.xlabel('temps')
+        plt.ylabel(ylabel)
+        plt.show()
+        plt.close()
+        plt.close()
 
 def getCurvilinearTrajectoryUntil(ct,t):
     '''récupère les informations d'une curvilinear trajectory jusqu'à l'instant t'''
