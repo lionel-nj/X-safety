@@ -112,7 +112,7 @@ class vehicles():
 
             data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
             data_vehicles[k].positions = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
-            data_vehicles[k].velocities = [v0]
+            data_vehicles[k].velocities = [moving.Point(0,0)]
             # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
             data_vehicles[k].userType = 1
 
