@@ -11,16 +11,20 @@ delta_t = parameters['simulation']['delta_t']
 number_of_cars = parameters['simulation']['number_of_cars']
 dmin = parameters['interactions']['dmin']
 
-class Alignment(object):
+class Alignment():
     #représentation des voies : liste de points
-    def __init__(self,id = None,points = [],width = None,control_device = None):
+    def __init__(self, id = None, points = [], width = None, control_device = None, debit = None):
         self.id = id
         self.points = points
         self.width = width
         self.control_device = control_device
+        self.debit = debit
 
     def __repr__(self):
         return "id: {}, width:{}".format(self.id, self.width)
+
+    def addPoint(self,x,y):
+        self.points.append(moving.Point(x,y))
 
 class ControlDevice():
     #outil de control
@@ -41,116 +45,89 @@ class ControlDevice():
 
 class World():
     #monde
-    def __init__(self,flow_vertical = None ,flow_horizontal = None,ped_h = None,ped_v = None,horizontal_alignment = None,vertical_alignment = None,control_device_horizontal = None, control_device_vertical = None, crossing_zone = None, crossing_point = None):
-        self.flow_vertical = flow_vertical
-        self.flow_horizontal = flow_horizontal
-        self.ped_h = ped_h
-        self.ped_v = ped_v
-        self.horizontal_alignment = horizontal_alignment
-        self.vertical_alignment = vertical_alignment
-        self.control_device_vertical = control_device_vertical
-        self.control_device_horizontal = control_device_horizontal
-        self.crossing_point = crossing_point
-        self.crossing_zone = crossing_zone
+    def __init__(self,vehicles = None ,pedestrians = None, alignments = None, control_devices = None, crossing_point = None):
+        self.vehicles = vehicles #sorted dict de veh
+        self.pedestrians = pedestrians #sorted dict de ped
+        self.alignments = alignments #liste de alignements
+        self.control_devices = control_devices #liste de CD
+        self.crossing_point = crossing_point #point
 
     def __repr__(self):
-        return "flow_vertical: {}, flow_horizontal: {}, ped_h: {}, ped_v: {}, horizontal_alignment: {}, vertical_alignment: {}, control_device: {}".format(self.flow_vertical,self.flow_horizontal,self.ped_h,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
+        return "vehicles: {}, pedestrians: {}, alignments: {}, control_device: {}".format(self.vehicles,self.vehicles,self.pedestrians,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
 
     def loadWorld(self,file):
         return load_yml(file)
 
     def saveWorld(self):
         data = dict()
-        data[0] = self.flow_vertical
-        data[1] = self.flow_horizontal
-        data[2] = self.ped_h
-        data[3] = self.ped_v
-        data[4] = self.horizontal_alignment
-        data[5] = self.vertical_alignment
-        data[6] = self.control_device_vertical
-        data[7] = self.control_device_horizontal
-        data[8] = self.crossing_zone
-        data[9] = self.crossing_point
+        data[0] = self.vehicles
+        data[1] = self.pedestrians
+        data[2] = self.alignments
+        data[3] = self.control_devices
 
         return create_yaml('world.yml',data)
 
     def initialiseWorld(self):
-        self.flow_vertical = cars.flow(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-        self.flow_horizontal = cars.flow(moving.Point(1,0),'horizontale.yml').generateTrajectories()[0]
-        self.ped_h = None
-        self.ped_v = None
-        self.horizontal_alignment = None
-        self.vertical_alignment = None
+        # self.vehicles = cars.vehicles(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
+        self.pedestrians = None
+        self.alignment = None
         self.control_device = None
 
-        if self.horizontal_alignment == None or self.vertical_alignment == None :
-            self.crossing_point = None
-            self.p1 = None
-            self.p2 = None
-            self.pi1 = None
-            self.pi2 = None
-            self.p3 = None
-            self.p4 = None
-            self.pointList = None
-            self.crossing_zone = None
-        else:
+        if self.horizontal_alignment != None or self.vertical_alignment != None :
             self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
-            self.p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
-            self.p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
-            self.pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
-            self.pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
-            self.p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
-            self.p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
-            self.pointList = [p1, p2, p3, p4]
+            p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
+            p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
+            pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
+            pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
+            p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
+            p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
+            pointList = [p1, p2, p3, p4]
             self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
+        #
+        # for k in range(0,len(self.vehicles)):
+        #     if self.horizontal_alignment == None:
+        #         self.vehicles[k].curvilinearPositions = moving.CurvilinearTrajectory()
+        #     else:
+        #         self.vehicles[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
+        #
+        # for k in range(0,len(self.vehicles)):
+        #     if self.vertical_alignment == None:
+        #         self.vehicles[k].curvilinearPositions = moving.CurvilinearTrajectory()
+        #     else:
+        #         self.vehicles[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
 
-        for k in range(0,len(self.flow_vertical)):
-            if self.horizontal_alignment == None:
-                self.flow_vertical[k].curvilinearPositions = moving.CurvilinearTrajectory()
-            else:
-                self.flow_vertical[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
 
-        for k in range(0,len(self.flow_horizontal)):
-            if self.vertical_alignment == None:
-                self.flow_horizontal[k].curvilinearPositions = moving.CurvilinearTrajectory()
-            else:
-                self.flow_horizontal[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
-
-
-    def distanceMinVerifiee(self,direction,flow,i,j,t,dmin):
+    def distanceMinVerifiee(self,direction,vehicles,i,j,t,dmin):
 
         if direction == 'horizontale':
-            if flow == 1:
-                if cars.gap(self.flow_vertical[i].positions[t].x,self.flow_vertical[j].positions[t].x,(self.flow_vertical[i].geometry.length-2*1.8)/2) > dmin:
+            if vehicles == 1:
+                if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
                     return True
-            elif flow == 2:
-                if cars.gap(self.flow_horizontal[i].positions[t].x,self.flow_horizontal[j].positions[t].x,(self.flow_horizontal[i].geometry.length-2*1.8)/2) > dmin:
+            elif vehicles == 2:
+                if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
                     return True
                 return False
         elif direction == 'verticale':
-            if flow == 2:
-                if cars.gap(self.flow_horizontal[i].positions[t].y,self.flow_horizontal[j].positions[t].y,(self.flow_horizontal[i].geometry.length-2*1.8)/2) > dmin:
+            if vehicles == 2:
+                if cars.gap(self.vehicles[i].positions[t].y,self.vehicles[j].positions[t].y,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
                     return True
-            elif flow == 1:
-                if cars.gap(self.flow_vertical[i].positions[t].y,self.flow_vertical[j].positions[t].y,(self.flow_vertical[i].geometry.length-2*1.8)/2) > dmin:
+            elif vehicles == 1:
+                if cars.gap(self.vehicles[i].positions[t].y,self.vehicles[j].positions[t].y,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
                     return True
                 return False
 
     def existingUsers(self,t):
 
         rep = []
-        for k in range(0,len(self.flow_vertical)):
-            if moving.Interval.contains(self.flow_vertical[k].getTimeInterval(),t):
-                rep.append(self.flow_vertical[k])
-        for k in range(0,len(self.flow_horizontal)):
-            if moving.Interval.contains(self.flow_horizontal[k].getTimeInterval(),t):
-                rep.append(self.flow_horizontal[k])
-        for k in range(0,len(self.ped_h)):
-            if moving.Interval.contains(self.ped_h[k].getTimeInterval(),t):
-                rep.append(self.ped_h[k])
-        for k in range(0,len(self.ped_v)):
-            if moving.Interval.contains(self.ped_v[k].getTimeInterval(),t):
-                rep.append(self.ped_v[k])
+        for k in range(0,len(self.vehicles)):
+            if moving.Interval.contains(self.vehicles[k].getTimeInterval(),t):
+                rep.append(self.vehicles[k])
+        for k in range(0,len(self.vehicles)):
+            if moving.Interval.contains(self.vehicles[k].getTimeInterval(),t):
+                rep.append(self.vehicles[k])
+        for k in range(0,len(self.pedestrians)):
+            if moving.Interval.contains(self.pedestrians[k].getTimeInterval(),t):
+                rep.append(self.pedestrians[k])
         return rep
 
     def typeOfUserAhead(self,objet,t):
@@ -187,8 +164,8 @@ class World():
 
     def isAnEncounter(self,i,j,t):
 
-        p1 = self.flow_vertical[i].positions[t]
-        p2 = self.flow_horizontal[j].positions[t]
+        p1 = self.vehicles[i].positions[t]
+        p2 = self.vehicles[j].positions[t]
         distance = moving.Point.distanceNorm2(p1,p2)
 
         if distance <= dmin:
@@ -198,8 +175,8 @@ class World():
 
     def countEncounters(self):
 
-        columns = len(self.flow_vertical)
-        lines = len(self.flow_horizontal)
+        columns = len(self.vehicles)
+        lines = len(self.vehicles)
         matrix = [([0]*columns)]*lines
         c = 0
 
@@ -236,9 +213,9 @@ class World():
         else:
             return False
 
-    def detectNextVehiclesToEnterZone(self,flow,time,crossing_point):
+    def detectNextVehiclesToEnterZone(self,vehicles,time,crossing_point):
         '''fonction de détection qui renvoie les prochains vehicules à pénétrer la zone, au moment t'''
-        list_of_vehicles = sortedListOfVehiclesByDistanceToCrossingZone(self.flow_horizontal,crossing_point,time)
+        list_of_vehicles = sortedListOfVehiclesByDistanceToCrossingZone(self.vehicles,crossing_point,time)
         result = []
         for value in list_of_vehicles:
             if not self.hasPassedCrossingZoneAt(value,time,crossing_point):
@@ -249,23 +226,23 @@ class World():
         ''' fonction d'adaptation des vitesses/position des vehicules suiveurs'''
         if stopped == True: # si le vehicule est arrêté alors on adapte la vitesse des vehicules suiveurs.
 
-            p1 = self.flow_vertical[stopped_vehicle_key].positions[time]
-            v1 = self.flow_vertical[stopped_vehicle_key].velocities[time]
+            p1 = self.vehicles[stopped_vehicle_key].positions[time]
+            v1 = self.vehicles[stopped_vehicle_key].velocities[time]
 
-            for k in range(stopped_vehicle_key+1,len(self.flow_vertical)): #a partir du premier vehicule suiveur
+            for k in range(stopped_vehicle_key+1,len(self.vehicles)): #a partir du premier vehicule suiveur
 
                 v0 = self.direction.__mul__(random.normalvariate(30,3.2)) #vitesse random..idéalement récupérer la vitesse souhaitée initialement !!
-                l = (monde.flow_horizontal[k].geometry.length-3.6)/2
+                l = (monde.vehicles[k].geometry.length-3.6)/2
 
-                for t in range(time,len(self.flow_vertical.positions)):
+                for t in range(time,len(self.vehicles.positions)):
 
-                    p = self.flow_vertical[k].positions[t-1].y #position précédente du vehicule (à t-1)
-                    v = moving.Point.norm2(moving.MovingObject.getVelocities(self.flow_vertical[k-1])[t]) #vitesse du vehicule précédent à l'instant t
+                    p = self.vehicles[k].positions[t-1].y #position précédente du vehicule (à t-1)
+                    v = moving.Point.norm2(moving.MovingObject.getVelocities(self.vehicles[k-1])[t]) #vitesse du vehicule précédent à l'instant t
                     velocite = moving.Point(0,1).__mul__(moving.Point.norm2(v0))
-                    new_position = flow.positionV(p,moving.Point.norm2(velocite),t,2000)
-                    # s = gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
-                    l = (monde.flow_horizontal[k-1].geometry.length-3.6)/2
-                    s = flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
+                    new_position = vehicles.positionV(p,moving.Point.norm2(velocite),t,2000)
+                    # s = gap(moving.MovingObject.getPositions(data_vehicles[k-1])[t].y,new_position.y,L[k-1])
+                    l = (monde.vehicles[k-1].geometry.length-3.6)/2
+                    s = vehicles.gap(data_vehicles[k-1].positions[t].y,new_position.y,L[k-1])
                     smin = 25
 
                     if s < smin:
@@ -274,7 +251,7 @@ class World():
                     if velocite.y < 0:
                         velocite = moving.Point(0,0)
 
-                self.flow_vertical[k].velocities = velocite
+                self.vehicles[k].velocities = velocite
                 moving.Trajectory.setPositionXY(k,positionV(p,moving.Point.norm2(velocite),1,2000).x,positionV(p,moving.Point.norm2(velocite),1,2000).y)
 
         else:
@@ -285,8 +262,8 @@ class World():
         pointI = self.p4
         pointD = self.p1
         if self.control_device_vertical.category == 0 and self.control_device_horizontal.category == 3:
-            for key, value in self.flow_vertical.items():
-                for t in range(len(self.flow_vertical)):
+            for key, value in self.vehicles.items():
+                for t in range(len(self.vehicles)):
                     s = 0
                     if distanceToCD(value,t,stop_sign) > 1:
                         stopped = False
@@ -296,8 +273,8 @@ class World():
                         stopsAt(value,time)
                         followingVehiclesAdapt(self,key,t,stopped)
                         # waitNSecondsAtStop(2)
-                        next_vehicles_to_enter_zone = detectNextVehiclesToEnterZone(self.flow_horizontal,time)
-                        time_window = moving.distanceNorm2(next_vehicles_to_enter_zone[0].positions[time],pointI)/(next_vehicle_to_enter_zone.velocities[time])
+                        next_vehiclesto_enter_zone = detectNextVehiclesToEnterZone(self.vehicles,time)
+                        time_window = moving.distanceNorm2(next_vehiclesto_enter_zone[0].positions[time],pointI)/(next_vehicle_to_enter_zone.velocities[time])
                         time_to_pass = moving.distanceNorm2(value.positions[t],pointD)/(value.velocites[time])
 
                         c = 0
@@ -305,8 +282,8 @@ class World():
 
                         while time_window > time_to_pass:
                             c += 1
-                            d = moving.distanceNorm2(next_vehicles_to_enter_zone[c].positions[time],pointI)
-                            v = next_vehicles_to_enter_zone[c].velocities[time]
+                            d = moving.distanceNorm2(next_vehiclesto_enter_zone[c].positions[time],pointI)
+                            v = next_vehiclesto_enter_zone[c].velocities[time]
                             time_window = d/v #avec le prochain vehicule a entrer la zone
                             s += time_window
                             stopped = True
@@ -316,7 +293,7 @@ class World():
 
                         stopped = False
                         go(value,time+t_stop+s)
-                        followingVehiclesAdapt(self.flow_vertical,time,stopped)
+                        followingVehiclesAdapt(self.vehicles,time,stopped)
                     break
         create_yaml('horizontale.yml',self)
 
@@ -332,19 +309,17 @@ class World():
         objet.append(ob2)
         ylabel = ''
 
-        for k in range (0,len(self.flow_vertical)):
+        for k in range (0,len(self.vehicles)):
             p.append([])
             v.append([])
             t.append(objet[1][k])
 
-            for time in range(0,len(self.flow_vertical[0].positions)):
+            for time in range(0,len(self.vehicles[0].positions)):
                 v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
                 p[k].append(objet[0][k].positions[time].y)
                 ylabel = "position selon l'axe x"
 
             plt.plot(t[k],p[k])
-
-        plt.figure()
 
         ob1 = load_yml('horizontal.yml')
         t = []
@@ -354,12 +329,12 @@ class World():
         objet.append(ob1)
         objet.append(ob2)
 
-        for k in range (0,len(self.flow_horizontal)):
+        for k in range (0,len(self.vehicles)):
             v.append([])
             t.append(objet[1][k])
             p.append([])
 
-            for time in range(0,len(self.flow_horizontal[0].positions)):
+            for time in range(0,len(self.vehicles[0].positions)):
                 v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
                 p[k].append(objet[0][k].positions[time].x)
                 ylabel = "position selon l'axe y"
@@ -422,7 +397,7 @@ def go(vehicle,time,t_simul):
     v0 = moving.Point(2,3).__mul__(45) #ligne exemple pour pouvoir faire fourner le truc
     for t in range (time,t_simul):
         vehicle.velocities[t] = v0
-        vehicle.positions.setPositionXY(t,cars.flow.positionV(vehicle.positions[t-1].x,v0.norm2(),1,2000).x,cars.flow.positionV(vehicle.positions[t-1].x,v0.norm2(),1,2000).y)
+        vehicle.positions.setPositionXY(t,cars.vehicles.positionV(vehicle.positions[t-1].x,v0.norm2(),1,2000).x,cars.vehicles.positionV(vehicle.positions[t-1].x,v0.norm2(),1,2000).y)
     #
         # vehicle.getCurvilinearTrajectoryUntil(time)
         # vehicle.putCurvilinearTrajectoriesTogetherFrom(time)
