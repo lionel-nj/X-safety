@@ -28,7 +28,7 @@ class vehicles():
 
     def gap(position_leader,position_following,L_leader):
         "fonction de mise a jour des gaps"
-        distance = moving.distanceNorm2(position_leader,position_following)
+        distance = moving.Point.distanceNorm2(position_leader,position_following)
         return distance-L_leader
 
     def position(y,v,t):
@@ -68,7 +68,7 @@ class vehicles():
 
         posV = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
 
-        u = moving.Point(x_alignment,y_alignment)/(moving.norm2(moving.Point(x_alignment,y_alignment)))
+        u = moving.Point(x_alignment,y_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x_alignment,y_alignment))))
         v0 = u.__mul__(random.normalvariate(25,3))
         speed = []
 
@@ -77,8 +77,8 @@ class vehicles():
 
         for t in range(1,t_simul):
             v = speed[t]
-            temp_x = vehicles.positionV(posV[t-1].x,v.x,1)
-            temp_y = vehicles.positionV(posV[t-1].y,v.y,1)
+            temp_x = vehicles.position(posV[t-1].x,v.x,1)
+            temp_y = vehicles.position(posV[t-1].y,v.y,1)
 
             posV.positions[0].append(temp_x)
             posV.positions[1].append(temp_y)
@@ -107,7 +107,7 @@ class vehicles():
             x_alignment = alignment.points[0].x
             y_alignment = alignment.points[0].y
 
-            u = moving.Point((x_alignment,y_alignment)/(moving.norm2(moving.Point(x_alignment,y_alignment))))
+            u = moving.Point(x_alignment,y_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x_alignment,y_alignment))))
             v0 = u.__mul__(random.normalvariate(25,3))
 
             data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
@@ -119,8 +119,8 @@ class vehicles():
 
             for t in range(1,t_simul):
                 velocite = v0
-                temp_x = vehicles.positionV(data_vehicles[k].positions[t-1].x,velocite.x,1)
-                temp_y = vehicles.positionV(data_vehicles[k].positions[t-1].y,velocite.y,1)
+                temp_x = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
+                temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
 
                 leader = data_vehicles[k-1].positions[t]
                 following = moving.Point(temp_x,temp_y)
@@ -128,7 +128,8 @@ class vehicles():
                 smin = 25
 
                 if s < smin:
-                    v = data_vehicles[k-1].velocities[t]
+                    V = data_vehicles[k-1].velocities[t]
+                    v = moving.Point.norm2(V)
                     velocite = u.__mul__((v*t-L[k-1]-smin)/t)
 
                 if velocite.x < 0 or velocite.y < 0:
