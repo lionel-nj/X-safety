@@ -19,36 +19,29 @@ t_simul = parameters['simulation']['t_simulation']
 delta_t = parameters['simulation']['delta_t']
 number_of_cars = parameters['simulation']['number_of_cars']
 
-class flow():
+class vehicles():
 
-    def __init__(self,direction,nom_fichier_sortie): #direction est un vecteur de la forme moving.Point(x,y)
-        self.direction = direction
+    def __init__(self,nom_fichier_sortie):
         self.nom_fichier_sortie = nom_fichier_sortie
         self.number_of_cars = number_of_cars
 
 
-    def gap(x_leader,x_following,L_leader):
+    def gap(position_leader,position_following,L_leader):
         "fonction de mise a jour des gaps"
-        return x_leader-x_following-L_leader
+        distance = moving.distanceNorm2(position_leader,position_following)
+        return distance-L_leader
 
-    def positionV(y,v,t,p):
+    def position(y,v,t):
         "fonctions de maj des positions"
-        return moving.Point(p,v*t+y)
-
-    def positionH(y,v,t,p):
-        "fonctions de maj des positions"
-        return moving.Point(v*t+y,p)
+        return v*t+y
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self):
+    def generateTrajectories(self,alignment):
 
         "définition des instants de création des véhicules"
 
-        tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv'))
+        tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
-
-        # delta_t = 1
-        # t_simul = t_marche1+t_marche2+t_stop
 
         intervals = [None]*t_simul
 
@@ -62,45 +55,40 @@ class flow():
                 # Initialisation du premier véhicule
         ##########################################################
 
-        data_flow = dict()
-        data_flow[0] = moving.MovingObject()
+        data_vehicles = dict()
+        data_vehicles[0] = moving.MovingObject()
 
-        l = random.normalvariate(6.5,0.3)
+        vehicle_length = random.normalvariate(6.5,0.3)
+        vehicle_width = random.normalvariate(2.5,0.2)
+
         L = []
-        L.append(l)
-        # l = 7
-        if self.direction == moving.Point(0,1):
-            posV = moving.Trajectory(positions = [[2000],[0]])
-        else:
-            posV = moving.Trajectory(positions = [[0],[2000]])
+        L.append(vehicle_length)
+        x_alignment = alignment.points[0].x
+        y_alignment = alignment.points[0].y
 
-        v0 = self.direction.__mul__(random.normalvariate(30,3.2))
-        speed = [moving.Point(0,0)]
+        posV = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
 
-        # if control_device.category == 3:
-            #bla bla en cas d'absence de controlDevice
+        u = moving.Point(x_alignment,y_alignment)/(moving.norm2(moving.Point(x_alignment,y_alignment)))
+        v0 = u.__mul__(random.normalvariate(25,3))
+        speed = []
+
         for t in range(0,t_simul):
-            speed.append(self.direction.__mul__(moving.Point.norm2(v0)))
+            speed.append(v0)
 
-        if self.direction == moving.Point(0,1):
-            for t in range(1,t_simul):
-                temp = flow.positionV(posV[t-1].y,moving.Point.norm2(speed[t]),1,2000)
-                posV.positions[0].append(temp.x)
-                posV.positions[1].append(temp.y)
+        for t in range(1,t_simul):
+            v = speed[t]
+            temp_x = vehicles.positionV(posV[t-1].x,v.x,1)
+            temp_y = vehicles.positionV(posV[t-1].y,v.y,1)
 
-        else:
-            for t in range(1,t_simul):
-                temp = flow.positionH(posV[t-1].x,moving.Point.norm2(speed[t]),1,2000)
+            posV.positions[0].append(temp_x)
+            posV.positions[1].append(temp_y)
 
-                posV.positions[0].append(temp.x)
-                posV.positions[1].append(temp.y)
-
-        # data_flow[0].timeInterval = [0,300]
-        data_flow[0].timeInterval = moving.TimeInterval(0,300)
-        data_flow[0].positions = posV
-        data_flow[0].velocities = speed
-        data_flow[0].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-        data_flow[0].userType = 1
+        # data_vehicles[0].timeInterval = [0,300]
+        data_vehicles[0].timeInterval = moving.TimeInterval(0,300)
+        data_vehicles[0].positions = posV
+        data_vehicles[0].velocities = speed
+        # data_vehicles[0].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
+        data_vehicles[0].userType = 1
 
 
         ##########################################################
@@ -109,61 +97,50 @@ class flow():
 
 
         for k in range(1,number_of_cars):
-            v0 = self.direction.__mul__(random.normalvariate(30,3.2))
-            l = random.uniform(6,8)
-            L.append(l)
 
-            data_flow[k] = moving.MovingObject()
-            # data_flow[k].timeInterval = [intervals[k][0],300+intervals[k][0]]
-            data_flow[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
+            data_vehicles[k] = moving.MovingObject()
 
-            if self.direction == moving.Point(0,1):
-                data_flow[k].positions = moving.Trajectory(positions = [[2000],[0]])
-            else:
-                data_flow[k].positions = moving.Trajectory(positions = [[0],[2000]])
+            vehicle_length = random.uniform(6,8)
+            vehicle_width = random.normalvariate(2.5,0.2)
+            L.append(vehicle_length)
 
-            data_flow[k].velocities = [moving.Point(0,0)]
-            data_flow[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(l,1.8),(l,0)])
-            data_flow[k].userType = 1
+            x_alignment = alignment.points[0].x
+            y_alignment = alignment.points[0].y
+
+            u = moving.Point((x_alignment,y_alignment)/(moving.norm2(moving.Point(x_alignment,y_alignment))))
+            v0 = u.__mul__(random.normalvariate(25,3))
+
+            data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
+            data_vehicles[k].positions = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
+            data_vehicles[k].velocities = [v0]
+            # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
+            data_vehicles[k].userType = 1
 
 
             for t in range(1,t_simul):
-                # p = moving.MovingObject.getPositions(data_flow[k])[t-1].y
-                if self.direction == moving.Point(0,1):
-                    p = data_flow[k].positions[t-1].y
-                else:
-                    p = data_flow[k].positions[t-1].x
+                velocite = v0
+                temp_x = vehicles.positionV(data_vehicles[k].positions[t-1].x,velocite.x,1)
+                temp_y = vehicles.positionV(data_vehicles[k].positions[t-1].y,velocite.y,1)
 
-                v = moving.Point.norm2(moving.MovingObject.getVelocities(data_flow[k-1])[t])
-                velocite = self.direction.__mul__(moving.Point.norm2(v0))
-                new_position = flow.positionV(p,moving.Point.norm2(velocite),t,2000)
-                # s = gap(moving.MovingObject.getPositions(data_flow[k-1])[t].y,new_position.y,L[k-1])
-                if self.direction == moving.Point(0,1):
-                    s = flow.gap(data_flow[k-1].positions[t].y,new_position.y,L[k-1])
-                else:
-                    s = flow.gap(data_flow[k-1].positions[t].x,new_position.x,L[k-1])
-
+                leader = data_vehicles[k-1].positions[t]
+                following = moving.Point(temp_x,temp_y)
+                s = vehicles.gap(leader,following,L[k-1])
                 smin = 25
 
                 if s < smin:
-                    velocite = self.direction.__mul__((v*t-L[k-1]-smin)/t)
+                    v = data_vehicles[k-1].velocities[t]
+                    velocite = u.__mul__((v*t-L[k-1]-smin)/t)
 
-                if self.direction == moving.Point(0,1):
-                    if velocite.y < 0:
-                        velocite = moving.Point(0,0)
-                    data_flow[k].velocities.append(velocite)
-                    data_flow[k].positions.addPosition(flow.positionV(p,moving.Point.norm2(velocite),1,2000))
-                else:
-                    if velocite.x < 0:
-                        velocite = moving.Point(0,0)
-                    data_flow[k].velocities.append(velocite)
-                    data_flow[k].positions.addPosition(flow.positionH(p,moving.Point.norm2(velocite),1,2000))
+                if velocite.x < 0 or velocite.y < 0:
+                    velocite = moving.Point(0,0)
 
-
-                # data_flow[k].positions.append(position(p,moving.Point.norm2(velocite),1))
+                temp_x = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
+                temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
+                data_vehicles[k].velocities.append(velocite)
+                data_vehicles[k].positions.addPosition(moving.Point(temp_x,temp_y))
 
         #porttion de sauvegarde à séparer du reste
-        create_yaml(self.nom_fichier_sortie,data_flow)
+        create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
 
-        return data_flow, intervals
+        return data_vehicles, intervals
