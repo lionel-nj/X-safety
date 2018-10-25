@@ -1,4 +1,4 @@
-from trafficintelligence import moving
+from trafficintelligence import *
 from trafficintelligence import utils
 import decimal
 import random
@@ -10,6 +10,7 @@ from toolkit import *
 import itertools
 import shapely.geometry
 from math import sqrt
+from carsvsped import *
 # import position from toolkit
 # import gap from toolkit
 
@@ -36,14 +37,18 @@ class vehicles():
         return v*t+y
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self,alignment):
+    def generateTrajectories(self,align):
 
         "définition des instants de création des véhicules"
 
         tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
 
-        intervals = [None]*t_simul
+        intervals = [None]*number_of_cars
+
+        alignment = Alignment()
+        moving.prepareAlignments([align])
+        alignment.points = align
 
         for k in range(0,number_of_cars):
             intervals[k] = [h[k]]
@@ -139,9 +144,38 @@ class vehicles():
                 temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
                 data_vehicles[k].velocities.append(velocite)
                 data_vehicles[k].positions.addPosition(moving.Point(temp_x,temp_y))
+        
 
-        #porttion de sauvegarde à séparer du reste
+        for k in range(len(data_vehicles)):
+            moving.MovingObject.projectCurvilinear(data_vehicles[k],[align])
+
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
 
         return data_vehicles, intervals
+
+
+def trace(veh):
+    temps = toolkit.load_yml('intervals.yml')
+    x = []
+    y = []
+    v = []
+    ylabel = ''
+
+    for k in range (0,len(veh)):
+        x.append([])
+        y.append([])
+        v.append([])
+
+        for time in range(0,len(veh[0].positions)):
+            v[k].append(moving.Point.norm2(veh[k].velocities[time]))
+            x[k].append(veh[k].positions[time].x)
+            y[k].append(veh[k].positions[time].y)
+            ylabel = "position selon l'axe x"
+
+        plt.plot(temps[k],x[k])
+
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.show()
+    plt.close()
