@@ -26,6 +26,9 @@ class Alignment():
     def addPoint(self,x,y):
         self.points.append(moving.Point(x,y))
 
+    def setPoint(i,x,y):
+        self.points.setPositionXY(i,x,y)
+        
 class ControlDevice():
     #outil de control
 
@@ -64,25 +67,26 @@ class World():
         data[1] = self.pedestrians
         data[2] = self.alignments
         data[3] = self.control_devices
+        data[4] = self.crossing_point
 
         return create_yaml('world.yml',data)
 
-    def initialiseWorld(self):
-        # self.vehicles = cars.vehicles(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
-        self.pedestrians = None
-        self.alignment = None
-        self.control_device = None
-
-        if self.horizontal_alignment != None or self.vertical_alignment != None :
-            self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
-            p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
-            p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
-            pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
-            pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
-            p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
-            p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
-            pointList = [p1, p2, p3, p4]
-            self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
+    # def initialiseWorld(self):
+    #     # self.vehicles = cars.vehicles(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
+    #     self.pedestrians = None
+    #     self.alignment = None
+    #     self.control_device = None
+    #
+    #     if self.horizontal_alignment != None or self.vertical_alignment != None :
+    #         self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
+    #         p1 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y+width/2)
+    #         p2 = shapelyPoint(self.crossing_point.x+width/2,self.crossing_point.y-width/2)
+    #         pi1 = moving.Point(self.crossing_point.x-width/2,self.crossing_point.y)
+    #         pi2 = moving.Point(self.crossing_point.x,self.crossing_point.y-width/2)
+    #         p3 = shapelyPointshapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y-width/2)
+    #         p4 = shapelyPoint(self.crossing_point.x-width/2,self.crossing_point.y+width/2)
+    #         pointList = [p1, p2, p3, p4]
+    #         self.crossing_zone = Polygon([[p.x, p.y] for p in pointList])
         #
         # for k in range(0,len(self.vehicles)):
         #     if self.horizontal_alignment == None:
@@ -99,22 +103,10 @@ class World():
 
     def distanceMinVerifiee(self,direction,vehicles,i,j,t,dmin):
 
-        if direction == 'horizontale':
-            if vehicles == 1:
-                if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
-                    return True
-            elif vehicles == 2:
-                if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
-                    return True
-                return False
-        elif direction == 'verticale':
-            if vehicles == 2:
-                if cars.gap(self.vehicles[i].positions[t].y,self.vehicles[j].positions[t].y,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
-                    return True
-            elif vehicles == 1:
-                if cars.gap(self.vehicles[i].positions[t].y,self.vehicles[j].positions[t].y,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
-                    return True
-                return False
+        if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
+            return True
+        else:
+            return False
 
     def existingUsers(self,t):
 
