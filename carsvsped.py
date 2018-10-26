@@ -114,51 +114,37 @@ class World():
             else:
                 return False
 
+    def takeEntry(elem):
+        elem.getTimeInterval()[0]
+
     def existingUsers(self,t):
 
-        rep = []
+        result = []
         for k in range(0,len(self.vehicles)):
             if moving.Interval.contains(self.vehicles[k].getTimeInterval(),t):
-                rep.append(self.vehicles[k])
-        for k in range(0,len(self.vehicles)):
-            if moving.Interval.contains(self.vehicles[k].getTimeInterval(),t):
-                rep.append(self.vehicles[k])
+                result.append(self.vehicles[k])
+
         for k in range(0,len(self.pedestrians)):
             if moving.Interval.contains(self.pedestrians[k].getTimeInterval(),t):
-                rep.append(self.pedestrians[k])
-        return rep
+                result.append(self.pedestrians[k])
 
-    def typeOfUserAhead(self,objet,t):
+        return sorted(result, key = takeEntry)
+
+    def typeOfUserAhead(self,i,t):
 
         dist = []
-        utilisateurs_existants = World.existingUsers(self,t)
+        existing_users = World.existingUsers(self,t)
 
-        for k in range(0,len(utilisateurs_existants)):
-            if utilisateurs_existants[k] == objet:
-                utilisateurs_existants.pop(k)
-                break
+        a = sel.vehicles[i].positions[t]
+        for k in range (len(existing_users)):
+            b = existing_users[k].positions[t].y
+            d = b-a
+            if d < 0:
+                dist.append(float('inf'))
+            else:
+                dist.append(d)
 
-        if objet.etiquette == 'verticale':
-            a = objet.positions[t].y
-            for k in range (len(utilisateurs_existants)):
-                b = utilisateurs_existants[k].positions[t].y
-                d = b-a
-                if d < 0:
-                    dist.append(float('inf'))
-                else:
-                    dist.append(d)
-
-        elif objet.etiquette == 'horizontale':
-            a = objet.positions[t].x
-            for k in range (len(utilisateurs_existants)):
-                b = utilisateurs_existants[k].positions[t].y
-                d = b-a
-                if d < 0:
-                    dist.append(float('inf'))
-                else:
-                    dist.append(d)
-
-        return moving.MovingObject.getUserType(utilisateurs_existants[dist.index(min(dist))])
+        return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
     def isAnEncounter(self,i,j,t):
 
@@ -294,56 +280,6 @@ class World():
                         followingVehiclesAdapt(self.vehicles,time,stopped)
                     break
         create_yaml('horizontale.yml',self)
-
-    def trace(self):
-        ob1 = toolkit.load_yml('verticale.yml')
-        ob2 = toolkit.load_yml('intervals.yml')
-
-        t = []
-        p = []
-        v = []
-        objet = []
-        objet.append(ob1)
-        objet.append(ob2)
-        ylabel = ''
-
-        for k in range (0,len(self.vehicles)):
-            p.append([])
-            v.append([])
-            t.append(objet[1][k])
-
-            for time in range(0,len(self.vehicles[0].positions)):
-                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
-                p[k].append(objet[0][k].positions[time].y)
-                ylabel = "position selon l'axe x"
-
-            plt.plot(t[k],p[k])
-
-        ob1 = load_yml('horizontal.yml')
-        t = []
-        p = []
-        v = []
-        objet = []
-        objet.append(ob1)
-        objet.append(ob2)
-
-        for k in range (0,len(self.vehicles)):
-            v.append([])
-            t.append(objet[1][k])
-            p.append([])
-
-            for time in range(0,len(self.vehicles[0].positions)):
-                v[k].append(moving.Point.norm2(objet[0][k].velocities[time]))
-                p[k].append(objet[0][k].positions[time].x)
-                ylabel = "position selon l'axe y"
-
-            plt.plot(t[k],p[k])
-            # plt.plot(t[k],p[k])
-        plt.xlabel('temps')
-        plt.ylabel(ylabel)
-        plt.show()
-        plt.close()
-        plt.close()
 
 def getCurvilinearTrajectoryUntil(ct,t):
     '''récupère les informations d'une curvilinear trajectory jusqu'à l'instant t'''
