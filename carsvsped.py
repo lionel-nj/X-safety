@@ -129,23 +129,23 @@ class World():
                 result.append(self.pedestrians[k])
 
         return sorted(result, key = takeEntry)
-
-    def typeOfUserAhead(self,i,t):
-
-        dist = []
-        existing_users = World.existingUsers(self,t)
-
-        if i > 0 :
-            a = sel.vehicles[i].positions[t]
-            for k in range (len(existing_users)):
-                b = existing_users[k].positions[t].y
-                d = b-a
-                if d < 0:
-                    dist.append(float('inf'))
-                else:
-                    dist.append(d)
-
-            return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
+    # 
+    # def typeOfUserAhead(self,i,t):
+    #
+    #     dist = []
+    #     existing_users = World.existingUsers(self,t)
+    #
+    #     if i > 0 :
+    #         a = self.vehicles[i].positions[t]
+    #         for k in range (len(existing_users)):
+    #             b = existing_users[k].positions[t]
+    #             d = b-a
+    #             if d < 0:
+    #                 dist.append(float('inf'))
+    #             else:
+    #                 dist.append(d)
+    #
+    #         return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
     def isAnEncounter(self,i,j,t):
 
@@ -176,7 +176,7 @@ class World():
         return matrix,c
 
 
-# 
+#
 #     def stopsAt(self,vehicle,time):
 #         '''arrête un véhicule à partir d'un instant t
 #         TODO : mettre à jour les curvilinearPosition: necessitera les alignements'''
