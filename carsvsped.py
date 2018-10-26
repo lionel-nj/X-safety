@@ -134,17 +134,17 @@ class World():
 
         dist = []
         existing_users = World.existingUsers(self,t)
+        if i > 0 :
+            a = sel.vehicles[i].positions[t]
+            for k in range (len(existing_users)):
+                b = existing_users[k].positions[t].y
+                d = b-a
+                if d < 0:
+                    dist.append(float('inf'))
+                else:
+                    dist.append(d)
 
-        a = sel.vehicles[i].positions[t]
-        for k in range (len(existing_users)):
-            b = existing_users[k].positions[t].y
-            d = b-a
-            if d < 0:
-                dist.append(float('inf'))
-            else:
-                dist.append(d)
-
-        return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
+            return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
     def isAnEncounter(self,i,j,t):
 
