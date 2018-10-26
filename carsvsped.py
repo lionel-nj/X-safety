@@ -115,7 +115,7 @@ class World():
                 return False
 
     def takeEntry(elem):
-        elem.getTimeInterval()[0]
+        return elem.getTimeInterval()[0]
 
     def existingUsers(self,t):
 
@@ -129,7 +129,7 @@ class World():
                 result.append(self.pedestrians[k])
 
         return sorted(result, key = takeEntry)
-    # 
+    #
     # def typeOfUserAhead(self,i,t):
     #
     #     dist = []
@@ -154,24 +154,34 @@ class World():
         if distanceMinVerifiee(ai,aj,self.vehicles,i,j,t) == True:
             return False
         else:
-            True
+            return True
 
     def countEncounters(self):
 
-        columns = len(self.vehicles)
-        lines = len(self.vehicles)
+        vehicles_first_alignment = []
+        vehicles_second_alignment = []
+
+        for k in range(len(self)):
+            if self.vehicles[k].curvilinearPositions.lanes == 1:
+                vehicles_first_alignment.append(self.vehicles[k])
+            else:
+                vehicles_second_alignment.append(self.vehicles[k])
+
+        columns = len(vehicles_first_alignment)
+        lines = len(vehicles_second_alignment)
+
         matrix = [([0]*columns)]*lines
         c = 0
 
         for h in range(columns):
             matrix[h] = [(0,0)]*lines
 
-        for t in range(90):
+        for t in range(t_simul):
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(h,v,t)[0] == True and matrix[h][v] == (0,0):
-                        matrix[h][v] = self.isAnEncounter(h,v,t)[1]
+                    if self.isAnEncounter(h,v,t) == True and matrix[h][v] == (0,0):
+                        matrix[h][v] = self.isAnEncounter(h,v,t)
                         c = c+1
         return matrix,c
 
