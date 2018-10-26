@@ -24,11 +24,13 @@ class Alignment():
         return "id: {}, width:{}".format(self.id, self.width)
 
     def addPoint(self,x,y):
-        self.points.append(moving.Point(x,y))
+        self.points.addPositionXY(x,y)
+        # print("le point:({},{}) a été ajouté".format(x,y))
 
-    def setPoint(i,x,y):
+    def setPoint(self,i,x,y):
         self.points.setPositionXY(i,x,y)
-        
+        print("le point:({},{}) a été mis à la position{}".format(x,y,i))
+
 class ControlDevice():
     #outil de control
 
@@ -101,12 +103,16 @@ class World():
         #         self.vehicles[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
 
 
-    def distanceMinVerifiee(self,direction,vehicles,i,j,t,dmin):
-
-        if cars.gap(self.vehicles[i].positions[t].x,self.vehicles[j].positions[t].x,(self.vehicles[i].geometry.length-2*1.8)/2) > dmin:
-            return True
-        else:
-            return False
+    def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,vehicles,i,j,t):
+        if alignment_id_j == alignment_id_i:
+            if cars.vehicles.gap(vehicles[i].positions[t],vehicles[j].positions[t],6) > dmin:
+                return True
+                return False
+        else :
+            if moving.Point.distanceNorm2(vehicles[i].positions[t],vehicles[j].positions[t]) > dmin:
+                return True
+            else:
+                return False
 
     def existingUsers(self,t):
 
