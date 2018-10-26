@@ -144,10 +144,10 @@ class vehicles():
                 temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
                 data_vehicles[k].velocities.append(velocite)
                 data_vehicles[k].positions.addPosition(moving.Point(temp_x,temp_y))
-        
+
 
         for k in range(len(data_vehicles)):
-            moving.MovingObject.projectCurvilinear(data_vehicles[k],[align])
+            moving.CurvilinearTrajectory.fromTrajectoryProjection(data_vehicles[k].positions,[align])
 
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
@@ -155,22 +155,21 @@ class vehicles():
         return data_vehicles, intervals
 
 
-def trace(veh):
+def trace(list_of_vehicles):
     temps = toolkit.load_yml('intervals.yml')
     x = []
     y = []
     v = []
-    ylabel = ''
 
     for k in range (0,len(veh)):
         x.append([])
         y.append([])
         v.append([])
 
-        for time in range(0,len(veh[0].positions)):
-            v[k].append(moving.Point.norm2(veh[k].velocities[time]))
-            x[k].append(veh[k].positions[time].x)
-            y[k].append(veh[k].positions[time].y)
+        for time in range(0,len(list_of_vehicles[0].positions)):
+            v[k].append(moving.Point.norm2(list_of_vehicles[k].velocities[time]))
+            x[k].append(list_of_vehicles[k].positions[time].x)
+            y[k].append(list_of_vehicles[k].positions[time].y)
             ylabel = "position selon l'axe x"
 
         plt.plot(temps[k],x[k])
