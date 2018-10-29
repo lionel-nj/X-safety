@@ -59,10 +59,22 @@ import carsvsped
 from toolkit import *
 import matplotlib.pyplot as plt
 
+#calculer le nombre d'interactions à 25m (25 est un paramètre dans config.py)
+
 
 monde = World()
-#calculer le nombre d'interactions à 25m (25 est un paramètre dans config.py)
-print(monde.countEncounters()[1])
+voie1 = vehicles('voie1.yml')
+align1 = Alignment()
+align1.points = moving.Trajectory.fromPointList([moving.Point(1,2), moving.Point(125,255), moving.Point(200,344), moving.Point(250,500)])]
+
+voie2 = vehicles('voie2.yml')
+align2 = Alignment()
+align2.points = moving.Trajectory.fromPointList([moving.Point(1,2), moving.Point(125,255), moving.Point(200,344), moving.Point(250,500)])]
+
+monde.alignments = [align1,align2]
+monde.vehicles = [toolkit.load_yml('voie1.yml'),toolkit.load_yml('voie2.yml')]
+
+print(monde.countEncounters()[2])
 
 ```
 ## Exemple pour la visualisation de trajectoires : 
