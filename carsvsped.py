@@ -19,6 +19,7 @@ class Alignment():
         self.width = width
         self.control_device = control_device
         self.debit = debit
+        
 
     def __repr__(self):
         return "id: {}, width:{}".format(self.id, self.width)

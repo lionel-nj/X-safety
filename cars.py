@@ -37,18 +37,17 @@ class vehicles():
         return v*t+y
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self,align):
+    def generateTrajectories(self,alignment):
+        '''alignment est un objet de la classe Alignment'''
 
-        "définition des instants de création des véhicules"
+        #définition des instants de création des véhicules
 
         tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
 
         intervals = [None]*number_of_cars
 
-        alignment = Alignment()
-        moving.prepareAlignments([align])
-        alignment.points = align
+        moving.prepareAlignments(alignment.points)
 
         for k in range(0,number_of_cars):
             intervals[k] = [h[k]]
@@ -68,12 +67,12 @@ class vehicles():
 
         L = []
         L.append(vehicle_length)
-        x_alignment = alignment.points[0].x
-        y_alignment = alignment.points[0].y
+        x0_alignment = alignment.points[0][0].x
+        y0_alignment = alignment.points[0][0].y
 
-        posV = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
+        posV = moving.Trajectory(positions = [[x0_alignment],[y0_alignment]])
 
-        u = moving.Point(x_alignment,y_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x_alignment,y_alignment))))
+        u = moving.Point(x0_alignment,y0_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x0_alignment,y0_alignment))))
         v0 = u.__mul__(random.normalvariate(25,3))
         speed = []
 
@@ -109,14 +108,14 @@ class vehicles():
             vehicle_width = random.normalvariate(2.5,0.2)
             L.append(vehicle_length)
 
-            x_alignment = alignment.points[0].x
-            y_alignment = alignment.points[0].y
+            x0_alignment = alignment.points[0][0].x
+            y0_alignment = alignment.points[0][0].y
 
-            u = moving.Point(x_alignment,y_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x_alignment,y_alignment))))
+            u = moving.Point(x0_alignment,y0_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x0_alignment,y0_alignment))))
             v0 = u.__mul__(random.normalvariate(25,3))
 
             data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
-            data_vehicles[k].positions = moving.Trajectory(positions = [[x_alignment],[y_alignment]])
+            data_vehicles[k].positions = moving.Trajectory(positions = [[x0_alignment],[y0_alignment]])
             data_vehicles[k].velocities = [moving.Point(0,0)]
             # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
             data_vehicles[k].userType = 1
@@ -147,7 +146,7 @@ class vehicles():
 
 
         for k in range(len(data_vehicles)):
-            moving.CurvilinearTrajectory.fromTrajectoryProjection(data_vehicles[k].positions,[align])
+            moving.CurvilinearTrajectory.fromTrajectoryProjection(data_vehicles[k].positions,alignment.points)
 
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
