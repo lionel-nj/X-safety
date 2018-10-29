@@ -106,11 +106,11 @@ class World():
 
     def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,vehicles,i,j,t):
         if alignment_id_j == alignment_id_i:
-            if cars.vehicles.gap(vehicles[alignment_id_i][i].positions[t],vehicles[alignment_id_j][j].positions[t],6) > dmin:
+            if cars.vehicles.gap(vehicles[alignment_id_i][i].positions[t],self.vehicles[alignment_id_j][j].positions[t],6) > dmin:
                 return True
             return False
         else :
-            if moving.Point.distanceNorm2(vehicles[alignment_id_i][i].positions[t],vehicles[alignment_id_j][j].positions[t]) > dmin:
+            if moving.Point.distanceNorm2(vehicles[alignment_id_i][i].positions[t],self.vehicles[alignment_id_j][j].positions[t]) > dmin:
                 return True
             else:
                 return False
@@ -149,43 +149,67 @@ class World():
     #         return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
     def isAnEncounter(self,i,j,alignment_id_i,alignment_id_j,t):
+        ''' verifie s'il y a une rencontre entre deux vehicules '''
 
-        position_i = self.vehicles[alignment_id_i][i].curvilinearPositions.lanes[t]
-        position_j = self.vehicles[alignment_id_j][j].curvilinearPositions.lanes[t]
-
-        if distanceMinVerifiee(position_i,position_j,self.vehicles,i,j,t) == True:
+        if distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t) == True:
             return False
         else :
             return True
 
     def countEncounters(self):
 
-        vehicles_first_alignment = []
-        vehicles_second_alignment = []
+        vehicles_first_alignment = [] #dictionnaire
+        vehicles_second_alignment = [] #dictionnaire
 
-        for k in range(len(self)):
-            if self.vehicles[k].curvilinearPositions.lanes == 1:
-                vehicles_first_alignment.append(self.vehicles[k])
-            else:
-                vehicles_second_alignment.append(self.vehicles[k])
+        for k in range(number_of_cars):
+            vehicles_first_alignment.append(self.vehicles[0][k])
+            vehicles_second_alignment.append(self.vehicles[0][k])
 
         columns = len(vehicles_first_alignment)
         lines = len(vehicles_second_alignment)
 
-        matrix = [([0]*columns)]*lines
-        c = 0
+        matrix_intersection = [([0]*columns)]*lines
+        matrix_voie1 =[([0]*columns)]*columns
+        matrix_voie2 = [([0]*lines)]*lines
 
-        for h in range(columns):
-            matrix[h] = [(0,0)]*lines
+        c0 = 0
+        c1 = 0
+        c2 = 0
 
+        for v in range(columns):
+            matrix_intersection[v] = [(0,0)]*lines
+            matrix_voie1[v] = [(0,0)]*lines
+
+        for h in range(lines):
+            matrix_voie2[v] = [(0,0)]*lines
+
+        #interactions sur la meme voie verticale
+        for t in range(t_simul):
+            for v1 in range(columns):
+                for v2 in range(columns):
+                    if self.isAnEncounter(v1,v2,0,0,t) == True and matrix[v1][v2] == (0,0):
+                        matrix[v1][v2] = (self.isAnEncounter(v1,v2,0,0,t),t)
+                        c0 = c0+1
+
+
+        #interactions sur la meme voie horizontale
+        for t in range(t_simul):
+            for h1 in range(lines):
+                for h2 in range(lines):
+                    if self.isAnEncounter(h1,h2,1,1,t) == True and matrix[h1][h2] == (0,0):
+                        matrix[h1][h2] = (self.isAnEncounter(h1,h2,1,1,t),t)
+                        c1 = c1+1
+
+        #interactions croisées
         for t in range(t_simul):
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(h,v,t) == True and matrix[h][v] == (0,0):
-                        matrix[h][v] = self.isAnEncounter(h,v,t)
-                        c = c+1
-        return matrix,c
+                    if self.isAnEncounter(h,v,1,0,t) == True and matrix[h][v] == (0,0):
+                        matrix[h][v] = (self.isAnEncounter(h,v,1,0,t),t)
+                        c2 = c2+1
+
+        return matrix_intersection,matrix_voie1,matrix_voie2,c2+(c0+c1)/2
 
 
 #
