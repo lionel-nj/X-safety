@@ -19,7 +19,7 @@ class Alignment():
         self.width = width
         self.control_device = control_device
         self.debit = debit
-        
+
 
     def __repr__(self):
         return "id: {}, width:{}".format(self.id, self.width)
@@ -106,11 +106,11 @@ class World():
 
     def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,vehicles,i,j,t):
         if alignment_id_j == alignment_id_i:
-            if cars.vehicles.gap(vehicles[i].positions[t],vehicles[j].positions[t],6) > dmin:
+            if cars.vehicles.gap(vehicles[alignment_id_i][i].positions[t],vehicles[alignment_id_j][j].positions[t],6) > dmin:
                 return True
             return False
         else :
-            if moving.Point.distanceNorm2(vehicles[i].positions[t],vehicles[j].positions[t]) > dmin:
+            if moving.Point.distanceNorm2(vehicles[alignment_id_i][i].positions[t],vehicles[alignment_id_j][j].positions[t]) > dmin:
                 return True
             else:
                 return False
@@ -148,13 +148,14 @@ class World():
     #
     #         return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
-    def isAnEncounter(self,i,j,t):
+    def isAnEncounter(self,i,j,alignment_id_i,alignment_id_j,t):
 
-        ai = self.vehicles[i].curvilinearPositions.lanes[t]
-        aj = self.vehicles[j].curvilinearPositions.lanes[t]
-        if distanceMinVerifiee(ai,aj,self.vehicles,i,j,t) == True:
+        position_i = self.vehicles[alignment_id_i][i].curvilinearPositions.lanes[t]
+        position_j = self.vehicles[alignment_id_j][j].curvilinearPositions.lanes[t]
+
+        if distanceMinVerifiee(position_i,position_j,self.vehicles,i,j,t) == True:
             return False
-        else:
+        else :
             return True
 
     def countEncounters(self):
