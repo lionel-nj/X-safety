@@ -150,7 +150,6 @@ class World():
 
     def isAnEncounter(self,i,j,alignment_id_i,alignment_id_j,t):
         ''' verifie s'il y a une rencontre entre deux vehicules '''
-
         if distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t) == True:
             return False
         else :
@@ -163,7 +162,7 @@ class World():
 
         for k in range(number_of_cars):
             vehicles_first_alignment.append(self.vehicles[0][k])
-            vehicles_second_alignment.append(self.vehicles[0][k])
+            vehicles_second_alignment.append(self.vehicles[1][k])
 
         columns = len(vehicles_first_alignment)
         lines = len(vehicles_second_alignment)
@@ -181,7 +180,7 @@ class World():
             matrix_voie1[v] = [(0,0)]*lines
 
         for h in range(lines):
-            matrix_voie2[v] = [(0,0)]*lines
+            matrix_voie2[h] = [(0,0)]*lines
 
         #interactions sur la meme voie verticale
         for t in range(t_simul):

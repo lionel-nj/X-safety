@@ -146,7 +146,8 @@ class vehicles():
 
 
         for k in range(len(data_vehicles)):
-            moving.CurvilinearTrajectory.fromTrajectoryProjection(data_vehicles[k].positions,alignment.points)
+            moving.MovingObject.projectCurvilinear(data_vehicles[k], alignment.points)
+
 
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
