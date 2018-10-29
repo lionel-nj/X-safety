@@ -59,12 +59,40 @@ import carsvsped
 from toolkit import *
 import matplotlib.pyplot as plt
 
-
-monde = carsvsped.World()
-monde.initialiseWorld()
-
 #calculer le nombre d'interactions à 25m (25 est un paramètre dans config.py)
-print(monde.countEncounters()[1])
 
-``
+
+monde = World()
+
+voie1 = vehicles('voie1.yml')
+align1 = Alignment()
+align1.points = moving.Trajectory.fromPointList([moving.Point(1,2), moving.Point(125,255), moving.Point(200,344), moving.Point(250,500)])]
+
+voie2 = vehicles('voie2.yml')
+align2 = Alignment()
+align2.points = moving.Trajectory.fromPointList([moving.Point(1,2), moving.Point(125,255), moving.Point(200,344), moving.Point(250,500)])]
+
+voie1.generateTrajectories(align1)
+voie2.generateTrajectories(align2)
+
+monde.alignments = [align1,align2]
+monde.vehicles = dict()
+monde.vehicles[0] = toolkit.load_yml('voie1.yml')
+monde.vehicles[1] = toolkit.load_yml('voie2.yml')
+
+print(monde.countEncounters()[2])
+
+```
+## Exemple pour la visualisation de trajectoires :
+```
+test = vehicles('test.yml')
+alignment = Alignment()
+alignment.points = [moving.Trajectory.fromPointList([moving.Point(1,2), moving.Point(125,255), moving.Point(200,344), moving.Point(250,500)])]
+
+test.generateTrajectories(alignment)
+
+list_of_vehicles = toolkit.load_yml('test.yml')
+list_of_vehicles = fichier_vehicules.vehicles
+trace(list_of_vehicles)
+
 ```

@@ -1,5 +1,4 @@
 !!python/object/new:trafficintelligence.utils.EmpiricalContinuousDistribution
-state: !!python/tuple
 - a: -.inf
   b: .inf
   badvalue: .nan
