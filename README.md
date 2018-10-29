@@ -67,3 +67,4 @@ monde.initialiseWorld()
 print(monde.countEncounters()[1])
 
 ``
+```
