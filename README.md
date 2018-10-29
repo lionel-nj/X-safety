@@ -78,7 +78,7 @@ voie2.generateTrajectories(align2)
 monde.alignments = [align1,align2]
 monde.vehicles = dict()
 monde.vehicles[0] = toolkit.load_yml('voie1.yml')
-monde.vehicles[1] = toolkit.load_yml('voie2.yml')]
+monde.vehicles[1] = toolkit.load_yml('voie2.yml')
 
 print(monde.countEncounters()[2])
 
