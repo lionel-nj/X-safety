@@ -66,18 +66,18 @@ class vehicles():
         # x0_alignment = alignment.points[0][0].x
         # y0_alignment = alignment.points[0][0].y
 
-        curvilinearpositions = moving.CurvilinearTrajectory()
         v0 = random.normalvariate(25,3)
+
+        curvilinearpositions = moving.CurvilinearTrajectory()
         curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
 
         speed = []
-
         for t in range(0,t_simul):
             speed.append(v0)
 
         for t in range(1,t_simul):
             v = speed[t]
-            temp_s = curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0],v0,alignment.id)
+            temp_s = curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.id)
             # temp_s = vehicles.position(posV[t-1].x,v.x,1)
             #
             # posV.positions[0].append(temp_x)
@@ -114,8 +114,10 @@ class vehicles():
             data_vehicles[k].velocities = [0]
             # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
             data_vehicles[k].userType = 1
-            data_vehicles[k].curvilinearPositions = moving.CurvilinearTrajectory()
+
+            curvilinearpositions = moving.CurvilinearTrajectory()
             curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
+            data_vehicles[k].curvilinearPositions = curvilinearpositions
 
             for t in range(1,t_simul):
                 velocite = v0
