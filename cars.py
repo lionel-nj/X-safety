@@ -158,18 +158,15 @@ class vehicles():
 def trace(list_of_vehicles):
     temps = toolkit.load_yml('intervals.yml')
     x = []
-    y = []
     v = []
 
     for k in range (0,len(veh)):
         x.append([])
-        y.append([])
         v.append([])
 
         for time in range(0,len(list_of_vehicles[0].positions)):
             v[k].append(moving.Point.norm2(list_of_vehicles[k].velocities[time]))
-            x[k].append(list_of_vehicles[k].positions[time].x)
-            y[k].append(list_of_vehicles[k].positions[time].y)
+            x[k].append(list_of_vehicles[k].curvilinearPosition[time][0])
             ylabel = "position selon l'axe x"
 
         plt.plot(temps[k],x[k])
