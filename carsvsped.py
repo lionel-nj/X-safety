@@ -14,15 +14,22 @@ dmin = parameters['interactions']['dmin']
 class Alignment():
     #représentation des voies : liste de points
     def __init__(self, id = None, points = [], width = None, control_device = None, debit = None):
+    # def __init__(self, id = None, points = [], width = None, control_device = None, debit = None, crossing_point = None, connected_alignment_id = None):
+
         self.id = id
         self.points = points
         self.width = width
         self.control_device = control_device
         self.debit = debit
+        # self.connected_alignment_id = connected_alignment_id
+        # self.crossing_point = self.points.getIntersections(connected_alignment_id[0],connected_alignment_id[-1])
 
-
-    def __repr__(self):
-        return "id: {}, width:{}".format(self.id, self.width)
+        #point de croisement à créer par la suite !
+        #ajouter l'id de l'Alignment aveec lequel il y a le croisement
+        #
+    #
+    # def __repr__(self):
+    #     return "id: {}, width:{}, control device:{}, connected to alignment:{}, at:{}".format(self.id, self.width, self.control_device, self.connected_alignment_id)
 
     def addPoint(self,x,y):
         self.points.addPositionXY(x,y)
@@ -31,6 +38,51 @@ class Alignment():
     def setPoint(self,i,x,y):
         self.points.setPositionXY(i,x,y)
         print("le point:({},{}) a été mis à la position{}".format(x,y,i))
+
+    def insertPointAt(self,p,i):
+        '''insere un point p dans un alignement à une position i'''
+        avant = moving.Trajectory()
+
+        for k in range(0,i):
+            avant.addPosition(self.points[0][k])
+
+        avant.addPosition(p)
+
+        alignment_until_point = avant
+
+        for k in range(i,len(self.points[0])):
+            avant.addPosition(self.points[0][k])
+
+        self.points = [avant]
+        # return alignment_until_point
+
+    def insertCrossingPoint(self):
+        if self.crossing_point == self.points[0][0] :
+            self.distance_to_crossing_point = 0
+
+        elif self.points[0][-1] == self.crossing_point:
+            self.distance_to_crossing_point = self.points[0].getCumulativeDistance(len(self.points[0]))
+
+        else:
+            for k in range (len(self.points[0])-1):
+                if self.points[0][k].x < self.crossing_point.x and self.crossing_point.x < self.points[0][k+1].x:
+                    Alignment.insertPointAt(self,self.crossing_point,k+1)
+                    self.points[0].computeCumulativeDistances()
+                    self.distance_to_crossing_point = self.points[0].getCumulativeDistance(k+1)
+                    break
+            # elif self.points[0][k+1].x < self.crossing_point.x:
+            #     Alignment.insertPointAt(self,self.crossing_point,k)
+
+    def connectAlignments(self,other):
+        '''ajoute un membre connected_alignment_id à l'alignement : identifie l'alignement avec lequel il y a croisement
+        ajoute un membre crossing_point : identifie le point x,y de croisement'''
+        self.connected_alignment_id = other.id #mise en relation des aligments qui s'entrecroisent
+        other.connected_alignment_id = self.id #mise en relation des aligments qui s'entrecroisent
+        self.crossing_point = self.points[0].getIntersections(other.points[0][0],other.points[0][-1])[1][0]
+        other.crossing_point = other.points[0].getIntersections(self.points[0][0],self.points[0][-1])[1][0]
+
+        self.insertCrossingPoint()
+        other.insertCrossingPoint()
 
 class ControlDevice():
     #outil de control
