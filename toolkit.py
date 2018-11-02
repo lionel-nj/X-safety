@@ -62,9 +62,8 @@ def save_scene(alignments,controlDevice,world,name_of_file):
 def load_scene(scene):
     return load_yml(scene)
 
-
 def generateDistribution(data):
-    #ouverture du fichier csv
+    'input : fichier csv'
     with open(data, 'r') as f:
         liste = csv.reader(f)
         a = list(liste)
@@ -114,27 +113,27 @@ def generateSampleFromSample(sample_size,distribution):
     create_yaml('headway_sample.yml',list(result))
     return list(result)
 
-def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
-    '''trajectory is a moving.Trajectory object
-    alignment is a list of trajectories (moving.Trajectory object)'''
-
-    CT = None
-    # preparation des splines
-    for elements in alignments:
-        moving.elements.computeCumulativeDistances()
-    moving.prepareSplines(alignments)
-
-    #XY->SY pour chaque moving.Point de la trajectory
-    S=[]
-    Y=[]
-    lanes=[]
-    for t in range(len(trajectory.positions)):
-
-        sy = moving.getSYfromXY(Point(trajectory.positions[t].x,trajectory.positions[t].y),alignments)
-        S.append(sy[4])
-        Y.append(sy[5])
-        lanes.append(sy[0])
-
-    CT = moving.CurvilinearTrajectory(S,Y,lanes)
-
-    return CT
+# def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
+#     '''trajectory is a moving.Trajectory object
+#     alignment is a list of trajectories (moving.Trajectory object)'''
+#
+#     CT = None
+#     # preparation des splines
+#     for elements in alignments:
+#         moving.elements.computeCumulativeDistances()
+#     moving.prepareSplines(alignments)
+#
+#     #XY->SY pour chaque moving.Point de la trajectory
+#     S=[]
+#     Y=[]
+#     lanes=[]
+#     for t in range(len(trajectory.positions)):
+#
+#         sy = moving.getSYfromXY(Point(trajectory.positions[t].x,trajectory.positions[t].y),alignments)
+#         S.append(sy[4])
+#         Y.append(sy[5])
+#         lanes.append(sy[0])
+#
+#     CT = moving.CurvilinearTrajectory(S,Y,lanes)
+#
+#     return CT
