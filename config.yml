@@ -42,6 +42,6 @@ output :
 
   indices :
     distance_interaction :
-    s_min :
+    s_min : 25
     horizontal :
     vertical :
