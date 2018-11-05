@@ -14,18 +14,10 @@ from carsvsped import *
 # import position from toolkit
 # import gap from toolkit
 
-parameters = load_yml('config.yml')
-
-t_simul = parameters['simulation']['t_simulation']
-delta_t = parameters['simulation']['delta_t']
-number_of_cars = parameters['simulation']['number_of_cars']
-
 class vehicles():
 
     def __init__(self,nom_fichier_sortie):
         self.nom_fichier_sortie = nom_fichier_sortie
-        self.number_of_cars = number_of_cars
-
 
     def gap(s_leader,s_following,length_leader):
         "fonction de mise a jour des gaps"
@@ -33,11 +25,11 @@ class vehicles():
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self,alignment):
+    def generateTrajectories(self,alignment,t_simul):
         '''alignment est un objet de la classe Alignment'''
 
         #définition des instants de création des véhicules
-
+        number_of_cars = round(t_simul*alignment.flow/3600)
         tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
 
