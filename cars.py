@@ -25,7 +25,7 @@ class vehicles():
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self,alignment,t_simul):
+    def generateTrajectories(self,alignment,t_simul,s_min):
         '''alignment est un objet de la classe Alignment'''
 
         #définition des instants de création des véhicules
@@ -100,8 +100,6 @@ class vehicles():
             # y0_alignment = alignment.points[0][0].y
 
             # u = moving.Point(x0_alignment,y0_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x0_alignment,y0_alignment))))
-            v0 = random.normalvariate(25,3)
-
             data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
             data_vehicles[k].velocities = [0]
             # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
@@ -112,7 +110,7 @@ class vehicles():
             data_vehicles[k].curvilinearPositions = curvilinearpositions
 
             for t in range(1,t_simul):
-                velocite = v0
+                velocite = random.normalvariate(25,3)
                 # temp_x = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
                 # temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
                 # temp_s =
@@ -120,16 +118,15 @@ class vehicles():
                 leader = data_vehicles[k-1].curvilinearPositions[t][0]
                 following = data_vehicles[k].curvilinearPositions[t-1][0]
                 s = vehicles.gap(leader,following,L[k-1])
-                smin = 25
 
-                if s < smin:
+                if s < s_min:
                     v = data_vehicles[k-1].velocities[t]
-                    velocite = (v*t-L[k-1]-smin)/t
+                    velocite = (v*t-L[k-1]-s_min)/t
 
                 if velocite < 0:
                     velocite = 0
 
-                curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0],velocite,alignment.id)
+                curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.id)
                 # temp_s = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
                 # temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
                 data_vehicles[k].velocities.append(velocite)
