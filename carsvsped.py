@@ -4,13 +4,6 @@ import random
 from toolkit import *
 import toolkit
 
-parameters = load_yml('config.yml')
-
-t_simul = parameters['simulation']['t_simulation']
-delta_t = parameters['simulation']['delta_t']
-number_of_cars = parameters['simulation']['number_of_cars']
-dmin = parameters['interactions']['dmin']
-
 class Alignment():
     #représentation des voies : liste de points
     def __init__(self, id = None, points = [], width = None, control_device = None, debit = None):
@@ -84,6 +77,12 @@ class Alignment():
         self.insertCrossingPoint()
         other.insertCrossingPoint()
 
+    def isConnectedTo(self,other):
+        if self.connected_alignment_id == other.id and other.connected_alignment_id == self.id:
+            return True
+        else:
+            return False
+
 class ControlDevice():
     #outil de control
 
@@ -104,7 +103,7 @@ class ControlDevice():
 class World():
     #monde
     def __init__(self,vehicles = None ,pedestrians = None, alignments = None, control_devices = None, crossing_point = None):
-        self.vehicles = vehicles #sorted dict de veh
+        self.vehicles = vehicles # dict de veh
         self.pedestrians = pedestrians #sorted dict de ped
         self.alignments = alignments #liste de alignements
         self.control_devices = control_devices #liste de CD
@@ -156,7 +155,7 @@ class World():
         #         self.vehicles[k].curvilinearPositions = getCurvilinearTrajectoryFromTrajectory(vehicle.positions,[horizontal_alignment,vertical_alignment])
 
 
-    def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,vehicles,i,j,t):
+    def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,vehicles,i,j,t,dmin):
         if alignment_id_j == alignment_id_i:
             if cars.vehicles.gap(vehicles[alignment_id_i][i].positions[t],self.vehicles[alignment_id_j][j].positions[t],6) > dmin:
                 return True
@@ -200,20 +199,21 @@ class World():
     #
     #         return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
-    def isAnEncounter(self,i,j,alignment_id_i,alignment_id_j,t):
+    def isAnEncounter(self,i,j,alignment_id_i,alignment_id_j,t,dmin):
         ''' verifie s'il y a une rencontre entre deux vehicules '''
-        if distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t) == True:
+        if distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t,dmin) == True:
             return False
         else :
             return True
 
-    def countEncounters(self):
+    def countEncounters(self,dmin):
 
-        vehicles_first_alignment = [] #dictionnaire
-        vehicles_second_alignment = [] #dictionnaire
+        vehicles_first_alignment = []
+        vehicles_second_alignment = []
 
-        for k in range(number_of_cars):
+        for k in range(len(self.vehicles[0])):
             vehicles_first_alignment.append(self.vehicles[0][k])
+        for k in range(len(self.vehicles[1])):
             vehicles_second_alignment.append(self.vehicles[1][k])
 
         columns = len(vehicles_first_alignment)
@@ -235,29 +235,29 @@ class World():
             matrix_voie2[h] = [(0,0)]*lines
 
         #interactions sur la meme voie verticale
-        for t in range(t_simul):
+        for t in range(len(self.vehicles[0][0].curvilinearPositions))
             for v1 in range(columns):
                 for v2 in range(columns):
-                    if self.isAnEncounter(v1,v2,0,0,t) == True and matrix[v1][v2] == (0,0):
-                        matrix[v1][v2] = (self.isAnEncounter(v1,v2,0,0,t),t)
+                    if self.isAnEncounter(v1,v2,0,0,t,dmin) == True and matrix[v1][v2] == (0,0):
+                        matrix[v1][v2] = (self.isAnEncounter(v1,v2,0,0,t),t,dmin)
                         c0 = c0+1
 
 
         #interactions sur la meme voie horizontale
-        for t in range(t_simul):
+        for t in range(len(self.vehicles[0][0].curvilinearPositions))
             for h1 in range(lines):
                 for h2 in range(lines):
-                    if self.isAnEncounter(h1,h2,1,1,t) == True and matrix[h1][h2] == (0,0):
-                        matrix[h1][h2] = (self.isAnEncounter(h1,h2,1,1,t),t)
+                    if self.isAnEncounter(h1,h2,1,1,t,dmin) == True and matrix[h1][h2] == (0,0):
+                        matrix[h1][h2] = (self.isAnEncounter(h1,h2,1,1,t),t,dmin)
                         c1 = c1+1
 
         #interactions croisées
-        for t in range(t_simul):
+        for t in range(len(self.vehicles[0][0].curvilinearPositions))
             for v in range(columns):
                 for h in range(lines):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(h,v,1,0,t) == True and matrix[h][v] == (0,0):
-                        matrix[h][v] = (self.isAnEncounter(h,v,1,0,t),t)
+                    if self.isAnEncounter(h,v,1,0,t,dmin) == True and matrix[h][v] == (0,0):
+                        matrix[h][v] = (self.isAnEncounter(h,v,1,0,t),t,dmin)
                         c2 = c2+1
 
         return matrix_intersection,matrix_voie1,matrix_voie2,c2+(c0+c1)/2
