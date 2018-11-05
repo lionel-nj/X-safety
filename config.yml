@@ -1,0 +1,47 @@
+simulation:
+
+  t_simulation : 90
+  delta_t : 1
+
+scene:
+
+  arrival_distributions:
+    distribution_arrival_horizontal :
+    distribution_arrival_vertical :
+
+  alignments :
+
+    horizontal :
+      list_of_points :
+      width : 3.5
+      flow : 500
+      id : 1
+
+    vertical :
+      list_of_points :
+      width : 3.5
+      flow : 500
+      id : 2
+
+  control_devices:
+    horizontal :
+      curvilinear_position : 150
+      category : 0
+
+    vertical :
+      curvilinear_position : 150
+      category : 0
+
+interactions :
+  dmin : 25
+
+output :
+  trajectoires :
+    horizontal : 'trajectoires_horizontales.yml'
+    vertical : 'trajectoires_verticales.yml'
+
+  indices :
+    distance_interaction :
+    s_min :
+    horizontal :
+    vertical :
