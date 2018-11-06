@@ -199,7 +199,7 @@ class World():
         else :
             d1 = self.vehicles[alignment_id_i][i].curvilinearPositions[t][0]-self.alignments[alignment_id_i].distance_to_crossing_point
             d2 = self.vehicles[alignment_id_j][j].curvilinearPositions[t][0]-self.alignments[alignment_id_j].distance_to_crossing_point
-            d = sqrt(d1**2+d2**2)
+            d = (d1**2+d2**2)**(0.5)
             if d > dmin:
                 return True,d
             else:
@@ -220,52 +220,48 @@ class World():
         lines = len(self.vehicles[1])
 
         matrix_intersection = [([0]*columns)]*lines
-        matrix_voie1 =[([0]*columns)]*columns
-        matrix_voie0 = [([0]*lines)]*lines
+        matrix_voie1 =[('x')]*columns
+        matrix_voie0 = [('x')]*lines
 
         c0 = 0
         c1 = 0
         c2 = 0
 
         for v in range(columns):
-            matrix_voie1[v] = [('x')]*columns
             matrix_intersection[v] = [('x')]*lines
 
-        for h in range(lines):
-            matrix_voie0[h] = [('x')]*lines
-
         #interactions sur la meme voie horizobntale
-        for t in range(len(self.vehicles[0][0].curvilinearPositions)):
-            for h1 in range(columns):
-                for h2 in range(columns):
-                    if self.isAnEncounter(0,0,h1,h2,t,dmin)[0] == True and matrix_voie1[h1][h2] == ('x') and h1!=h2:
-                        matrix_voie1[h1][h2] = t
+        for t in range(30,len(self.vehicles[0][0].curvilinearPositions)):
+            for h in range(1,columns):
+                if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1:
+                    matrix_voie1[h] = 1
 
-                        # matrix_voie1[h1][h2] = (t,self.isAnEncounter(0,0,h1,h2,t,dmin)[1])
-                        c0 = c0+1
+                    # matrix_voie1[h1][h2] = (t,self.isAnEncounter(0,0,h1,h2,t,dmin)[1])
+                    c1 = c1+1
 
 
         #interactions sur la meme voie verticale
-        for t in range(len(self.vehicles[0][0].curvilinearPositions)):
-            for v1 in range(lines):
-                for v2 in range(lines):
-                    if self.isAnEncounter(1,1,v1,v2,t,dmin)[0] == True and matrix_voie0[v1][v2] == ('x') and v1!=v2:
-                        matrix_voie0[v1][v2] = t
+        for t in range(30,len(self.vehicles[0][0].curvilinearPositions)):
+            for v in range(1,lines):
+                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 :
+                    matrix_voie0[v] = 1
 
                         # matrix_voie0[v1][v2] = (t,self.isAnEncounter(1,1,v1,v2,t,dmin)[1])
-                        c1 = c1+1
+                    c0 = c0+1
 
         #interactions croisées
-        for t in range(len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(lines):
                 for v in range(columns):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(0,0,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == ('x'):
-                        matrix_intersection[h][v] = t
+                    if self.isAnEncounter(0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == ('x') :
+                        matrix_intersection[h][v] = (h,v,t)
                         # matrix_intersection[h][v] = (t,self.isAnEncounter(0,0,h,v,t,dmin)[1])
                         c2 = c2+1
+                        break
 
-        return matrix_intersection,matrix_voie1,matrix_voie0,c0,c1,c2,c2+(c0+c1)/2
+
+        return c0,c1,c2,c0+c1+c2,matrix_intersection
 
     def trace(self,alignment_id):
         temps = toolkit.load_yml('intervals.yml')
