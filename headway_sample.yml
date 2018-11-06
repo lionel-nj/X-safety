@@ -1,88 +1,61 @@
-!!python/object/new:trafficintelligence.utils.EmpiricalContinuousDistribution
-- a: -.inf
-  b: .inf
-  badvalue: .nan
-  extradoc: null
-  longname: null
-  momtype: 1
-  name: Distribution
-  seed: null
-  shapes: null
-  xtol: 1.0e-14
-- !!python/object/apply:numpy.random.__RandomState_ctor
-  state: !!python/tuple
-  - MT19937
-  - !!python/object/apply:numpy.core.multiarray._reconstruct
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
     args:
-    - !!python/name:numpy.ndarray ''
-    - !!python/tuple
-      - 0
-    - !!binary |
-      Yg==
-    state: !!python/tuple
+    - f8
+    - 0
     - 1
-    - !!python/tuple
-      - 624
-    - !!python/object/apply:numpy.dtype
-      args:
-      - u4
-      - 0
-      - 1
-      state: !!python/tuple
-      - 3
-      - <
-      - null
-      - null
-      - null
-      - -1
-      - -1
-      - 0
-    - false
-    - !!binary |
-      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
-  - 28
-  - 0
-  - 0.0
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    qUzsmBsf8T8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    daX5wf5t8z8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ubIHi4hz6z8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    V38sY1+09j8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    rPJXkxsX/D8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    NJwhA18iIEA=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    02f1QU6i8z8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    PIFNRvnd1T8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    kQ40Ui/0/D8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    0lDhB1iu6j8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    UNQY2DXb6z8=
+- !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6rAxPZg0BEA=
