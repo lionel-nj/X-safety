@@ -73,7 +73,7 @@ world.vehicles[1] = toolkit.load_yml('vertical.yml')
 
 #calcul du nombre d'interactions
 dmin = parameters['interactions']['dmin']
-print(world.countEncounters(dmin)[1])
+# print(world.countEncounters(dmin)[1])
 # world.trace(0)
 # trace(world.vehicles[1])
-# print(world.countEncounters(dmin)[3],world.countEncounters(dmin)[4],world.countEncounters(dmin)[5],world.countEncounters(dmin)[6])
+print(world.countEncounters(dmin)[3])
