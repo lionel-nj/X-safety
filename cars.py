@@ -22,6 +22,8 @@ class vehicles():
     def gap(s_leader,s_following,length_leader):
         "fonction de mise a jour des gaps"
         distance = s_leader-s_following-length_leader
+        if distance < 0 :
+            distance = 0
         return distance
 
     #fonction de génération des trajectoires
@@ -55,8 +57,6 @@ class vehicles():
 
         L = []
         L.append(vehicle_length)
-        # x0_alignment = alignment.points[0][0].x
-        # y0_alignment = alignment.points[0][0].y
 
         v0 = random.normalvariate(25,3)
 
@@ -70,12 +70,7 @@ class vehicles():
         for t in range(1,t_simul):
             v = speed[t]
             temp_s = curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.id)
-            # temp_s = vehicles.position(posV[t-1].x,v.x,1)
-            #
-            # posV.positions[0].append(temp_x)
-            # posV.positions[1].append(temp_y)
 
-        # data_vehicles[0].timeInterval = [0,300]
         data_vehicles[0].timeInterval = moving.TimeInterval(0,300)
         data_vehicles[0].curvilinearPositions = curvilinearpositions
         data_vehicles[0].velocities = speed
@@ -96,10 +91,6 @@ class vehicles():
             vehicle_width = random.normalvariate(2.5,0.2)
             L.append(vehicle_length)
 
-            # x0_alignment = alignment.points[0][0].x
-            # y0_alignment = alignment.points[0][0].y
-
-            # u = moving.Point(x0_alignment,y0_alignment).__mul__(1/(moving.Point.norm2(moving.Point(x0_alignment,y0_alignment))))
             data_vehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
             data_vehicles[k].velocities = [0]
             # data_vehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
@@ -111,12 +102,9 @@ class vehicles():
 
             for t in range(1,t_simul):
                 velocite = random.normalvariate(25,3)
-                # temp_x = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
-                # temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
-                # temp_s =
 
                 leader = data_vehicles[k-1].curvilinearPositions[t][0]
-                following = data_vehicles[k].curvilinearPositions[t-1][0]
+                following = data_vehicles[k].curvilinearPositions[t-1][0] + velocite
                 s = vehicles.gap(leader,following,L[k-1])
 
                 if s < s_min:
@@ -127,40 +115,10 @@ class vehicles():
                     velocite = 0
 
                 curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.id)
-                # temp_s = vehicles.position(data_vehicles[k].positions[t-1].x,velocite.x,1)
-                # temp_y = vehicles.position(data_vehicles[k].positions[t-1].y,velocite.y,1)
                 data_vehicles[k].velocities.append(velocite)
                 data_vehicles[k].curvilinearPositions = curvilinearpositions
-                # data_vehicles[k].positions.addPosition(moving.Point(temp_x,temp_y))
-
-
-        # for k in range(len(data_vehicles)):
-        #     moving.MovingObject.projectCurvilinear(data_vehicles[k], alignment.points)
-
 
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
 
         return data_vehicles, intervals
-
-
-def trace(list_of_vehicles):
-    temps = toolkit.load_yml('intervals.yml')
-    x = []
-    v = []
-
-    for k in range (0,len(veh)):
-        x.append([])
-        v.append([])
-
-        for time in range(0,len(list_of_vehicles[0].positions)):
-            v[k].append(moving.Point.norm2(list_of_vehicles[k].velocities[time]))
-            x[k].append(list_of_vehicles[k].curvilinearPosition[time][0])
-            ylabel = "position selon l'axe x"
-
-        plt.plot(temps[k],x[k])
-
-    plt.xlabel('x')
-    plt.ylabel('y')
-    plt.show()
-    plt.close()
