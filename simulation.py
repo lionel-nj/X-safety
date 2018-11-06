@@ -13,8 +13,8 @@ parameters['simulation']['t_simulation']
 alignment1 = Alignment()
 alignment2 = Alignment()
 
-alignment1.points =
-alignment2.points =
+alignment1.points = [moving.Trajectory.fromPointList([moving.Point(1,2),moving.Point(40,80), moving.Point(400,800), moving.Point(25000,50000)])]
+alignment2.points = [moving.Trajectory.fromPointList([moving.Point(0,30),moving.Point(300,30),moving.Point(1000,30), moving.Point(25000,30)])]
 
 alignment1.id = parameters['scene']['alignments']['horizontal']['id']
 alignment2.id = parameters['scene']['alignments']['vertical']['id']
@@ -56,17 +56,15 @@ world.control_devices = dict()
 world.control_devices[0] = cd1
 world.control_devices[1] = cd2
 
-world.crossing_point = alignment1.crossing_point
-
 #creation des vehicules
 
 cars_on_horizontal_alignment = vehicles('horizontal.yml')
 cars_on_vertical_alignment = vehicles('vertical.yml')
 
 t_simul = parameters['simulation']['t_simulation']
-
-cars_on_horizontal_alignment.generateTrajectories(alignment1,t_simul)
-cars_on_vertical_alignment.generateTrajectories(alignment2,t_simul)
+s_min = parameters['output']['indices']['s_min']
+cars_on_horizontal_alignment.generateTrajectories(alignment1,t_simul,s_min)
+cars_on_vertical_alignment.generateTrajectories(alignment2,t_simul,s_min)
 
 #mise des vehicules dans le monde
 world.vehicles = dict()
@@ -75,4 +73,7 @@ world.vehicles[1] = toolkit.load_yml('vertical.yml')
 
 #calcul du nombre d'interactions
 dmin = parameters['interactions']['dmin']
-print(world.countEncounters(dmin)[2])
+print(world.countEncounters(dmin)[1])
+# world.trace(0)
+# trace(world.vehicles[1])
+# print(world.countEncounters(dmin)[3],world.countEncounters(dmin)[4],world.countEncounters(dmin)[5],world.countEncounters(dmin)[6])
