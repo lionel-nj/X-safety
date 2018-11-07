@@ -1,8 +1,12 @@
 import cars
+from trafficintelligence import *
+from cars import *
 from trafficintelligence import moving
 import random
 from toolkit import *
 import toolkit
+
+
 
 class Alignment():
     #représentation des voies : liste de points
@@ -25,10 +29,12 @@ class Alignment():
     #     return "id: {}, width:{}, control device:{}, connected to alignment:{}, at:{}".format(self.id, self.width, self.control_device, self.connected_alignment_id)
 
     def addPoint(self,x,y):
+        '''ajoute un point xy a la fin de la trajectoire '''
         self.points.addPositionXY(x,y)
         # print("le point:({},{}) a été ajouté".format(x,y))
 
     def setPoint(self,i,x,y):
+        '''modifie les coordonnées xy du point d'indice i'''
         self.points.setPositionXY(i,x,y)
         print("le point:({},{}) a été mis à la position{}".format(x,y,i))
 
@@ -50,6 +56,7 @@ class Alignment():
         # return alignment_until_point
 
     def insertCrossingPoint(self):
+        'insere le point de croisement dans la liste de points de la trajectoire'
         if self.crossing_point == self.points[0][0] :
             self.distance_to_crossing_point = 0
 
@@ -231,7 +238,7 @@ class World():
             matrix_intersection[v] = [('x')]*lines
 
         #interactions sur la meme voie horizobntale
-        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(80,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
                 if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1:
                     matrix_voie1[h] = 1
@@ -241,7 +248,7 @@ class World():
 
 
         #interactions sur la meme voie verticale
-        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(80,len(self.vehicles[0][0].curvilinearPositions)):
             for v in range(1,lines):
                 if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 :
                     matrix_voie0[v] = 1
@@ -283,7 +290,10 @@ class World():
         plt.ylabel('x')
         plt.show()
         plt.close()
-#
+
+
+
+
 #     def stopsAt(self,vehicle,time):
 #         '''arrête un véhicule à partir d'un instant t
 #         TODO : mettre à jour les curvilinearPosition: necessitera les alignements'''

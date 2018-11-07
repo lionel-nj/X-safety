@@ -12,6 +12,30 @@ import shapely.geometry
 from math import sqrt
 from carsvsped import *
 
+def getXYfromSY2(s, y, alignmentNum, alignments):
+    ''' Find X,Y coordinate from S,Y data.
+    if mode = 0 : return Snapped X,Y
+    if mode !=0 : return Real X,Y
+    '''
+    alignment = alignments
+    i = 1
+    while s > alignment.points[0].getCumulativeDistance(i) and i < len(alignment.points[0]):
+        i += 1
+    if i < len(alignment.points[0]):
+        d = s - alignment.points[0].getCumulativeDistance(i-1) # distance on subsegment
+        #Get difference vector and then snap
+        dv = alignment.points[0][i] - alignment.points[0][i-1]
+        magnitude  = dv.norm2()
+        normalizedV = dv.divide(magnitude)
+        #snapped = alignment[i-1] + normalizedV*d # snapped point coordinate along alignment
+        # add offset finally
+        orthoNormalizedV = normalizedV.orthogonal()
+        return alignment.points[0][i-1] + normalizedV*d + orthoNormalizedV*y
+    else:
+        print('Curvilinear point {} is past the end of the alignement'.format((s, y, alignmentNum)))
+        return None
+
+
 class vehicles():
 
     def __init__(self,nom_fichier_sortie):
@@ -49,6 +73,7 @@ class vehicles():
 
         data_vehicles = dict()
         data_vehicles[0] = moving.MovingObject()
+        positions = moving.Trajectory()
 
         vehicle_length = random.normalvariate(6.5,0.3)
         vehicle_width = random.normalvariate(2.5,0.2)
@@ -60,6 +85,7 @@ class vehicles():
 
         curvilinearpositions = moving.CurvilinearTrajectory()
         curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
+        positions.addPosition(getXYfromSY2(0,0,alignment.id,alignment))
 
         speed = []
         for t in range(0,t_simul):
@@ -67,13 +93,15 @@ class vehicles():
 
         for t in range(1,t_simul):
             v = speed[t]
-            temp_s = curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.id)
+            curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.id)
+            positions.addPosition(getXYfromSY2(curvilinearpositions[t][0],curvilinearpositions[t][1],alignment.id,alignment))
 
         data_vehicles[0].timeInterval = moving.TimeInterval(0,300)
         data_vehicles[0].curvilinearPositions = curvilinearpositions
         data_vehicles[0].velocities = speed
         # data_vehicles[0].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
         data_vehicles[0].userType = 1
+        data_vehicles[0].positions = positions
 
 
         ##########################################################
@@ -84,6 +112,7 @@ class vehicles():
         for k in range(1,number_of_cars):
 
             data_vehicles[k] = moving.MovingObject()
+            positions = moving.Trajectory()
 
             vehicle_length = random.uniform(6,8)
             vehicle_width = random.normalvariate(2.5,0.2)
@@ -96,7 +125,9 @@ class vehicles():
 
             curvilinearpositions = moving.CurvilinearTrajectory()
             curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
+
             data_vehicles[k].curvilinearPositions = curvilinearpositions
+            positions.addPosition(getXYfromSY2(0,0,alignment.id,alignment))
 
             for t in range(1,t_simul):
                 velocite = random.normalvariate(25,3)
@@ -113,8 +144,11 @@ class vehicles():
                     velocite = 0
 
                 curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.id)
+                positions.addPosition(getXYfromSY2(curvilinearpositions[t][0],curvilinearpositions[t][1],alignment.id,alignment))
+
                 data_vehicles[k].velocities.append(velocite)
                 data_vehicles[k].curvilinearPositions = curvilinearpositions
+                data_vehicles[k].positions = positions
 
         create_yaml(self.nom_fichier_sortie,data_vehicles)
         create_yaml('intervals.yml',intervals)
