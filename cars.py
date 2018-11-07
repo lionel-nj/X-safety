@@ -11,8 +11,6 @@ import itertools
 import shapely.geometry
 from math import sqrt
 from carsvsped import *
-# import position from toolkit
-# import gap from toolkit
 
 class vehicles():
 
