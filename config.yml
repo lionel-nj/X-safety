@@ -1,6 +1,6 @@
 simulation:
 
-  t_simulation : 290
+  t_simulation : 90
   delta_t : 1
 
 scene:
