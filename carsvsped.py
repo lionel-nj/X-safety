@@ -1,142 +1,124 @@
 import cars
-from trafficintelligence import *
-from cars import *
 from trafficintelligence import moving
 import random
-from toolkit import *
 import toolkit
 
-
-
 class Alignment():
-    #représentation des voies : liste de points
-    def __init__(self, id = None, points = [], width = None, control_device = None, debit = None):
-    # def __init__(self, id = None, points = [], width = None, control_device = None, debit = None, crossing_point = None, connected_alignment_id = None):
-
-        self.id = id
+    '''Description of road lanes (centre line of a lane)
+    point represents the lane geometry (type is moving.Trajectory) '''
+    def __init__(self, idx = None, points = None, width = None, controlDevice = None):
+        self.idx = idx
         self.points = points
         self.width = width
-        self.control_device = control_device
-        self.debit = debit
-        # self.connected_alignment_id = connected_alignment_id
-        # self.crossing_point = self.points.getIntersections(connected_alignment_id[0],connected_alignment_id[-1])
+        self.controlDevice = controlDevice
+        #self.volume = volume
+        # self.connected_alignment_idx = connected_alignment_idx
+        # self.crossing_point = self.points.getIntersections(connected_alignment_idx[0],connected_alignment_idx[-1])
 
         #point de croisement à créer par la suite !
         #ajouter l'id de l'Alignment aveec lequel il y a le croisement
         #
     #
     # def __repr__(self):
-    #     return "id: {}, width:{}, control device:{}, connected to alignment:{}, at:{}".format(self.id, self.width, self.control_device, self.connected_alignment_id)
+    #     return "id: {}, width:{}, control device:{}, connected to alignment:{}, at:{}".format(self.id, self.width, self.controlDevice, self.connected_alignment_id)
 
     def addPoint(self,x,y):
-        '''ajoute un point xy a la fin de la trajectoire '''
         self.points.addPositionXY(x,y)
         # print("le point:({},{}) a été ajouté".format(x,y))
 
     def setPoint(self,i,x,y):
-        '''modifie les coordonnées xy du point d'indice i'''
         self.points.setPositionXY(i,x,y)
-        print("le point:({},{}) a été mis à la position{}".format(x,y,i))
+        #print("le point:({},{}) a été mis à la position{}".format(x,y,i))
 
     def insertPointAt(self,p,i):
         '''insere un point p dans un alignement à une position i'''
         avant = moving.Trajectory()
 
         for k in range(0,i):
-            avant.addPosition(self.points[0][k])
+            avant.addPosition(self.points[k])
 
         avant.addPosition(p)
 
         alignment_until_point = avant
 
-        for k in range(i,len(self.points[0])):
-            avant.addPosition(self.points[0][k])
+        for k in range(i,len(self.points)):
+            avant.addPosition(self.points[k])
 
-        self.points = [avant]
-        # return alignment_until_point
+        self.points = avant
 
     def insertCrossingPoint(self):
-        'insere le point de croisement dans la liste de points de la trajectoire'
-        if self.crossing_point == self.points[0][0] :
+        if self.crossing_point == self.points[0] :
             self.distance_to_crossing_point = 0
 
-        elif self.points[0][-1] == self.crossing_point:
-            self.distance_to_crossing_point = self.points[0].getCumulativeDistance(len(self.points[0]))
+        elif self.points[-1] == self.crossing_point:
+            self.distance_to_crossing_point = self.points.getCumulativeDistance(len(self.points))
 
         else:
-            for k in range (len(self.points[0])-1):
-                if self.points[0][k].x < self.crossing_point.x and self.crossing_point.x < self.points[0][k+1].x:
+            for k in range (len(self.points)-1):
+                if self.points[k].x < self.crossing_point.x and self.crossing_point.x < self.points[k+1].x:
                     Alignment.insertPointAt(self,self.crossing_point,k+1)
-                    self.points[0].computeCumulativeDistances()
-                    self.distance_to_crossing_point = self.points[0].getCumulativeDistance(k+1)
+                    self.points.computeCumulativeDistances()
+                    self.distance_to_crossing_point = self.points.getCumulativeDistance(k+1)
                     break
-            # elif self.points[0][k+1].x < self.crossing_point.x:
+            # elif self.points[k+1].x < self.crossing_point.x:
             #     Alignment.insertPointAt(self,self.crossing_point,k)
 
     def connectAlignments(self,other):
-        '''ajoute un membre connected_alignment_id à l'alignement : identifie l'alignement avec lequel il y a croisement
+        '''ajoute un membre connected_alignment_idx à l'alignement : identifie l'alignement avec lequel il y a croisement
         ajoute un membre crossing_point : identifie le point x,y de croisement'''
-        self.connected_alignment_id = other.id #mise en relation des aligments qui s'entrecroisent
-        other.connected_alignment_id = self.id #mise en relation des aligments qui s'entrecroisent
-        self.crossing_point = self.points[0].getIntersections(other.points[0][0],other.points[0][-1])[1][0]
-        other.crossing_point = other.points[0].getIntersections(self.points[0][0],self.points[0][-1])[1][0]
+        self.connected_alignment_idx = other.idx #mise en relation des aligments qui s'entrecroisent
+        other.connected_alignment_idx = self.idx #mise en relation des aligments qui s'entrecroisent
+        self.crossing_point = self.points.getIntersections(other.points[0],other.points[-1])[1][0]
+        other.crossing_point = other.points.getIntersections(self.points[0],self.points[-1])[1][0]
 
         self.insertCrossingPoint()
         other.insertCrossingPoint()
 
     def isConnectedTo(self,other):
-        if self.connected_alignment_id == other.id and other.connected_alignment_id == self.id:
+        if self.connected_alignment_idx == other.idx and other.connected_alignment_idx == self.idx:
             return True
         else:
             return False
 
 class ControlDevice():
-    #outil de control
-
-    cat = {'stop' : 0,
-          'yield' : 1,
-          'red light' : 2,
-          'free' : 3}
-
-    def __init__(self, position = None, alignment_id = None, category = None):
+    '''generic traffic control devices'''
+    categories = {'stop' : 0,
+                  'yield' : 1,
+                  'traffic light' : 2}
+    
+    def __init__(self, position = None, alignmentIdx = None, category = None):
         self.position = position
-        self.alignment_id = alignment_id
+        self.alignmentIdx = alignmentIdx
         self.category = category
 
     def __repr__(self):
-        return "position:{}, alignment:{}, type{}".format(self.position, self.alignment_id, self.type)
+        return "position:{}, alignment:{}, category:{}".format(self.position, self.alignmentIdx, self.category)
 
 
 class World():
-    #monde
-    def __init__(self,vehicles = None ,pedestrians = None, alignments = None, control_devices = None, crossing_point = None):
+    '''Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing points '''
+    def __init__(self,vehicles = None ,pedestrians = None, alignments = None, controlDevices = None, crossingPoints = None):
         self.vehicles = vehicles # dict de veh
         self.pedestrians = pedestrians #sorted dict de ped
         self.alignments = alignments #liste de alignements
-        self.control_devices = control_devices #liste de CD
-        self.crossing_point = crossing_point #point
+        self.controlDevices = controlDevices #liste de CD
+        self.crossingPoints = crossingPoints #point
 
     def __repr__(self):
-        return "vehicles: {}, pedestrians: {}, alignments: {}, control_device: {}".format(self.vehicles,self.vehicles,self.pedestrians,self.ped_v,self.horizontal_alignment,self.vertical_alignment,self.control_device)
+        return "vehicles: {}, pedestrians: {}, alignments: {}, control devices: {}".format(self.vehicles,self.pedestrians,self.alignments,self.controlDevices)
 
-    def loadWorld(self,file):
-        return load_yml(file)
+    @staticmethod
+    def load(filename):
+        return toolkit.load_yaml(filename)
 
-    def saveWorld(self):
-        data = dict()
-        data[0] = self.vehicles
-        data[1] = self.pedestrians
-        data[2] = self.alignments
-        data[3] = self.control_devices
-        data[4] = self.crossing_point
-
-        return create_yaml('world.yml',data)
+    def save(self, filename):
+        toolkit.save_yaml(filename, self)
 
     # def initialiseWorld(self):
     #     # self.vehicles = cars.vehicles(moving.Point(0,1),'verticale.yml').generateTrajectories()[0]
     #     self.pedestrians = None
     #     self.alignment = None
-    #     self.control_device = None
+    #     self.controlDevice = None
     #
     #     if self.horizontal_alignment != None or self.vertical_alignment != None :
     #         self.crossing_point = moving.Trajectory.getIntersections(self.horizontal_alignment,self.vertical_alignment[0],self.vertical_alignment[-1])
@@ -195,27 +177,27 @@ class World():
         #
         #         return moving.MovingObject.getUserType(existing_users[dist.index(min(dist))])
 
-    def distanceMinVerifiee(self,alignment_id_i,alignment_id_j,i,j,t,dmin):
+    def distanceMinVerifiee(self,alignment_idx_i,alignment_idx_j,i,j,t,dmin):
         '''verifie si la distance min specifiee est respectee'''
-        if alignment_id_j == alignment_id_i:
-            d = cars.vehicles.gap(self.vehicles[alignment_id_i][i].curvilinearPositions[t][0],self.vehicles[alignment_id_j][j].curvilinearPositions[t][0],6)
+        if alignment_idx_j == alignment_idx_i:
+            d = cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
             if d > dmin:
-                return True,cars.vehicles.gap(self.vehicles[alignment_id_i][i].curvilinearPositions[t][0],self.vehicles[alignment_id_j][j].curvilinearPositions[t][0],6)
-            return False,cars.vehicles.gap(self.vehicles[alignment_id_i][i].curvilinearPositions[t][0],self.vehicles[alignment_id_j][j].curvilinearPositions[t][0],6)
+                return True,cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
+            return False,cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
 
         else :
-            d1 = self.vehicles[alignment_id_i][i].curvilinearPositions[t][0]-self.alignments[alignment_id_i].distance_to_crossing_point
-            d2 = self.vehicles[alignment_id_j][j].curvilinearPositions[t][0]-self.alignments[alignment_id_j].distance_to_crossing_point
+            d1 = self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0]-self.alignments[alignment_idx_i].distance_to_crossing_point
+            d2 = self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0]-self.alignments[alignment_idx_j].distance_to_crossing_point
             d = (d1**2+d2**2)**(0.5)
             if d > dmin:
                 return True,d
             else:
                 return False,d
 
-    def isAnEncounter(self,alignment_id_i,alignment_id_j,i,j,t,dmin):
+    def isAnEncounter(self,alignment_idx_i,alignment_idx_j,i,j,t,dmin):
         ''' verifie s'il y a une rencontre entre deux vehicules '''
-        d = self.distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t,dmin)[1]
-        if self.distanceMinVerifiee(alignment_id_i,alignment_id_j,i,j,t,dmin)[0] == True :
+        d = self.distanceMinVerifiee(alignment_idx_i,alignment_idx_j,i,j,t,dmin)[1]
+        if self.distanceMinVerifiee(alignment_idx_i,alignment_idx_j,i,j,t,dmin)[0] == True :
             return False,d
         else :
             return True,d
@@ -238,7 +220,7 @@ class World():
             matrix_intersection[v] = [('x')]*lines
 
         #interactions sur la meme voie horizobntale
-        for t in range(80,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
                 if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1:
                     matrix_voie1[h] = 1
@@ -248,7 +230,7 @@ class World():
 
 
         #interactions sur la meme voie verticale
-        for t in range(80,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
             for v in range(1,lines):
                 if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 :
                     matrix_voie0[v] = 1
@@ -270,18 +252,19 @@ class World():
 
         return c0,c1,c2,c0+c1+c2,matrix_intersection
 
-    def trace(self,alignment_id):
-        temps = toolkit.load_yml('intervals.yml')
+    def trace(self,alignment_idx):
+        import matlplotlib.pyplot as plt
+        temps = toolkit.load_yaml('intervals.yml')
         x = []
         # v = []
 
-        for k in range (0,len(self.vehicles[alignment_id])):
+        for k in range (0,len(self.vehicles[alignment_idx])):
             x.append([])
             # v.append([])
 
-            for time in range(0,len(self.vehicles[alignment_id][0].curvilinearPositions)):
+            for time in range(0,len(self.vehicles[alignment_idx][0].curvilinearPositions)):
                 # v[k].append(moving.Point.norm2(list_of_vehicles[k].velocities[time]))
-                x[k].append(self.vehicles[alignment_id][k].curvilinearPositions[time][0])
+                x[k].append(self.vehicles[alignment_idx][k].curvilinearPositions[time][0])
                 ylabel = "position selon l'axe x"
 
             plt.plot(temps[k],x[k])
@@ -290,10 +273,7 @@ class World():
         plt.ylabel('x')
         plt.show()
         plt.close()
-
-
-
-
+#
 #     def stopsAt(self,vehicle,time):
 #         '''arrête un véhicule à partir d'un instant t
 #         TODO : mettre à jour les curvilinearPosition: necessitera les alignements'''
@@ -361,7 +341,7 @@ class World():
 #         stopped = False
 #         pointI = self.p4
 #         pointD = self.p1
-#         if self.control_device_vertical.category == 0 and self.control_device_horizontal.category == 3:
+#         if self.controlDevice_vertical.category == 0 and self.controlDevice_horizontal.category == 3:
 #             for key, value in self.vehicles.items():
 #                 for t in range(len(self.vehicles)):
 #                     s = 0
@@ -411,11 +391,11 @@ class World():
 #         new_ct.addPositionSYL(ct2[k][0],ct2[k][1],ct2[k][2])
 #     return new_ct
 #
-# def distanceToCD(vehicle,time,control_device):
+# def distanceToCD(vehicle,time,controlDevice):
 #     '''calcule la distance restante a l'outil de controle'''
-#     if control_device.alignment_id == vehicle.curvilinearPositions.lanes[0]:
+#     if controlDevice.alignment_idx == vehicle.curvilinearPositions.lanes[0]:
 #         p1=vehicle.positions[time]
-#         p2=control_device.position
+#         p2=controlDevice.position
 #         return moving.Point.distanceNorm2(p1,p2)
 #     else:
 #         return ('Erreur, vehicule et CD pas sur le même alignement : calcul non realisable')
