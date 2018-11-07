@@ -12,55 +12,44 @@ from scipy.stats import rv_continuous
 from trafficintelligence import utils
 from trafficintelligence import moving
 
-def load_yml(file):
-    return yaml.load(open(file))
+def load_yaml(filename):
+    return yaml.load(open(filename))
 
-def create_yaml(name,data):
-    with open(name, 'w') as outfile:
+def save_yaml(filename,data):
+    with open(filename, 'w') as outfile:
         yaml.dump(data,outfile,default_flow_style = False)
 
-def copy_yaml(file,newname):
-    data = load_yml(file)
-    create_yaml(newname,data)
+def copy_yaml(filename,newname):
+    data = load_yaml(filename)
+    save_yaml(newname,data)
 
-def add_element_to_yaml(file,element,key):
-    data = load_yml(file)
+def add_element_to_yaml(filename,element,key):
+    data = load_yaml(filename)
     try:
-        with open(file, "w") as out:
+        with open(filename, "w") as out:
             yaml.dump(data, out)
-        with open(file) as out:
-            newdata = yaml.load_yml(out)
+        with open(filename) as out:
+            newdata = yaml.load_yaml(out)
         newdata[key] = element
-        create_yaml(file,newdata)
+        save_yaml(filename,newdata)
     except:
         print("the key requested does not exist in the yaml file")
 
-def update_yaml(file,element,key):
-    data = load_yml(file)
+def update_yaml(filename,element,key):
+    data = load_yaml(filename)
     try:
         data[key] = element
-        create_yaml(file,data)
+        save_yaml(filename,data)
     except:
         print("the key requested does not exist in the yaml file")
 
-def delete_yaml(file, key):
-    data = load_yml(file)
+def delete_yaml(filename, key):
+    data = load_yaml(filename)
     try:
         del data[key]
-        create_yaml(file,data)
+        save_yaml(filename,data)
     except:
         print("the key requested does not exist in the yaml file")
-
-def save_scene(alignments,controlDevice,world,name_of_file):
-
-    data = {'alignments' : alignments,
-              'controlDevice' : controlDevice,
-              'world' : world}
-
-    return create_yaml(name_of_file,data)
-
-def load_scene(scene):
-    return load_yml(scene)
 
 def generateDistribution(data):
     'input : fichier csv'
@@ -105,12 +94,12 @@ def generateDistribution(data):
     #tiv : x
     #tivprob : probailité, y
     tivdistrib = utils.EmpiricalContinuousDistribution(tiv,tivprobcum)
-    create_yaml('distribution.yml',tivdistrib)
+    save_yaml('distribution.yml',tivdistrib)
     return tivdistrib
 
 def generateSampleFromSample(sample_size,distribution):
     result = distribution.rvs(size = sample_size)
-    create_yaml('headway_sample.yml',list(result))
+    save_yaml('headway_sample.yml',list(result))
     return list(result)
 
 # def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):

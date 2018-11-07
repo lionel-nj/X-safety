@@ -1,4 +1,4 @@
-from trafficintelligence import *
+#from trafficintelligence import *
 from trafficintelligence import utils
 import decimal
 import random
@@ -6,41 +6,43 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import collections
-from toolkit import *
+
+import toolkit
 import itertools
 import shapely.geometry
 from math import sqrt
 from carsvsped import *
 
-def getXYfromSY2(s, y, alignmentNum, alignments):
-    ''' Find X,Y coordinate from S,Y data.
-    if mode = 0 : return Snapped X,Y
-    if mode !=0 : return Real X,Y
-    '''
-    alignment = alignments
-    i = 1
-    while s > alignment.points[0].getCumulativeDistance(i) and i < len(alignment.points[0]):
-        i += 1
-    if i < len(alignment.points[0]):
-        d = s - alignment.points[0].getCumulativeDistance(i-1) # distance on subsegment
-        #Get difference vector and then snap
-        dv = alignment.points[0][i] - alignment.points[0][i-1]
-        magnitude  = dv.norm2()
-        normalizedV = dv.divide(magnitude)
-        #snapped = alignment[i-1] + normalizedV*d # snapped point coordinate along alignment
-        # add offset finally
-        orthoNormalizedV = normalizedV.orthogonal()
-        return alignment.points[0][i-1] + normalizedV*d + orthoNormalizedV*y
-    else:
-        print('Curvilinear point {} is past the end of the alignement'.format((s, y, alignmentNum)))
-        return None
+# def getXYfromSY2(s, y, alignmentNum, alignments):
+#     ''' Find X,Y coordinate from S,Y data.
+#     if mode = 0 : return Snapped X,Y
+#     if mode !=0 : return Real X,Y
+#     '''
+#     alignment = alignments
+#     i = 1
+#     while s > alignment.points[0].getCumulativeDistance(i) and i < len(alignment.points[0]):
+#         i += 1
+#     if i < len(alignment.points[0]):
+#         d = s - alignment.points[0].getCumulativeDistance(i-1) # distance on subsegment
+#         #Get difference vector and then snap
+#         dv = alignment.points[0][i] - alignment.points[0][i-1]
+#         magnitude  = dv.norm2()
+#         normalizedV = dv.divide(magnitude)
+#         #snapped = alignment[i-1] + normalizedV*d # snapped point coordinate along alignment
+#         # add offset finally
+#         orthoNormalizedV = normalizedV.orthogonal()
+#         return alignment.points[0][i-1] + normalizedV*d + orthoNormalizedV*y
+#     else:
+#         print('Curvilinear point {} is past the end of the alignement'.format((s, y, alignmentNum)))
+#         return None
 
 
-class vehicles():
-
-    def __init__(self,nom_fichier_sortie):
+class VehicleInput(object):
+    def __init__(self, aligmentIdx, nom_fichier_sortie):
+        self.aligmentIdx = aligmentIdx
         self.nom_fichier_sortie = nom_fichier_sortie
 
+    @staticmethod
     def gap(s_leader,s_following,length_leader):
         "fonction de mise a jour des gaps"
         distance = s_leader-s_following-length_leader
@@ -49,17 +51,17 @@ class vehicles():
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self,alignment,t_simul,s_min):
+    def generateTrajectories(self, alignment, t_simul, s_min):
         '''alignment est un objet de la classe Alignment'''
 
         #définition des instants de création des véhicules
-        number_of_cars = round(t_simul*alignment.flow/3600)
-        tiv = generateSampleFromSample(number_of_cars,generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
+        number_of_cars = 100#round(t_simul*alignment.flow/3600)
+        tiv = toolkit.generateSampleFromSample(number_of_cars,toolkit.generateDistribution('data.csv')) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
 
         intervals = [None]*number_of_cars
 
-        moving.prepareAlignments(alignment.points)
+        moving.prepareAlignments([alignment.points])
 
         for k in range(0,number_of_cars):
             intervals[k] = [h[k]]
@@ -84,8 +86,8 @@ class vehicles():
         v0 = random.normalvariate(25,3)
 
         curvilinearpositions = moving.CurvilinearTrajectory()
-        curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
-        positions.addPosition(getXYfromSY2(0,0,alignment.id,alignment))
+        curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.idx)
+        positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
         speed = []
         for t in range(0,t_simul):
@@ -93,8 +95,8 @@ class vehicles():
 
         for t in range(1,t_simul):
             v = speed[t]
-            curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.id)
-            positions.addPosition(getXYfromSY2(curvilinearpositions[t][0],curvilinearpositions[t][1],alignment.id,alignment))
+            curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.idx)
+            positions.addPosition(moving.getXYfromSY(curvilinearpositions[t][0],curvilinearpositions[t][1],0,[alignment.points]))
 
         data_vehicles[0].timeInterval = moving.TimeInterval(0,300)
         data_vehicles[0].curvilinearPositions = curvilinearpositions
@@ -124,17 +126,17 @@ class vehicles():
             data_vehicles[k].userType = 1
 
             curvilinearpositions = moving.CurvilinearTrajectory()
-            curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.id)
+            curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.idx)
 
             data_vehicles[k].curvilinearPositions = curvilinearpositions
-            positions.addPosition(getXYfromSY2(0,0,alignment.id,alignment))
+            positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
             for t in range(1,t_simul):
                 velocite = random.normalvariate(25,3)
 
                 leader = data_vehicles[k-1].curvilinearPositions[t][0]
                 following = data_vehicles[k].curvilinearPositions[t-1][0] + velocite
-                s = vehicles.gap(leader,following,L[k-1])
+                s = VehicleInput.gap(leader,following,L[k-1])
 
                 if s < s_min:
                     v = data_vehicles[k-1].velocities[t]
@@ -143,14 +145,14 @@ class vehicles():
                 if velocite < 0:
                     velocite = 0
 
-                curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.id)
-                positions.addPosition(getXYfromSY2(curvilinearpositions[t][0],curvilinearpositions[t][1],alignment.id,alignment))
+                curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.idx)
+                positions.addPosition(moving.getXYfromSY(curvilinearpositions[t][0],curvilinearpositions[t][1],0,[alignment.points]))
 
                 data_vehicles[k].velocities.append(velocite)
                 data_vehicles[k].curvilinearPositions = curvilinearpositions
                 data_vehicles[k].positions = positions
 
-        create_yaml(self.nom_fichier_sortie,data_vehicles)
-        create_yaml('intervals.yml',intervals)
+        toolkit.save_yaml(self.nom_fichier_sortie,data_vehicles)
+        toolkit.save_yaml('intervals.yml',intervals)
 
         return data_vehicles, intervals
