@@ -1,69 +1,87 @@
-simulation:
-
-  t_simulation : 290
-  delta_t : 1
-
-scene:
-
-  arrival_distributions:
-    distribution_arrival_horizontal :
-    distribution_arrival_vertical :
-
-  alignments :
-
-    horizontal :
-      list_of_points :
-        - !!python/object:trafficintelligence.moving.Trajectory
-          positions:
-          - - 1
-            - 40
-            - 400
-            - 25000
-          - - 2
-            - 80
-            - 800
-            - 50000
-
-      width : 3.5
-      flow : 500
-      id : 1
-
-    vertical :
-      list_of_points :
-        - !!python/object:trafficintelligence.moving.Trajectory
-          positions:
-          - - 0
-            - 300
-            - 1000
-            - 25000
-          - - 30
-            - 30
-            - 30
-            - 30
-
-      width : 3.5
-      flow : 500
-      id : 2
-
-  control_devices:
-    horizontal :
-      curvilinear_position : 150
-      category : 0
-
-    vertical :
-      curvilinear_position : 150
-      category : 0
-
-interactions :
-  dmin : 25
-
-output :
-  trajectoires :
-    horizontal : 'trajectoires_horizontales.yml'
-    vertical : 'trajectoires_verticales.yml'
-
-  indices :
-    distance_interaction :
-    s_min : 25
-    horizontal :
-    vertical :
+!!python/object:simulation.Simulation
+duration: 290
+interactionDistance: 25
+minimumDistanceHeadway: 25
+timeStep: 1.0
+world: !!python/object:carsvsped.World
+  alignments:
+  - !!python/object:carsvsped.Alignment
+    connected_alignment_idx: null
+    controlDevice: &id001 !!python/object:carsvsped.ControlDevice
+      alignmentIdx: null
+      alignment_id: 1
+      category: 0
+      position: 150
+    crossing_point: !!python/object:trafficintelligence.moving.Point
+      x: 15.0
+      y: 30.0
+    distance_to_crossing_point: 31.304951684997057
+    id: 1
+    idx: null
+    points: !!python/object:trafficintelligence.moving.Trajectory
+      cumulativeDistances:
+      - 0.0
+      - 31.304951684997057
+      - 87.20665112249179
+      - 892.1911230224161
+      - 55899.46336951724
+      distances:
+      - 31.304951684997057
+      - 55.90169943749474
+      - 804.9844718999243
+      - 55007.272246494824
+      positions:
+      - - 1
+        - 15.0
+        - 40
+        - 400
+        - 25000
+      - - 2
+        - 30.0
+        - 80
+        - 800
+        - 50000
+    width: 3.5
+  - !!python/object:carsvsped.Alignment
+    connected_alignment_idx: null
+    controlDevice: &id002 !!python/object:carsvsped.ControlDevice
+      alignmentIdx: null
+      alignment_id: 2
+      category: 0
+      position: 150
+    crossing_point: !!python/object:trafficintelligence.moving.Point
+      x: 15.0
+      y: 30.0
+    distance_to_crossing_point: 15.0
+    id: 2
+    idx: null
+    points: !!python/object:trafficintelligence.moving.Trajectory
+      cumulativeDistances:
+      - 0.0
+      - 15.0
+      - 300.0
+      - 1000.0
+      - 25000.0
+      distances:
+      - 15.0
+      - 285.0
+      - 700.0
+      - 24000.0
+      positions:
+      - - 0
+        - 15.0
+        - 300
+        - 1000
+        - 25000
+      - - 30
+        - 30.0
+        - 30
+        - 30
+        - 30
+    width: 3.5
+  controlDevices:
+  - *id001
+  - *id002
+  crossingPoints: null
+  pedestrians: null
+  vehicles: null
