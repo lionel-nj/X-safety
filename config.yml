@@ -1,6 +1,6 @@
 simulation:
 
-  t_simulation : 90
+  t_simulation : 290
   delta_t : 1
 
 scene:
@@ -13,12 +13,34 @@ scene:
 
     horizontal :
       list_of_points :
+        - !!python/object:trafficintelligence.moving.Trajectory
+          positions:
+          - - 1
+            - 40
+            - 400
+            - 25000
+          - - 2
+            - 80
+            - 800
+            - 50000
+
       width : 3.5
       flow : 500
       id : 1
 
     vertical :
       list_of_points :
+        - !!python/object:trafficintelligence.moving.Trajectory
+          positions:
+          - - 0
+            - 300
+            - 1000
+            - 25000
+          - - 30
+            - 30
+            - 30
+            - 30
+
       width : 3.5
       flow : 500
       id : 2
