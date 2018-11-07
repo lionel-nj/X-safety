@@ -13,8 +13,8 @@ parameters['simulation']['t_simulation']
 alignment1 = Alignment()
 alignment2 = Alignment()
 
-alignment1.points = [moving.Trajectory.fromPointList([moving.Point(1,2),moving.Point(40,80), moving.Point(400,800), moving.Point(25000,50000)])]
-alignment2.points = [moving.Trajectory.fromPointList([moving.Point(0,30),moving.Point(300,30),moving.Point(1000,30), moving.Point(25000,30)])]
+alignment1.points = parameters['scene']['alignments']['horizontal']['list_of_points']
+alignment2.points = parameters['scene']['alignments']['vertical']['list_of_points']
 
 alignment1.id = parameters['scene']['alignments']['horizontal']['id']
 alignment2.id = parameters['scene']['alignments']['vertical']['id']
