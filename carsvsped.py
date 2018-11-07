@@ -231,7 +231,7 @@ class World():
             matrix_intersection[v] = [('x')]*lines
 
         #interactions sur la meme voie horizobntale
-        for t in range(30,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
                 if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1:
                     matrix_voie1[h] = 1
@@ -241,7 +241,7 @@ class World():
 
 
         #interactions sur la meme voie verticale
-        for t in range(30,len(self.vehicles[0][0].curvilinearPositions)):
+        for t in range(200,len(self.vehicles[0][0].curvilinearPositions)):
             for v in range(1,lines):
                 if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 :
                     matrix_voie0[v] = 1
@@ -279,8 +279,8 @@ class World():
 
             plt.plot(temps[k],x[k])
 
-        plt.xlabel('x')
-        plt.ylabel('y')
+        plt.xlabel('t')
+        plt.ylabel('x')
         plt.show()
         plt.close()
 #
