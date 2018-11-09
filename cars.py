@@ -13,29 +13,6 @@ import shapely.geometry
 from math import sqrt
 from carsvsped import *
 
-# def getXYfromSY2(s, y, alignmentNum, alignments):
-#     ''' Find X,Y coordinate from S,Y data.
-#     if mode = 0 : return Snapped X,Y
-#     if mode !=0 : return Real X,Y
-#     '''
-#     alignment = alignments
-#     i = 1
-#     while s > alignment.points[0].getCumulativeDistance(i) and i < len(alignment.points[0]):
-#         i += 1
-#     if i < len(alignment.points[0]):
-#         d = s - alignment.points[0].getCumulativeDistance(i-1) # distance on subsegment
-#         #Get difference vector and then snap
-#         dv = alignment.points[0][i] - alignment.points[0][i-1]
-#         magnitude  = dv.norm2()
-#         normalizedV = dv.divide(magnitude)
-#         #snapped = alignment[i-1] + normalizedV*d # snapped point coordinate along alignment
-#         # add offset finally
-#         orthoNormalizedV = normalizedV.orthogonal()
-#         return alignment.points[0][i-1] + normalizedV*d + orthoNormalizedV*y
-#     else:
-#         print('Curvilinear point {} is past the end of the alignement'.format((s, y, alignmentNum)))
-#         return None
-
 
 class VehicleInput(object):
     def __init__(self, aligmentIdx, nom_fichier_sortie):
@@ -101,7 +78,6 @@ class VehicleInput(object):
         data_vehicles[0].timeInterval = moving.TimeInterval(0,300)
         data_vehicles[0].curvilinearPositions = curvilinearpositions
         data_vehicles[0].velocities = speed
-        # data_vehicles[0].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicle_length,1.8),(vehicle_length,0)])
         data_vehicles[0].userType = 1
         data_vehicles[0].positions = positions
 
