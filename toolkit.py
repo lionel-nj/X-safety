@@ -11,6 +11,7 @@ import itertools
 from scipy.stats import rv_continuous
 from trafficintelligence import utils
 from trafficintelligence import moving
+from scipy import stats
 
 def load_yaml(filename):
     return yaml.load(open(filename))
@@ -23,18 +24,6 @@ def copy_yaml(filename,newname):
     data = load_yaml(filename)
     save_yaml(newname,data)
 
-def add_element_to_yaml(filename,element,key):
-    data = load_yaml(filename)
-    try:
-        with open(filename, "w") as out:
-            yaml.dump(data, out)
-        with open(filename) as out:
-            newdata = yaml.load_yaml(out)
-        newdata[key] = element
-        save_yaml(filename,newdata)
-    except:
-        print("the key requested does not exist in the yaml file")
-
 def update_yaml(filename,element,key):
     data = load_yaml(filename)
     try:
@@ -43,7 +32,7 @@ def update_yaml(filename,element,key):
     except:
         print("the key requested does not exist in the yaml file")
 
-def delete_yaml(filename, key):
+def delete_element_from_yaml(filename, key):
     data = load_yaml(filename)
     try:
         del data[key]
@@ -94,35 +83,19 @@ def generateDistribution(data):
     #tiv : x
     #tivprob : probailité, y
     tivdistrib = utils.EmpiricalContinuousDistribution(tiv,tivprobcum)
-    save_yaml('distribution.yml',tivdistrib)
-    return tivdistrib
+    save_yaml('tiv.yml',tiv)
+    save_yaml('tiv_prob_cum.yml',tivprobcum)
 
-def generateSampleFromSample(sample_size,distribution):
+
+def generateSampleFromSample(sample_size):
+    tiv = load_yaml('tiv.yml')
+    TIVProbCum = load_yaml('tiv_prob_cum.yml')
+    distribution = utils.EmpiricalContinuousDistribution(tiv,TIVProbCum)
     result = distribution.rvs(size = sample_size)
     save_yaml('headway_sample.yml',list(result))
     return list(result)
 
-# def getCurvilinearTrajectoryFromTrajectory(trajectory,alignments):
-#     '''trajectory is a moving.Trajectory object
-#     alignment is a list of trajectories (moving.Trajectory object)'''
-#
-#     CT = None
-#     # preparation des splines
-#     for elements in alignments:
-#         moving.elements.computeCumulativeDistances()
-#     moving.prepareSplines(alignments)
-#
-#     #XY->SY pour chaque moving.Point de la trajectory
-#     S=[]
-#     Y=[]
-#     lanes=[]
-#     for t in range(len(trajectory.positions)):
-#
-#         sy = moving.getSYfromXY(Point(trajectory.positions[t].x,trajectory.positions[t].y),alignments)
-#         S.append(sy[4])
-#         Y.append(sy[5])
-#         lanes.append(sy[0])
-#
-#     CT = moving.CurvilinearTrajectory(S,Y,lanes)
-#
-#     return CT
+# def generateSampleFromSample(scale, size): #avec distribution théortique exponentielle !!!
+#     result = stats.expon.rvs(scale = scale,size = size)
+#     save_yaml('headway_sample.yml',list(result))
+#     return list(result)
