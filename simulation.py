@@ -1,7 +1,7 @@
 
 class Simulation(object):
     '''Stores all simulation and world parameters'''
-    def __init__(self, world, duration, timeStep, interactionDistance, minimumDistanceHeadway, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD, ):
+    def __init__(self, world, duration, timeStep, interactionDistance, minimumDistanceHeadway, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
         self.world = world
         self.duration = duration
         self.timeStep = timeStep
