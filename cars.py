@@ -32,7 +32,7 @@ class VehicleInput(object):
         sMin : float'''
 
         #définition des instants de création des véhicules
-        sampleSize = round(tSimul*3600/alignment.flow)
+        sampleSize = round(alignment.flow*tSimul/3600)
         tiv = toolkit.generateSampleFromSample(sampleSize) #a revoir ! !on doit prendre en compte le debit de la voie
         h = list(itertools.accumulate(tiv))
 
@@ -107,9 +107,9 @@ class VehicleInput(object):
             dataVehicles[k].curvilinearPositions = curvilinearpositions
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
-            velocite = random.normalvariate(25,3)
 
             for t in range(1,tSimul):
+                velocite = random.normalvariate(25,3)
 
                 leader = dataVehicles[k-1].curvilinearPositions[t][0]
                 following = dataVehicles[k].curvilinearPositions[t-1][0] + velocite
