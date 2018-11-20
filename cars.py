@@ -107,8 +107,9 @@ class VehicleInput(object):
             dataVehicles[k].curvilinearPositions = curvilinearpositions
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
+            velocite = random.normalvariate(25,3)
+
             for t in range(1,tSimul):
-                velocite = random.normalvariate(25,3)
 
                 leader = dataVehicles[k-1].curvilinearPositions[t][0]
                 following = dataVehicles[k].curvilinearPositions[t-1][0] + velocite
