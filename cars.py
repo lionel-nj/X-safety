@@ -26,14 +26,16 @@ class VehicleInput(object):
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self, alignment, tSimul, sMin):
+    def generateTrajectories(self, alignment, tSimul, sMin, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
         '''generates trajectories on an alignment class object
         tSimul : int
         sMin : float'''
 
         #définition des instants de création des véhicules
-        sampleSize = round(alignment.flow*tSimul/3600)
-        tiv = toolkit.generateSampleFromSample(sampleSize) #a revoir ! !on doit prendre en compte le debit de la voie
+        sampleSize = round(alignment.volume*tSimul/3600)
+        # tiv = toolkit.generateSampleFromSample(sampleSize)
+        tiv = toolkit.generateSampleFromSample(sampleSize)
+
         h = list(itertools.accumulate(tiv))
 
         intervals = [None]*sampleSize
@@ -54,8 +56,8 @@ class VehicleInput(object):
         dataVehicles[0] = moving.MovingObject()
         positions = moving.Trajectory()
 
-        vehicleLength = random.normalvariate(6.5,0.3)
-        vehicleWidth = random.normalvariate(2.5,0.2)
+        vehicleLength = random.normalvariate(averageVehicleLength,vehicleLengthSD)
+        vehicleWidth = random.normalvariate(averageVehicleWidth,vehicleWidthSD)
 
         L = []
         L.append(vehicleLength)
@@ -133,3 +135,12 @@ class VehicleInput(object):
         toolkit.save_yaml('intervals.yml',intervals)
 
         return dataVehicles, intervals
+
+    @staticmethod
+    def generateGhostVehicle(t_simul, alignment):
+        ghost = moving.MovingObject()
+        ghost.positions = moving.Trajectory.generate(alignment.points[0], moving.Point(0,0), t_simul)
+        ghost.velocities = [0]*t_simul
+        ghost.curvilinearPositions = moving.CurvilinearTrajectory.generate(0, 0, t_simul, alignment.idx)
+        ghost.isGhost = True
+        return ghost
