@@ -24,12 +24,11 @@ averageVehicleWidth = sim.averageVehicleWidth
 averageVehicleLength = sim.averageVehicleLength
 vehicleLengthSD = sim.vehicleLengthSD
 vehicleWidthSD = sim.vehicleWidthSD
-volume0 = world.alignments[0].volume
-volume1 = world.alignments[1].volume
 
-cars=[]
+list_of_cars=[]
+
 for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
-    cars.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD))
+    list_of_cars.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD))
 
 
 
