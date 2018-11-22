@@ -87,15 +87,17 @@ def generateDistribution(data):
     save_yaml('tiv_prob_cum.yml',tivprobcum)
 
 
-def generateSampleFromSample(sample_size):
-    tiv = load_yaml('tiv.yml')
-    TIVProbCum = load_yaml('tiv_prob_cum.yml')
-    distribution = utils.EmpiricalContinuousDistribution(tiv,TIVProbCum)
-    result = distribution.rvs(size = sample_size)
-    save_yaml('headway_sample.yml',list(result))
-    return list(result)
+def generateSample(sample_size, scale = None):
+    if scale == None :
+        tiv = load_yaml('tiv.yml')
+        TIVProbCum = load_yaml('tiv_prob_cum.yml')
+        distribution = utils.EmpiricalContinuousDistribution(tiv,TIVProbCum)
+        result = distribution.rvs(size = sample_size)
+        save_yaml('headway_sample.yml',list(result))
+        return list(result)
+    else :
+        result = stats.expon.rvs(scale = scale,size = sample_size)
+        save_yaml('headway_sample.yml',list(result))
+        return list(result)
 
-# def generateSampleFromSample(scale, size): #avec distribution théortique exponentielle !!!
-#     result = stats.expon.rvs(scale = scale,size = size)
-#     save_yaml('headway_sample.yml',list(result))
-#     return list(result)
+# def generateSample(scale, size): #avec distribution théortique exponentielle !!!
