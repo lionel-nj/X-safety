@@ -149,6 +149,7 @@ class World():
     def save(self, filename):
         toolkit.save_yaml(filename, self)
 
+    @staticmethod
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
 
@@ -195,7 +196,7 @@ class World():
         else :
             return True,d
 
-    def countEncounters(self,dmin):
+    def countAllEncounters(self,dmin):
         '''counts the encounters in a world
         dmin : float'''
 
@@ -213,23 +214,25 @@ class World():
         for v in range(columns):
             matrix_intersection[v] = [('x')]*lines
 
+        # c1 = countEncountersOnWay(time = t, alignmentIdx = 0, v = v)
+        # c2 = countEncountersOnWay(time = t, alignmentIdx = 1, v = v)
+        # c3 = countEncountersOnWay(time = t, both = True)
+        #
+        # return c1+c2+c3
+
         #interactions sur la meme voie horizontale
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
-                if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1 and 40 <= self.vehicles[0][h].curvilinearPositions[t][0] :
+                if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1 and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] :
                     matrix_voie1[h] = 1
-
-                    # matrix_voie1[h1][h2] = (t,self.isAnEncounter(0,0,h1,h2,t,dmin)[1])
                     c1 = c1+1
 
 
         #interactions sur la meme voie verticale
         for t in range(0,len(self.vehicles[1][0].curvilinearPositions)):
             for v in range(1,lines):
-                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 and 40 <= self.vehicles[1][v].curvilinearPositions[t][0]:
+                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
                     matrix_voie0[v] = 1
-
-                        # matrix_voie0[v1][v2] = (t,self.isAnEncounter(1,1,v1,v2,t,dmin)[1])
                     c0 = c0+1
 
         #interactions croisées
@@ -237,14 +240,19 @@ class World():
             for h in range(lines):
                 for v in range(columns):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == ('x') and 40 <= self.vehicles[0][h].curvilinearPositions[t][0] and 40 <= self.vehicles[1][v].curvilinearPositions[t][0]:
-                        matrix_intersection[h][v] = (h,v,t)
-                        # matrix_intersection[h][v] = (t,self.isAnEncounter(0,0,h,v,t,dmin)[1])
+                    if self.isAnEncounter(0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == ('x') and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
+                        matrix_intersection[h][v] = 1
                         c2 = c2+1
                         break
 
 
-        return c0,c1,c2,c0+c1+c2,matrix_intersection
+        return c0,c1,c2,c0+c1+c2,matrix_intersection, matrix_voie0, matrix_voie1
+
+    def addGhostVehiclesToFile(self, t_simul, alignment):
+        ghostVehicle = cars.VehicleInput.generateGhostVehicle(t_simul,alignment)
+        n = len(self.vehicles[alignment.idx])
+        self.vehicles[alignment.idx][n] = ghostVehicle
+        self.save(alignment.name)
 
     def trace(self,alignment_idx):
         import matplotlib.pyplot as plt

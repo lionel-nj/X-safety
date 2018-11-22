@@ -33,8 +33,9 @@ class VehicleInput(object):
 
         #définition des instants de création des véhicules
         sampleSize = round(alignment.volume*tSimul/3600)
-        # tiv = toolkit.generateSampleFromSample(sampleSize)
-        tiv = toolkit.generateSampleFromSample(sampleSize)
+        # tiv = toolkit.generateSample(sampleSize)
+        # tiv = toolkit.generateSample(sampleSize)
+        tiv = toolkit.generateSample(sampleSize,1/alignment.volume)
 
         h = list(itertools.accumulate(tiv))
 
