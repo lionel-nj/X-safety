@@ -45,11 +45,9 @@ world.generateGhostsIfVolumeAreDifferent(t_simul)
 
 #calcul du nombre d'interactions
 dmin = sim.interactionDistance
+
+# affichage des matrices d'interactions
 print(world.countAllEncounters(dmin)[-1])
 print(world.countAllEncounters(dmin)[-2])
 print(world.countAllEncounters(dmin)[-3])
 print(world.countAllEncounters(dmin)[-4])
-
-
-# world.trace(0)
-# world.trace(1)
