@@ -214,6 +214,13 @@ class World():
         for v in range(columns):
             matrix_intersection[v] = [('x')]*lines
 
+        #interactions sur la meme voie verticale
+        for t in range(0,len(self.vehicles[1][0].curvilinearPositions)):
+            for v in range(1,lines):
+                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
+                    matrix_voie0[v] = 1
+                    c0 = c0+1
+
         #interactions sur la meme voie horizontale
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
@@ -221,13 +228,6 @@ class World():
                     matrix_voie1[h] = 1
                     c1 = c1+1
 
-
-        #interactions sur la meme voie verticale
-        for t in range(0,len(self.vehicles[1][0].curvilinearPositions)):
-            for v in range(1,lines):
-                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
-                    matrix_voie0[v] = 1
-                    c0 = c0+1
 
         #interactions croisées
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
