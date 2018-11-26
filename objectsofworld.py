@@ -244,8 +244,6 @@ class World():
                         matrix_intersection[h][v] = 1
                         c2 = c2+1
                         break
-
-
         return c0,c1,c2,c0+c1+c2,matrix_intersection, matrix_voie0, matrix_voie1
 
     def addGhostVehiclesToFile(self, t_simul, alignment):
@@ -253,6 +251,14 @@ class World():
         n = len(self.vehicles[alignment.idx])
         self.vehicles[alignment.idx][n] = ghostVehicle
         self.save(alignment.name)
+
+    def generateGhostsIfVolumeAreDifferent(self, t_simul):
+        if self.alignments[0].volume != self.alignments[1].volume:
+            for k in range(round(abs((self.alignments[0].volume - self.alignments[1].volume) * t_simul)/3600)):
+                if self.alignments[0].volume > self.alignments[1].volume:
+                    self.addGhostVehiclesToFile(t_simul, self.alignments[1])
+                else :
+                    self.addGhostVehiclesToFile(t_simul, self.alignments[0])
 
     def trace(self,alignment_idx):
         import matplotlib.pyplot as plt
