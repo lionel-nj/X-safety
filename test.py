@@ -3,6 +3,8 @@ import cars
 import objectsofworld
 import toolkit
 import simulation
+import numpy as np
+
 
 # distribution = toolkit.generateDistribution('data.csv')
 # toolkit.save_yaml('distribution.yaml',distribution)
@@ -10,7 +12,7 @@ import simulation
 # world = World.load('world.yml')
 world = objectsofworld.World.load('default.yml')
 
-sim = simulation.Simulation(world, 72, 1., 25, 25, 6, 1, 3,.5) # second and meter
+sim = simulation.Simulation(world, 72, 1., 160, 25, 6, 1, 3,.5) # second and meter
 # toolkit.save_yaml('config.yml', sim)
 # sim = toolkit.load_yaml('config.yml')
 
@@ -28,6 +30,7 @@ vehicleWidthSD = sim.vehicleWidthSD
 list_of_cars=[]
 
 for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
+    np.random.seed(123)
     list_of_cars.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD))
 
 
@@ -38,16 +41,15 @@ world.vehicles = [toolkit.load_yaml('horizontal.yml'),
 
 #generation de vehicules fantomes pour pouvoir effectuer les calculs de rencontres
 
-if world.alignments[0].volume != world.alignments[1].volume:
-    for k in range(round(abs((world.alignments[0].volume - world.alignments[1].volume) * t_simul)/3600)):
-        if world.alignments[0].volume > world.alignments[1].volume:
-            objectsofworld.World.addGhostVehiclesToFile(world,t_simul, world.alignments[1])
-        else :
-            objectsofworld.World.addGhostVehiclesToFile(world,t_simul, world.alignments[0])
+world.generateGhostsIfVolumeAreDifferent(t_simul)
 
 #calcul du nombre d'interactions
 dmin = sim.interactionDistance
-# print(world.countEncounters(dmin)[1])
-print(world.countEncounters(dmin)[3])
+print(world.countAllEncounters(dmin)[-1])
+print(world.countAllEncounters(dmin)[-2])
+print(world.countAllEncounters(dmin)[-3])
+print(world.countAllEncounters(dmin)[-4])
+
+
 # world.trace(0)
 # world.trace(1)

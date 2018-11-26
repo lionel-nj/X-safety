@@ -214,12 +214,6 @@ class World():
         for v in range(columns):
             matrix_intersection[v] = [('x')]*lines
 
-        # c1 = countEncountersOnWay(time = t, alignmentIdx = 0, v = v)
-        # c2 = countEncountersOnWay(time = t, alignmentIdx = 1, v = v)
-        # c3 = countEncountersOnWay(time = t, both = True)
-        #
-        # return c1+c2+c3
-
         #interactions sur la meme voie horizontale
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
             for h in range(1,columns):
@@ -271,7 +265,7 @@ class World():
             # v.append([])
 
             for time in range(0,len(self.vehicles[alignment_idx][0].curvilinearPositions)):
-                # v[k].append(moving.Point.norm2(list_of_vehicles[k].velocities[time]))
+                # v[k].append(self.vehicles[alignment_idx][k].velocities[time])
                 x[k].append(self.vehicles[alignment_idx][k].curvilinearPositions[time][0])
                 ylabel = "position on x axis"
 

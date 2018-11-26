@@ -35,6 +35,7 @@ class VehicleInput(object):
         sampleSize = round(alignment.volume*tSimul/3600)
         # tiv = toolkit.generateSample(sampleSize)
         # tiv = toolkit.generateSample(sampleSize)
+        np.random.seed(123)
         tiv = toolkit.generateSample(sampleSize,1/alignment.volume)
 
         h = list(itertools.accumulate(tiv))

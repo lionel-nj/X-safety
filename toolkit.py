@@ -96,6 +96,7 @@ def generateSample(sample_size, scale = None):
         save_yaml('headway_sample.yml',list(result))
         return list(result)
     else :
+        np.random.seed(123)
         result = stats.expon.rvs(scale = scale,size = sample_size)
         save_yaml('headway_sample.yml',list(result))
         return list(result)
