@@ -1,8 +1,7 @@
 
 class Simulation(object):
     '''Stores all simulation and world parameters'''
-    def __init__(self, world, duration, timeStep, interactionDistance, minimumDistanceHeadway, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
-        self.world = world
+    def __init__(self, duration, timeStep, interactionDistance, minimumDistanceHeadway, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
         self.duration = duration
         self.timeStep = timeStep
         self.interactionDistance = interactionDistance
@@ -10,7 +9,7 @@ class Simulation(object):
         self.averageVehicleLength = averageVehicleLength
         self.averageVehicleWidth = averageVehicleWidth
         self.vehicleLengthSD = vehicleLengthSD
-        self.vehicleWidthSD =vehicleWidthSD
+        self.vehicleWidthSD = vehicleWidthSD
 
     def save(self, filename):
         toolkit.save_yaml(filename, self)
