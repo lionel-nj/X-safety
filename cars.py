@@ -17,12 +17,13 @@ class VehicleInput(object):
         self.aligmentIdx = aligmentIdx
         self.fileName = fileName
 
+    def save(self):
+        toolkit.save_yaml(self.fileName, self)
+
     @staticmethod
     def gap(sLeader,sFollowing,lengthLeader):
         "calculates gaps between two vehicles"
         distance = sLeader-sFollowing-lengthLeader
-        if distance < 0 :
-            distance = 0
         return distance
 
     #fonction de génération des trajectoires
@@ -33,10 +34,7 @@ class VehicleInput(object):
 
         #définition des instants de création des véhicules
         sampleSize = round(alignment.volume*tSimul/3600)
-        # tiv = toolkit.generateSample(sampleSize)
-        # tiv = toolkit.generateSample(sampleSize)
-        np.random.seed(123)
-        tiv = toolkit.generateSample(sampleSize,1/alignment.volume)
+        tiv = toolkit.generateSample(sampleSize,1/alignment.volume, tiv = None, tivprobcum = None)
 
         h = list(itertools.accumulate(tiv))
 
@@ -63,8 +61,7 @@ class VehicleInput(object):
 
         L = []
         L.append(vehicleLength)
-
-        v0 = random.normalvariate(25,3)
+        v0 = random.normalvariate(14,2)
 
         curvilinearpositions = moving.CurvilinearTrajectory()
         curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.idx)
@@ -84,6 +81,7 @@ class VehicleInput(object):
         dataVehicles[0].velocities = speed
         dataVehicles[0].userType = 1
         dataVehicles[0].positions = positions
+        dataVehicles[0].vehicleLength = L[0]
 
 
         ##########################################################
@@ -95,9 +93,9 @@ class VehicleInput(object):
 
             dataVehicles[k] = moving.MovingObject()
             positions = moving.Trajectory()
-
-            vehicleLength = random.uniform(6,8)
-            vehicleWidth = random.normalvariate(2.5,0.2)
+            vehicleLength = random.normalvariate(averageVehicleLength,vehicleLengthSD)
+            vehicleWidth = random.normalvariate(averageVehicleWidth,vehicleWidthSD)
+            L=[]
             L.append(vehicleLength)
 
             dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
@@ -111,17 +109,21 @@ class VehicleInput(object):
             dataVehicles[k].curvilinearPositions = curvilinearpositions
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
-
             for t in range(1,tSimul):
-                velocite = random.normalvariate(25,3)
+                velocite = random.normalvariate(14,2)
 
-                leader = dataVehicles[k-1].curvilinearPositions[t][0]
-                following = dataVehicles[k].curvilinearPositions[t-1][0] + velocite
-                s = VehicleInput.gap(leader,following,L[k-1])
+                leader = dataVehicles[k-1]
+                following = dataVehicles[k]
+                s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
 
                 if s < sMin:
-                    v = dataVehicles[k-1].velocities[t]
-                    velocite = (v*t-L[k-1]-sMin)/t
+                    # v = dataVehicles[k-1].velocities[t]
+                    # velocite = (v*t-L[k-1]-sMin)/t
+                    # velocite = dataVehicles[k-1].velocities[t-1]
+                    delta_va = dataVehicles[k-1].velocities[t] - dataVehicles[k-1].velocities[t-1]
+                    velocite = delta_va - sMin - dataVehicles[k-1].velocities[t-1] - dataVehicles[k-1].vehicleLength + dataVehicles[k].velocities[t-1]
+
+
 
                 if velocite < 0:
                     velocite = 0
@@ -132,8 +134,10 @@ class VehicleInput(object):
                 dataVehicles[k].velocities.append(velocite)
                 dataVehicles[k].curvilinearPositions = curvilinearpositions
                 dataVehicles[k].positions = positions
+                dataVehicles[k].vehicleLength = L[0]
 
-        toolkit.save_yaml(self.fileName,dataVehicles)
+
+        # toolkit.save_yaml(self.fileName,dataVehicles)
         toolkit.save_yaml('intervals.yml',intervals)
 
         return dataVehicles, intervals
