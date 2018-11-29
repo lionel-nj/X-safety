@@ -87,10 +87,10 @@ def generateDistribution(data):
     save_yaml('tiv_prob_cum.yml',tivprobcum)
 
 
-def generateSample(sample_size, scale = None):
+def generateSample(sample_size, scale = None, tiv = None, tivprobcum = None):
     if scale == None :
-        tiv = load_yaml('tiv.yml')
-        TIVProbCum = load_yaml('tiv_prob_cum.yml')
+        tiv = load_yaml(tiv)
+        TIVProbCum = load_yaml(tivprobcum)
         distribution = utils.EmpiricalContinuousDistribution(tiv,TIVProbCum)
         result = distribution.rvs(size = sample_size)
         save_yaml('headway_sample.yml',list(result))
