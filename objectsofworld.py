@@ -121,13 +121,13 @@ class ControlDevice():
                   'yield' : 1,
                   'traffic light' : 2}
 
-    def __init__(self, position = None, alignmentIdx = None, category = None):
-        self.position = position
+    def __init__(self, curvilinearPosition = None, alignmentIdx = None, category = None):
+        self.curvilinearPosition = curvilinearPosition
         self.alignmentIdx = alignmentIdx
         self.category = category
 
     def __repr__(self):
-        return "position:{}, alignment:{}, category:{}".format(self.position, self.alignmentIdx, self.category)
+        return "position:{}, alignment:{}, category:{}".format(self.curvilinearPosition, self.alignmentIdx, self.category)
 
 
 class World():
@@ -153,6 +153,12 @@ class World():
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
 
+    def makeDefault(self,alignments):
+        '''alignments = list of Alignment class objects'''
+        alignments[0].connectAlignments(alignments[1])
+        self.alignments = alignments
+        self.save('default.yml')
+
     def existingUsers(self,t):
 
         result = []
@@ -167,18 +173,20 @@ class World():
         return sorted(result, key = takeEntry)
 
     def distanceMinVerifiee(self,alignment_idx_i,alignment_idx_j,i,j,t,dmin):
-        ''' checks if the minimum distance headway between two vehicles is verified '''
+        ''' checks if the minimum distance headway between two vehicles is verified
+        in a car following situation : i is the leader vehicle j is the following vehicle'''
         if alignment_idx_j == alignment_idx_i:
-            d = cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
+            vehicle_length = self.vehicles[alignment_idx_i][i].vehicleLength
+            d = cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],vehicle_length)
             if d > dmin:
-                return True,cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
-            return False,cars.VehicleInput.gap(self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0],self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0],6)
+                return True,d
+            return False,d
 
         else :
             angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
             d1 = self.vehicles[alignment_idx_i][i].curvilinearPositions[t][0]-self.alignments[alignment_idx_i].distance_to_crossing_point
             d2 = self.vehicles[alignment_idx_j][j].curvilinearPositions[t][0]-self.alignments[alignment_idx_j].distance_to_crossing_point
-            d = (d1**2+d2**2-2*d1*d2*math.cos(angle))**(0.5) #loi des cosinus
+            d = ((d1**2)+(d2**2)-(2*d1*d2*math.cos(angle)))**(0.5) #loi des cosinus
             if d > dmin:
                 return True,d
             else:
@@ -201,44 +209,44 @@ class World():
         dmin : float'''
 
         columns = len(self.vehicles[0])
-        lines = len(self.vehicles[1])
+        rows = len(self.vehicles[1])
 
-        matrix_intersection = [([0]*columns)]*lines
-        matrix_voie1 =[('x')]*columns
-        matrix_voie0 = [('x')]*lines
+        matrix_intersection = [([0]*columns)]*rows
+        matrix_voie1 =[(0)]*columns
+        matrix_voie0 = [(0)]*rows
 
-        c0 = 0
-        c1 = 0
-        c2 = 0
+        numberOfEncountersSameWayVertical = 0
+        numberOfEncountersSameWayHorizontal = 0
+        numberOfEncounterCrossingPaths = 0
 
         for v in range(columns):
-            matrix_intersection[v] = [('x')]*lines
+            matrix_intersection[v] = [(0)]*rows
 
         #interactions sur la meme voie verticale
         for t in range(0,len(self.vehicles[1][0].curvilinearPositions)):
-            for v in range(1,lines):
-                if self.isAnEncounter(1,1,v,v-1,t,dmin)[0] == True and matrix_voie0[v] != 1 and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
+            for v in range(0,rows-1):
+                if self.isAnEncounter(1,1,v,v+1,t,dmin)[0] == True and matrix_voie0[v] == 0 and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
                     matrix_voie0[v] = 1
-                    c0 = c0+1
+                    numberOfEncountersSameWayVertical += 1
 
         #interactions sur la meme voie horizontale
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
-            for h in range(1,columns):
-                if self.isAnEncounter(0,0,h,h-1,t,dmin)[0] == True and matrix_voie1[h] != 1 and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] :
+            for h in range(0,columns-1):
+                if self.isAnEncounter(0,0,h,h+1,t,dmin)[0] == True and matrix_voie1[h] == 0 and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] :
                     matrix_voie1[h] = 1
-                    c1 = c1+1
+                    numberOfEncountersSameWayHorizontal += 1
 
 
         #interactions croisées
         for t in range(0,len(self.vehicles[0][0].curvilinearPositions)):
-            for h in range(lines):
+            for h in range(rows):
                 for v in range(columns):
                     # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == ('x') and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
+                    if self.isAnEncounter(0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == 0 and 10 <= self.vehicles[0][h].curvilinearPositions[t][0] and 10 <= self.vehicles[1][v].curvilinearPositions[t][0]:
                         matrix_intersection[h][v] = 1
-                        c2 = c2+1
+                        numberOfEncounterCrossingPaths += 1
                         break
-        return c0,c1,c2,c0+c1+c2,matrix_intersection, matrix_voie0, matrix_voie1
+        return numberOfEncountersSameWayVertical,numberOfEncountersSameWayHorizontal,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
     def addGhostVehiclesToFile(self, t_simul, alignment):
         ghostVehicle = cars.VehicleInput.generateGhostVehicle(t_simul,alignment)
@@ -247,16 +255,20 @@ class World():
         self.save(alignment.name)
 
     def generateGhostsIfVolumeAreDifferent(self, t_simul):
+        '''generates a fictive vehicle, speed = 0 , position = origin, curvilinearPosition = 0
+        '''
         if self.alignments[0].volume != self.alignments[1].volume:
             for k in range(round(abs((self.alignments[0].volume - self.alignments[1].volume) * t_simul)/3600)):
                 if self.alignments[0].volume > self.alignments[1].volume:
                     self.addGhostVehiclesToFile(t_simul, self.alignments[1])
                 else :
                     self.addGhostVehiclesToFile(t_simul, self.alignments[0])
+        else:
+            None
 
-    def trace(self,alignment_idx):
+    def trace(self,alignment_idx,intervalFile):
         import matplotlib.pyplot as plt
-        temps = toolkit.load_yaml('intervals.yml')
+        temps = toolkit.load_yaml(intervalFile)
         x = []
         # v = []
 
