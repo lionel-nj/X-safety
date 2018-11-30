@@ -13,9 +13,10 @@ from math import sqrt
 import objectsofworld
 
 class VehicleInput(object):
-    def __init__(self, aligmentIdx, fileName):
+    def __init__(self, aligmentIdx, fileName, volume):
         self.aligmentIdx = aligmentIdx
         self.fileName = fileName
+        self.volume = volume
 
     def save(self):
         toolkit.save_yaml(self.fileName, self)
@@ -33,8 +34,8 @@ class VehicleInput(object):
         sMin : float'''
 
         #définition des instants de création des véhicules
-        sampleSize = round(alignment.volume*tSimul/3600)
-        tiv = toolkit.generateSample(sampleSize,1/alignment.volume, tiv = None, tivprobcum = None)
+        sampleSize = round(self.volume*tSimul/3600)
+        tiv = toolkit.generateSample(sampleSize,1/self.volume, tiv = None, tivprobcum = None)
 
         h = list(itertools.accumulate(tiv))
 
@@ -148,5 +149,6 @@ class VehicleInput(object):
         ghost.positions = moving.Trajectory.generate(alignment.points[0], moving.Point(0,0), t_simul)
         ghost.velocities = [0]*t_simul
         ghost.curvilinearPositions = moving.CurvilinearTrajectory.generate(0, 0, t_simul, alignment.idx)
+        ghost.vehicleLength = 0
         ghost.isGhost = True
         return ghost

@@ -8,10 +8,10 @@ import numpy as np
 world = objectsofworld.World.load('default.yml')
 
 sim = simulation.Simulation(72, 1., 25, 45, 7, 2, 1,.5) # second and meter
-
+ # [cars.VehicleInput(0, 'horizontal.yml', 1000), cars.VehicleInput(1, 'vertical.yml', 500)]
 #creation des vehicules
-
-vehicleInputs = [cars.VehicleInput(0, 'horizontal.yml'), cars.VehicleInput(1, 'vertical.yml')]
+# world.vehicle
+vehicleInputs = world.vehicleInputs
 
 t_simul = sim.duration
 s_min = sim.minimumDistanceHeadway
@@ -20,29 +20,26 @@ averageVehicleLength = sim.averageVehicleLength
 vehicleLengthSD = sim.vehicleLengthSD
 vehicleWidthSD = sim.vehicleWidthSD
 
-world.vehicles = []
+vehiclesTrajectories = []
 for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
-    world.vehicles.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
-
-
+    vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
 
 #mise des vehicules dans le monde
 # world.vehicles = [toolkit.load_yaml('horizontal.yml'),
 #                   toolkit.load_yaml('vertical.yml')]
 
 #generation de vehicules fantomes pour pouvoir effectuer les calculs de rencontres
-
-world.generateGhostsIfVolumeAreDifferent(t_simul)
-
-
-#calcul du nombre d'interactions
+#
+world.generateGhostsIfVolumeAreDifferent(t_simul, vehiclesTrajectories)
+#
+# #calcul du nombre d'interactions
 dmin = sim.interactionDistance
-
+#
 # affichage des matrices d'interactions
-print(world.countAllEncounters(dmin)[0])
-print(world.countAllEncounters(dmin)[1])
-print(world.countAllEncounters(dmin)[2])
-print(world.countAllEncounters(dmin)[-4])
+print(world.countAllEncounters(vehiclesTrajectories,dmin)[0])
+print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
+print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
+print(world.countAllEncounters(vehiclesTrajectories,dmin)[-4])
 #
 # list_of_volumes_h = [k*50 for k in range(15,30)]
 # list_of_volumes_v = [k*50 for k in range(15,30)]
