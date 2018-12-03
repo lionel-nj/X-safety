@@ -96,12 +96,12 @@ class VehicleInput(object):
             positions = moving.Trajectory()
             vehicleLength = random.normalvariate(averageVehicleLength,vehicleLengthSD)
             vehicleWidth = random.normalvariate(averageVehicleWidth,vehicleWidthSD)
-            L=[]
+            L = []
             L.append(vehicleLength)
 
-            dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],300+intervals[k][0])
-            dataVehicles[k].velocities = [0]
-            # dataVehicles[k].geometry = shapely.geometry.Polygon([(0,0),(0,1.8),(vehicleLength,1.8),(vehicleLength,0)])
+            dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],tSimul+intervals[k][0])
+            v0 = random.normalvariate(14,2)
+            dataVehicles[k].velocities = [v0]
             dataVehicles[k].userType = 1
 
             curvilinearpositions = moving.CurvilinearTrajectory()
@@ -111,18 +111,21 @@ class VehicleInput(object):
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
             for t in range(1,tSimul):
-                velocite = random.normalvariate(14,2)
+
 
                 leader = dataVehicles[k-1]
                 following = dataVehicles[k]
-                s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
+                s = leader.curvilinearPositions[t][0]/following.velocities[t-1]
+                # s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
 
                 if s < sMin:
                     # v = dataVehicles[k-1].velocities[t]
                     # velocite = (v*t-L[k-1]-sMin)/t
                     # velocite = dataVehicles[k-1].velocities[t-1]
-                    delta_va = dataVehicles[k-1].velocities[t] - dataVehicles[k-1].velocities[t-1]
-                    velocite = delta_va - sMin - dataVehicles[k-1].velocities[t-1] - dataVehicles[k-1].vehicleLength + dataVehicles[k].velocities[t-1]
+
+                    velocite = (leader.curvilinearPositions[t][0]-following.curvilinearPositions[t-1][0])/sMin
+                    # delta_va = dataVehicles[k-1].velocities[t] - dataVehicles[k-1].velocities[t-1]
+                    # velocite = delta_va - sMin - dataVehicles[k-1].velocities[t-1] - dataVehicles[k-1].vehicleLength + dataVehicles[k].velocities[t-1]
 
 
 
@@ -139,6 +142,39 @@ class VehicleInput(object):
 
 
         # toolkit.save_yaml(self.fileName,dataVehicles)
-        toolkit.save_yaml('intervals.yml',intervals)
+        if alignment.idx == 0 :
+            toolkit.save_yaml('intervalsHorizontal.yml',intervals)
+        else :
+            toolkit.save_yaml('intervalsVertical.yml',intervals)
+
 
         return dataVehicles, intervals
+
+def trace(alignment_idx):
+    import matplotlib.pyplot as plt
+
+    if alignment_idx == 0:
+        vehiclesFile = toolkit.load_yaml('horizontal.yml')
+        timeFile  = toolkit.load_yaml('intervalsHorizontal.yml')
+    else :
+        vehiclesFile = toolkit.load_yaml('vertical.yml')
+        timeFile = toolkit.load_yaml('intervalsVertical.yml')
+
+    x = []
+    # v = []
+
+    for k in range (0,len(vehiclesFile)):
+        x.append([])
+        # v.append([])
+
+        for time in range(len(vehiclesFile[0].curvilinearPositions)):
+            # v[k].append(len(vehiclesFile[0][k].velocities[time])
+            x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
+            ylabel = "position on x axis"
+
+        plt.plot(timeFile[k],x[k])
+
+    plt.xlabel('t')
+    plt.ylabel('x')
+    plt.show()
+    plt.close()

@@ -7,7 +7,7 @@ import numpy as np
 
 world = objectsofworld.World.load('default.yml')
 
-sim = simulation.Simulation(72, 1., 25, 45, 7, 2, 1,.5) # second and meter
+sim = simulation.Simulation(72, 1., 30, 2, 7, 2, 1,.5) # second and meter
  # [cars.VehicleInput(0, 'horizontal.yml', 1000), cars.VehicleInput(1, 'vertical.yml', 500)]
 #creation des vehicules
 # world.vehicle
@@ -23,6 +23,9 @@ vehicleWidthSD = sim.vehicleWidthSD
 vehiclesTrajectories = []
 for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
     vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
+
+toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
+toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
 
 # #calcul du nombre d'interactions
 dmin = sim.interactionDistance
