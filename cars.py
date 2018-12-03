@@ -142,13 +142,3 @@ class VehicleInput(object):
         toolkit.save_yaml('intervals.yml',intervals)
 
         return dataVehicles, intervals
-
-    @staticmethod
-    def generateGhostVehicle(t_simul, alignment):
-        ghost = moving.MovingObject()
-        ghost.positions = moving.Trajectory.generate(alignment.points[0], moving.Point(0,0), t_simul)
-        ghost.velocities = [0]*t_simul
-        ghost.curvilinearPositions = moving.CurvilinearTrajectory.generate(0, 0, t_simul, alignment.idx)
-        ghost.vehicleLength = 0
-        ghost.isGhost = True
-        return ghost

@@ -79,9 +79,9 @@ vehicleInputs:
 - !!python/object:cars.VehicleInput
   aligmentIdx: 0
   fileName: horizontal.yml
-  volume: 500
+  volume: 1000
 - !!python/object:cars.VehicleInput
   aligmentIdx: 1
   fileName: vertical.yml
-  volume: 1000
+  volume: 700
 vehicles: null

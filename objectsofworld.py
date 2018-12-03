@@ -210,33 +210,33 @@ class World():
         vehiclesData : list of list of moving objects
         dmin : float'''
 
-        columns = len(vehiclesData[0])
-        rows = len(vehiclesData[1])
+        rows = len(vehiclesData[0])
+        columns = len(vehiclesData[1])
 
-        matrix_intersection = [([0]*columns)]*rows
-        matrix_voie1 =[(0)]*columns
-        matrix_voie0 = [(0)]*rows
+        matrix_intersection = [[0]*columns]*rows
+        matrix_voie0 =[0]*rows
+        matrix_voie1 = [0]*columns
 
         numberOfEncountersSameWayVertical = 0
         numberOfEncountersSameWayHorizontal = 0
         numberOfEncounterCrossingPaths = 0
 
-        for v in range(columns):
-            matrix_intersection[v] = [(0)]*rows
-
-        #interactions sur la meme voie verticale
-        for t in range(0,len(vehiclesData[1][0].curvilinearPositions)):
-            for v in range(0,rows-1):
-                if self.isAnEncounter(vehiclesData,1,1,v,v+1,t,dmin)[0] == True and matrix_voie0[v] == 0 and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
-                    matrix_voie0[v] = 1
-                    numberOfEncountersSameWayVertical += 1
+        # for v in range(columns):
+        #     matrix_intersection[v] = [(0)]*rows
 
         #interactions sur la meme voie horizontale
         for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
-            for h in range(0,columns-1):
-                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and matrix_voie1[h] == 0 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] :
-                    matrix_voie1[h] = 1
+            for h in range(0,rows-1):
+                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and matrix_voie0[h] == 0 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+                    matrix_voie0[h] = 1
                     numberOfEncountersSameWayHorizontal += 1
+
+        #interactions sur la meme voie verticale
+        for t in range(0,len(vehiclesData[1][0].curvilinearPositions)):
+            for v in range(columns-1):
+                if self.isAnEncounter(vehiclesData,1,1,v,v+1,t,dmin)[0] == True and matrix_voie1[v] == 0 and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
+                    matrix_voie1[v] = 1
+                    numberOfEncountersSameWayVertical += 1
 
 
         #interactions croisées
@@ -253,22 +253,6 @@ class World():
                         break
         return numberOfEncountersSameWayVertical,numberOfEncountersSameWayHorizontal,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
-    def addGhostVehiclesToFile(self, t_simul, alignment, vehiclesData):
-        ghostVehicle = cars.VehicleInput.generateGhostVehicle(t_simul,alignment)
-        n = len(vehiclesData[alignment.idx])
-        vehiclesData[alignment.idx][n] = ghostVehicle
-
-    def generateGhostsIfVolumeAreDifferent(self, t_simul, vehiclesData):
-        '''generates a fictive vehicle, speed = 0 , position = origin, curvilinearPosition = 0
-        '''
-        if self.vehicleInputs[0].volume != self.vehicleInputs[1].volume:
-            for k in range(round(abs((self.vehicleInputs[0].volume - self.vehicleInputs[1].volume) * t_simul)/3600)):
-                if self.vehicleInputs[0].volume > self.vehicleInputs[1].volume:
-                    self.addGhostVehiclesToFile(t_simul, self.alignments[1], vehiclesData)
-                else :
-                    self.addGhostVehiclesToFile(t_simul, self.alignments[0], vehiclesData)
-        else:
-            None
 
     def trace(self,alignment_idx,intervalFile):
         import matplotlib.pyplot as plt
