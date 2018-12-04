@@ -28,7 +28,7 @@ class VehicleInput(object):
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self, alignment, tSimul, sMin, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
+    def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
         '''generates trajectories on an alignment class object
         tSimul : int
         sMin : float'''
@@ -115,15 +115,16 @@ class VehicleInput(object):
 
                 leader = dataVehicles[k-1]
                 following = dataVehicles[k]
-                s = leader.curvilinearPositions[t][0]/following.velocities[t-1]
+                d = leader.curvilinearPositions[t][0]-(following.curvilinearPositions[t-1][0]+v0)
+                TIV = d/v0
                 # s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
 
-                if s < sMin:
+                if TIV < TIVmin:
                     # v = dataVehicles[k-1].velocities[t]
                     # velocite = (v*t-L[k-1]-sMin)/t
                     # velocite = dataVehicles[k-1].velocities[t-1]
-
-                    velocite = (leader.curvilinearPositions[t][0]-following.curvilinearPositions[t-1][0])/sMin
+                    velocite = d/TIVmin
+                    # velocite = (leader.curvilinearPositions[t][0]-following.curvilinearPositions[t-1][0])/sMin
                     # delta_va = dataVehicles[k-1].velocities[t] - dataVehicles[k-1].velocities[t-1]
                     # velocite = delta_va - sMin - dataVehicles[k-1].velocities[t-1] - dataVehicles[k-1].vehicleLength + dataVehicles[k].velocities[t-1]
 
