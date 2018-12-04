@@ -221,9 +221,6 @@ class World():
         numberOfEncountersSameWayHorizontal = 0
         numberOfEncounterCrossingPaths = 0
 
-        # for v in range(columns):
-        #     matrix_intersection[v] = [(0)]*rows
-
         #interactions sur la meme voie horizontale
         for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
             for h in range(0,rows-1):
@@ -238,11 +235,7 @@ class World():
                     matrix_voie1[v] = 1
                     numberOfEncountersSameWayVertical += 1
 
-
         #interactions croisées
-        # first_index = min(rows,columns)
-        # second_index = max(rows,columns)
-
         for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
             for h in range(rows):
                 for v in range(columns):
@@ -251,27 +244,26 @@ class World():
                         matrix_intersection[h][v] = 1
                         numberOfEncounterCrossingPaths += 1
                         break
-        return numberOfEncountersSameWayVertical,numberOfEncountersSameWayHorizontal,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
+        return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
-
-    def trace(self,alignment_idx,intervalFile):
-        import matplotlib.pyplot as plt
-        temps = toolkit.load_yaml(intervalFile)
-        x = []
-        # v = []
-
-        for k in range (0,len(self.vehicles[alignment_idx])):
-            x.append([])
-            # v.append([])
-
-            for time in range(0,len(self.vehicles[alignment_idx][0].curvilinearPositions)):
-                # v[k].append(self.vehicles[alignment_idx][k].velocities[time])
-                x[k].append(self.vehicles[alignment_idx][k].curvilinearPositions[time][0])
-                ylabel = "position on x axis"
-
-            plt.plot(temps[k],x[k])
-
-        plt.xlabel('t')
-        plt.ylabel('x')
-        plt.show()
-        plt.close()
+    # 
+    # def trace(self,alignment_idx):
+    #     import matplotlib.pyplot as plt
+    #     x = []
+    #     # v = []
+    #
+    #     for k in range (0,len(self.vehicles[alignment_idx])):
+    #         x.append([])
+    #         # v.append([])
+    #
+    #         for time in range(0,len(self.vehicles[alignment_idx][0].curvilinearPositions)):
+    #             # v[k].append(self.vehicles[alignment_idx][k].velocities[time])
+    #             x[k].append(self.vehicles[alignment_idx][k].curvilinearPositions[time][0])
+    #             ylabel = "position on x axis"
+    #
+    #         plt.plot(temps[k],x[k])
+    #
+    #     plt.xlabel('t')
+    #     plt.ylabel('x')
+    #     plt.show()
+    #     plt.close()
