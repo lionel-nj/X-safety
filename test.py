@@ -19,8 +19,8 @@ alignments = [align0, align1]
 
 controlDevices = None
 
-vehicleInputs0 = cars.VehicleInput(alignmentIdx = align0.idx, fileName = "horizontal.yml", volume = 1000)
-vehicleInputs1 = cars.VehicleInput(alignmentIdx = align1.idx, fileName = "vertical.yml", volume = 1000)
+vehicleInputs0 = cars.VehicleInput(alignmentIdx = align0.idx, fileName = "horizontal.yml", volume = 500)
+vehicleInputs1 = cars.VehicleInput(alignmentIdx = align1.idx, fileName = "vertical.yml", volume = 700)
 vehicleInputs = [vehicleInputs0, vehicleInputs1]
 
 world.makeDefault(alignments, controlDevices, vehicleInputs)
@@ -37,6 +37,9 @@ averageVehicleWidth = sim.averageVehicleWidth
 averageVehicleLength = sim.averageVehicleLength
 vehicleLengthSD = sim.vehicleLengthSD
 vehicleWidthSD = sim.vehicleWidthSD
+
+volumes_to_test_on_0 = [k*100 for k in range(5, 16)]
+volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
 
 vehiclesTrajectories = []
 for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
