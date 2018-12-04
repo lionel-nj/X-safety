@@ -115,7 +115,7 @@ class VehicleInput(object):
 
                 leader = dataVehicles[k-1]
                 following = dataVehicles[k]
-                d = leader.curvilinearPositions[t][0]-(following.curvilinearPositions[t-1][0]+v0)
+                d = leader.curvilinearPositions[t][0]-(following.curvilinearPositions[t-1][0]+v0) - leader.vehicleLength
                 TIV = d/v0
                 # s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
 
