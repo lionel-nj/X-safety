@@ -13,8 +13,8 @@ from math import sqrt
 import objectsofworld
 
 class VehicleInput(object):
-    def __init__(self, aligmentIdx, fileName, volume):
-        self.aligmentIdx = aligmentIdx
+    def __init__(self, alignmentIdx, fileName, volume):
+        self.alignmentIdx = alignmentIdx
         self.fileName = fileName
         self.volume = volume
 
