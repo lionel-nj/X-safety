@@ -14,6 +14,14 @@ class Alignment():
         self.controlDevice = controlDevice
         #self.volume = volume
 
+    def makeAlignment(self,entryPoint, exitPoint, others = None):
+        '''builds an alignments from point, list of points, and point)'''
+
+        if others == None :
+            self.points = moving.Trajectory.fromPointList([entryPoint,exitPoint])
+        else:
+            self.points = moving.Trajectory.fromPointList([entryPoint]+others+[exitPoint])
+
     @staticmethod
     def load(filename):
         return toolkit.load_yaml(filename)
@@ -246,7 +254,7 @@ class World():
                         break
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
-    # 
+    #
     # def trace(self,alignment_idx):
     #     import matplotlib.pyplot as plt
     #     x = []
