@@ -14,7 +14,7 @@ sim = simulation.Simulation(72, 1., 30, 2, 7, 2, 1,.5) # second and meter
 vehicleInputs = world.vehicleInputs
 
 t_simul = sim.duration
-s_min = sim.minimumDistanceHeadway
+s_min = sim.minimumTimeHeadway
 averageVehicleWidth = sim.averageVehicleWidth
 averageVehicleLength = sim.averageVehicleLength
 vehicleLengthSD = sim.vehicleLengthSD
@@ -34,4 +34,4 @@ dmin = sim.interactionDistance
 print(world.countAllEncounters(vehiclesTrajectories,dmin)[0])
 print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
 print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
-print(world.countAllEncounters(vehiclesTrajectories,dmin)[-4])
+print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
