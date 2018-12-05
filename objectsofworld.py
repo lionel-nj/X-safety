@@ -168,6 +168,13 @@ class World():
         self.vehicleInputs = vehicleInputs
         self.save('default.yml')
 
+    def showAlignments(self):
+        import matplotlib.pyplot as plt
+        
+        moving.Trajectory.plot(world.alignments[0].points)
+        moving.Trajectory.plot(world.alignments[1].points)
+        plt.show()
+
     def existingUsers(self,t):
 
         result = []
