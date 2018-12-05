@@ -5,53 +5,61 @@ import toolkit
 import simulation
 import numpy as np
 
-world = objectsofworld.World.load('default.yml')
+volumes_to_test_on_0 = [k*100 for k in range(9,15)]
+volumes_to_test_on_1 = [k*100 for k in range(9,15)]
 
-align0 = objectsofworld.Alignment()
-align0.makeAlignment(entryPoint = moving.Point(-750,0),exitPoint = moving.Point(700,0))
-align0.idx = 0
+matrix0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 
-align1 = objectsofworld.Alignment()
-align1.makeAlignment( entryPoint = moving.Point(0,-700),exitPoint = moving.Point(0,750))
-align1.idx = 1
+for volumes0 in volumes_to_test_on_0 :
+    for volumes1 in volumes_to_test_on_1 :
 
-alignments = [align0, align1]
+        world = objectsofworld.World.load('default.yml')
 
-controlDevices = None
+        align0 = objectsofworld.Alignment()
+        align0.makeAlignment(entryPoint = moving.Point(-750,0),exitPoint = moving.Point(700,0))
+        align0.idx = 0
 
-vehicleInputs0 = cars.VehicleInput(alignmentIdx = align0.idx, fileName = "horizontal.yml", volume = 500)
-vehicleInputs1 = cars.VehicleInput(alignmentIdx = align1.idx, fileName = "vertical.yml", volume = 700)
-vehicleInputs = [vehicleInputs0, vehicleInputs1]
+        align1 = objectsofworld.Alignment()
+        align1.makeAlignment( entryPoint = moving.Point(0,-700),exitPoint = moving.Point(0,750))
+        align1.idx = 1
 
-world.makeDefault(alignments, controlDevices, vehicleInputs)
+        alignments = [align0, align1]
 
-sim = simulation.Simulation(72, 1., 30, 2, 7, 2, 1,.5) # second and meter
+        controlDevices = None
 
-#creation des vehicules
-vehicleInputs = world.vehicleInputs
+        vehicleInputs0 = cars.VehicleInput(alignmentIdx = align0.idx, fileName = "horizontal.yml", volume = volumes0)
+        vehicleInputs1 = cars.VehicleInput(alignmentIdx = align1.idx, fileName = "vertical.yml", volume = volumes1)
+        vehicleInputs = [vehicleInputs0, vehicleInputs1]
 
-t_simul = sim.duration
-s_min = sim.minimumTimeHeadway
-averageVehicleWidth = sim.averageVehicleWidth
-averageVehicleLength = sim.averageVehicleLength
-vehicleLengthSD = sim.vehicleLengthSD
-vehicleWidthSD = sim.vehicleWidthSD
+        world.makeDefault(alignments, controlDevices, vehicleInputs)
 
-# volumes_to_test_on_0 = [k*100 for k in range(5, 16)]
-# volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
+        sim = simulation.Simulation(72, 1., 30, 2, 7, 2, 1,.5) # second and meter
 
-vehiclesTrajectories = []
-for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
-    vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
+        #creation des vehicules
+        vehicleInputs = world.vehicleInputs
 
-toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
-toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
+        t_simul = sim.duration
+        s_min = sim.minimumTimeHeadway
+        averageVehicleWidth = sim.averageVehicleWidth
+        averageVehicleLength = sim.averageVehicleLength
+        vehicleLengthSD = sim.vehicleLengthSD
+        vehicleWidthSD = sim.vehicleWidthSD
 
-# #calcul du nombre d'interactions
-dmin = sim.interactionDistance
-#
-# affichage des nombres/matrices d'interactions
-print(world.countAllEncounters(vehiclesTrajectories,dmin)[0])
-print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
-print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
-print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
+        # volumes_to_test_on_0 = [k*100 for k in range(5, 16)]
+        # volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
+
+        vehiclesTrajectories = []
+        for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
+            vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
+
+        toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
+        toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
+
+        # #calcul du nombre d'interactions
+        dmin = sim.interactionDistance
+
+        # affichage des nombres/matrices d'interactions
+        matrix0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
+        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
+        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
+        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
