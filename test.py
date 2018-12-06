@@ -4,11 +4,15 @@ import objectsofworld
 import toolkit
 import simulation
 import numpy as np
+import random as rd
 
-volumes_to_test_on_0 = [k*100 for k in range(9,15)]
-volumes_to_test_on_1 = [k*100 for k in range(9,15)]
+volumes_to_test_on_0 = [1300,1600,1900]
+volumes_to_test_on_1 = [1300,1600,1900]
 
 matrix0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+matrix1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+matrix2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+
 
 for volumes0 in volumes_to_test_on_0 :
     for volumes1 in volumes_to_test_on_1 :
@@ -49,17 +53,27 @@ for volumes0 in volumes_to_test_on_0 :
         # volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
 
         vehiclesTrajectories = []
-        for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
-            vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD)[0])
+        seeds = [12,23]
+        for seed1 in seeds :
+            for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
+                rd.seed(seed1)
+                seed = rd.random()
+                vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength,
+                averageVehicleWidth, vehicleLengthSD, vehicleWidthSD, seed)[0])
 
-        toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
-        toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
+            toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
+            toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
 
-        # #calcul du nombre d'interactions
-        dmin = sim.interactionDistance
+            # #calcul du nombre d'interactions
+            dmin = sim.interactionDistance
 
-        # affichage des nombres/matrices d'interactions
-        matrix0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
+            # affichage des nombres/matrices d'interactions
+            matrix0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
+            matrix1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
+            matrix2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
+            print(seed1)
+
+
         # print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
         # print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
         # print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])

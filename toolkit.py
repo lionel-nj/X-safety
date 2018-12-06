@@ -1,6 +1,6 @@
 import sys
 import yaml
-import random
+import random as  rd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -87,7 +87,7 @@ def generateDistribution(data):
     save_yaml('tiv_prob_cum.yml',tivprobcum)
 
 
-def generateSample(sample_size, scale = None, tiv = None, tivprobcum = None):
+def generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = None):
     if scale == None :
         tiv = load_yaml(tiv)
         TIVProbCum = load_yaml(tivprobcum)
@@ -96,7 +96,7 @@ def generateSample(sample_size, scale = None, tiv = None, tivprobcum = None):
         save_yaml('headway_sample.yml',list(result))
         return list(result)
     else :
-        np.random.seed(123)
+        rd.seed(seed)
         result = stats.expon.rvs(scale = scale,size = sample_size)
         save_yaml('headway_sample.yml',list(result))
         return list(result)

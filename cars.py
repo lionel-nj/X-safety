@@ -1,6 +1,6 @@
 from trafficintelligence import moving
 import decimal
-import random
+import random as rd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
@@ -28,14 +28,15 @@ class VehicleInput(object):
         return distance
 
     #fonction de génération des trajectoires
-    def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
+    def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
+                            vehicleLengthSD, vehicleWidthSD, seed):
         '''generates trajectories on an alignment class object
         tSimul : int
         sMin : float'''
 
         #définition des instants de création des véhicules
         sampleSize = round(self.volume*tSimul/3600)
-        tiv = toolkit.generateSample(sampleSize,1/self.volume, tiv = None, tivprobcum = None)
+        tiv = toolkit.generateSample(seed, sampleSize,1/self.volume, tiv = None, tivprobcum = None)
 
         h = list(itertools.accumulate(tiv))
 
@@ -56,12 +57,14 @@ class VehicleInput(object):
         dataVehicles = dict()
         dataVehicles[0] = moving.MovingObject()
         positions = moving.Trajectory()
-
+        rd.seed(seed-1)
         vehicleLength = random.normalvariate(averageVehicleLength,vehicleLengthSD)
+        rd.seed(seed-2)
         vehicleWidth = random.normalvariate(averageVehicleWidth,vehicleWidthSD)
 
         L = []
         L.append(vehicleLength)
+        rd.seed(seed+1)
         v0 = random.normalvariate(14,2)
 
         curvilinearpositions = moving.CurvilinearTrajectory()
@@ -94,12 +97,15 @@ class VehicleInput(object):
 
             dataVehicles[k] = moving.MovingObject()
             positions = moving.Trajectory()
+            rd.seed(seed-3*k)
             vehicleLength = random.normalvariate(averageVehicleLength,vehicleLengthSD)
+            rd.seed(seed-4*k)
             vehicleWidth = random.normalvariate(averageVehicleWidth,vehicleWidthSD)
             L = []
             L.append(vehicleLength)
 
             dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],tSimul+intervals[k][0])
+            rd.seed(seed+k)
             v0 = random.normalvariate(14,2)
             dataVehicles[k].velocities = [v0]
             dataVehicles[k].userType = 1
