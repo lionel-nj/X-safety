@@ -1,3 +1,4 @@
+import os
 import sys
 import yaml
 import random as  rd
@@ -89,15 +90,14 @@ def generateDistribution(data):
 
 def generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = None):
     if scale == None :
-        tiv = load_yaml(tiv)
-        TIVProbCum = load_yaml(tivprobcum)
+        tiv = load_yaml('tiv.yml')
+        TIVProbCum = load_yaml('tiv_prob_cum.yml')
         distribution = utils.EmpiricalContinuousDistribution(tiv,TIVProbCum)
-        result = distribution.rvs(size = sample_size)
+        result = distribution.rvs(size = sample_size, random_state = seed)
         save_yaml('headway_sample.yml',list(result))
         return list(result)
     else :
-        rd.seed(seed)
-        result = stats.expon.rvs(scale = scale,size = sample_size)
+        result = stats.expon.rvs(scale = scale,size = sample_size, random_state = seed)
         save_yaml('headway_sample.yml',list(result))
         return list(result)
 

@@ -1,3 +1,4 @@
+import os
 from trafficintelligence import moving
 import cars
 import objectsofworld
@@ -6,12 +7,12 @@ import simulation
 import numpy as np
 import random as rd
 
-volumes_to_test_on_0 = [1300,1600,1900]
-volumes_to_test_on_1 = [1300,1600,1900]
+volumes_to_test_on_0 = [1300,1600]
+volumes_to_test_on_1 = [1300,1600]
 
-matrix0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
-matrix1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
-matrix2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 
 
 for volumes0 in volumes_to_test_on_0 :
@@ -53,11 +54,11 @@ for volumes0 in volumes_to_test_on_0 :
         # volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
 
         vehiclesTrajectories = []
-        seeds = [12,23]
-        for seed1 in seeds :
+        seeder = [780,45]
+        for seeds in seeder :
             for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
-                rd.seed(seed1)
-                seed = rd.random()
+                rd.seed(seeds)
+                seed = rd.randint(1,100)
                 vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment,t_simul,s_min,averageVehicleLength,
                 averageVehicleWidth, vehicleLengthSD, vehicleWidthSD, seed)[0])
 
@@ -68,10 +69,19 @@ for volumes0 in volumes_to_test_on_0 :
             dmin = sim.interactionDistance
 
             # affichage des nombres/matrices d'interactions
-            matrix0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
-            matrix1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
-            matrix2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
-            print(seed1)
+            encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
+            encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
+            encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
+
+            print(seed)
+
+
+toolkit.save_yaml('encounters0.yml',encounters0)
+toolkit.save_yaml('encounters1.yml',encounters1)
+toolkit.save_yaml('encounters2.yml',encounters2)
+
+
+os.system('say "travail terminé !!"')
 
 
         # print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
