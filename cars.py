@@ -126,15 +126,8 @@ class VehicleInput(object):
                 # s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
 
                 if TIV < TIVmin:
-                    # v = dataVehicles[k-1].velocities[t]
-                    # velocite = (v*t-L[k-1]-sMin)/t
-                    # velocite = dataVehicles[k-1].velocities[t-1]
+
                     velocite = d/TIVmin
-                    # velocite = (leader.curvilinearPositions[t][0]-following.curvilinearPositions[t-1][0])/sMin
-                    # delta_va = dataVehicles[k-1].velocities[t] - dataVehicles[k-1].velocities[t-1]
-                    # velocite = delta_va - sMin - dataVehicles[k-1].velocities[t-1] - dataVehicles[k-1].vehicleLength + dataVehicles[k].velocities[t-1]
-
-
 
                 if velocite < 0:
                     velocite = 0
@@ -157,7 +150,35 @@ class VehicleInput(object):
 
         return dataVehicles, intervals
 
-def trace(alignment_idx):
+# TODO: completer les classes des modeles
+
+class Models(object):
+    def __init__(self, name, parameters):
+        self.name = name
+        self.parameters = parameters
+
+    class Naive(object):
+        def __init__(self, parameters):
+            self.parameters = parameters
+
+        def nextPosition(previousPosition, desiredSpeed):
+            return None
+
+        def nextSpeed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed):
+            return None
+
+
+    class Newell(object):
+        def __init__(self, parameters):
+            self.parameters = parameters
+
+        def nextPosition(previousPosition, desiredSpeed, acceleration):
+            return None
+
+        def nextSpeed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed, acceleration):
+            return None
+
+def trace(alignment_idx,y_axis):
     import matplotlib.pyplot as plt
 
     if alignment_idx == 0:
@@ -168,18 +189,20 @@ def trace(alignment_idx):
         timeFile = toolkit.load_yaml('intervalsVertical.yml')
 
     x = []
-    # v = []
+    v = []
 
     for k in range (0,len(vehiclesFile)):
         x.append([])
-        # v.append([])
+        v.append([])
 
         for time in range(len(vehiclesFile[0].curvilinearPositions)):
-            # v[k].append(len(vehiclesFile[0][k].velocities[time])
+            v[k].append(len(vehiclesFile[0][k].velocities[time])
             x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
             ylabel = "position on x axis"
-
-        plt.plot(timeFile[k],x[k])
+        if y_axis == 'x' :
+            plt.plot(timeFile[k],x[k])
+        else :
+            plt.plot(timeFile[k],v[k])
 
     plt.xlabel('t')
     plt.ylabel('x')

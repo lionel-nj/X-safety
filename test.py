@@ -7,8 +7,8 @@ import simulation
 import numpy as np
 import random as rd
 
-volumes_to_test_on_0 = [1300,1600]
-volumes_to_test_on_1 = [1300,1600]
+volumes_to_test_on_0 = [1300,1700]
+volumes_to_test_on_1 = [1200,1600]
 
 encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
@@ -38,7 +38,7 @@ for volumes0 in volumes_to_test_on_0 :
 
         world.makeDefault(alignments, controlDevices, vehicleInputs)
 
-        sim = simulation.Simulation(72, 1., 30, 2, 7, 2, 1,.5) # second and meter
+        sim = simulation.Simulation(72, 1/10, 30, 2, 7, 2, 1,.5) # second and meter
 
         #creation des vehicules
         vehicleInputs = world.vehicleInputs
@@ -54,8 +54,8 @@ for volumes0 in volumes_to_test_on_0 :
         # volumes_to_test_on_1 = [k*100 for k in range(5, 16)]
 
         vehiclesTrajectories = []
-        seeder = [780,45]
-        for seeds in seeder :
+        seedBucket = [780,45]
+        for seeds in seedBucket :
             for alignment, vehicleInput in zip(world.alignments, vehicleInputs):
                 rd.seed(seeds)
                 seed = rd.randint(1,100)
@@ -81,7 +81,7 @@ toolkit.save_yaml('encounters1.yml',encounters1)
 toolkit.save_yaml('encounters2.yml',encounters2)
 
 
-os.system('say "travail terminé !!"')
+os.system('say "travail terminé"')
 
 
         # print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
