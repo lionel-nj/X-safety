@@ -11,6 +11,7 @@ import itertools
 import shapely.geometry
 from math import sqrt
 import objectsofworld
+import random as rd
 
 class VehicleInput(object):
     def __init__(self, alignmentIdx, fileName, volume):
@@ -27,6 +28,14 @@ class VehicleInput(object):
         distance = sLeader-sFollowing-lengthLeader
         return distance
 
+    @staticmethod
+    def generateHeadways(seed):
+        return toolkit.generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = None)
+
+    @staticmethod
+    def generateDesiredSpeed(seed, mean, sd):
+        rd.seed(seed)
+        return rd.normalvariate(mean, sd)
     #fonction de génération des trajectoires
     def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
                             vehicleLengthSD, vehicleWidthSD, seed):
@@ -36,7 +45,7 @@ class VehicleInput(object):
 
         #définition des instants de création des véhicules
         sampleSize = round(self.volume*tSimul/3600)
-        tiv = toolkit.generateSample(seed, sampleSize,1/self.volume, tiv = None, tivprobcum = None)
+        tiv = toolkit.generateSample(seed, sampleSize,3600/self.volume, tiv = None, tivprobcum = None)
 
         h = list(itertools.accumulate(tiv))
 
@@ -189,20 +198,20 @@ def trace(alignment_idx,y_axis):
         timeFile = toolkit.load_yaml('intervalsVertical.yml')
 
     x = []
-    v = []
+    # v = []
 
     for k in range (0,len(vehiclesFile)):
         x.append([])
-        v.append([])
+        # v.append([])
 
         for time in range(len(vehiclesFile[0].curvilinearPositions)):
-            v[k].append(len(vehiclesFile[0][k].velocities[time])
+            # v[k].append(len(vehiclesFile[0][k].velocities[time]))
             x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
             ylabel = "position on x axis"
-        if y_axis == 'x' :
-            plt.plot(timeFile[k],x[k])
-        else :
-            plt.plot(timeFile[k],v[k])
+        # if y_axis == 'x' :
+        plt.plot(timeFile[k],x[k])
+        # else :
+        #     plt.plot(timeFile[k],v[k])
 
     plt.xlabel('t')
     plt.ylabel('x')
