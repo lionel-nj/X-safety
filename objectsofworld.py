@@ -15,7 +15,9 @@ class Alignment():
         #self.volume = volume
 
     def makeAlignment(self,entryPoint, exitPoint, others = None):
-        '''builds an alignments from point, list of points, and point)'''
+        '''builds an alignments from points,
+         entryPoint and exitPoint : moving.Point
+         others : list of intermediate moving.points'''
 
         if others == None :
             self.points = moving.Trajectory.fromPointList([entryPoint,exitPoint])
@@ -161,7 +163,7 @@ class World():
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
 
-    def makeDefault(self,alignments, controlDevices, vehicleInputs):
+    def reset(self,alignments, controlDevices, vehicleInputs):
         '''alignments = list of Alignment class objects'''
         alignments[0].connectAlignments(alignments[1])
         self.alignments = alignments
@@ -170,7 +172,7 @@ class World():
 
     def showAlignments(self):
         import matplotlib.pyplot as plt
-        
+
         moving.Trajectory.plot(world.alignments[0].points)
         moving.Trajectory.plot(world.alignments[1].points)
         plt.show()
