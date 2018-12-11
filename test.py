@@ -7,8 +7,8 @@ import simulation
 import numpy as np
 import random as rd
 
-volumes_to_test_on_0 = [1300,1700]
-volumes_to_test_on_1 = [1200,1600]
+volumes_to_test_on_0 = [500]
+volumes_to_test_on_1 = [2]
 
 encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
@@ -18,11 +18,11 @@ encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range
 world = objectsofworld.World.load('default.yml')
 
 align0 = objectsofworld.Alignment()
-align0.makeAlignment(entryPoint = moving.Point(-750,0),exitPoint = moving.Point(700,0))
+align0.makeAlignment(entryPoint = moving.Point(-6000,0),exitPoint = moving.Point(6000,0))
 align0.idx = 0
 
 align1 = objectsofworld.Alignment()
-align1.makeAlignment(entryPoint = moving.Point(0,-700),exitPoint = moving.Point(0,750))
+align1.makeAlignment(entryPoint = moving.Point(0,-6000),exitPoint = moving.Point(0,6000))
 align1.idx = 1
 
 alignments = [align0, align1]
@@ -52,7 +52,7 @@ for volumes0 in volumes_to_test_on_0 :
             rd.seed(seeds)
             seed = rd.randint(1,100)
             # vehiclesTrajectories = []
-            vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment = alignment,
+            vehiclesTrajectories.append(vehicleInput.generateIDMTrajectories(alignment = alignment,
                                                                         tSimul = sim.duration,
                                                                         TIVmin = sim.minimumTimeHeadway,
                                                                         averageVehicleLength = sim.averageVehicleWidth,
