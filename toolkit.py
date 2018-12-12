@@ -99,4 +99,36 @@ def generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = Non
         save_yaml('headway_sample.yml',list(result))
         return list(result)
 
-# def generateSample(scale, size): #avec distribution théortique exponentielle !!!
+def trace(alignment_idx, y_axis):
+    import matplotlib.pyplot as plt
+
+    if alignment_idx == 0:
+        vehiclesFile = load_yaml('horizontal.yml')
+        timeFile  = load_yaml('intervalsHorizontal.yml')
+    else :
+        vehiclesFile = load_yaml('vertical.yml')
+        timeFile = load_yaml('intervalsVertical.yml')
+
+    x = []
+    v = []
+
+    for k in range (0,len(vehiclesFile)):
+        x.append([])
+        v.append([])
+
+        for time in range(len(vehiclesFile[0].curvilinearPositions)):
+            # v[k].append(vehiclesFile[k].velocities[time])
+            x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
+
+        # if y_axis == 'x' :
+        plt.plot(timeFile[k],x[k])
+    ylabel = "longitudinal positions"
+    plt.xlabel('t')
+    plt.ylabel('x')
+        # else :
+        #     ylabel = "speeds "
+        #     plt.plot(timeFile[k],v[k])
+        #     plt.xlabel('t')
+        #     plt.ylabel('v')
+    plt.show()
+    plt.close()
