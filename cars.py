@@ -14,10 +14,13 @@ import objectsofworld
 import random as rd
 
 class VehicleInput(object):
-    def __init__(self, alignmentIdx, fileName, volume):
+    def __init__(self, alignmentIdx, volume, desiredSpeedParameters, seed, tSimul, headwayDistributionParameters = None):
         self.alignmentIdx = alignmentIdx
-        self.fileName = fileName
         self.volume = volume
+        self.headwayDistributionParameters = headwayDistributionParameters
+        self.desiredSpeedParameters = desiredSpeedParameters
+        self.seed = seed
+        self.tSimul = tSimul
 
     def save(self):
         toolkit.save_yaml(self.fileName, self)
@@ -28,29 +31,9 @@ class VehicleInput(object):
         distance = sLeader-sFollowing-lengthLeader
         return distance
 
-    @staticmethod
-    def generateHeadways(seed):
-        return toolkit.generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = None)
+    def generateHeadways(self, sample_size, seed, scale = None, tiv = None, tivprobcum = None):
+        return toolkit.generateSample(sample_size = sample_size, scale = scale, seed = seed , tiv = None, tivprobcum = None)
 
-    @staticmethod
-    def accelerationRate(s0, v, T, delta_v, a, b, delta, v0, s):
-        return a*(1-((v/v0)**delta)-(VehicleInput.SStar(s0, v, T, delta_v, a, b)/s)**2)
-
-    @staticmethod
-    def SStar(s0, v, T, delta_v, a, b):
-        return s0 + max(0,v*T + v*delta_v/(2*((a*b)**0.5)))
-        # if var < s0 :
-        #     var = s0
-
-    @staticmethod
-    def prepareIntervals(headways,sampleSize,N_Step):
-        intervals = [None]*sampleSize
-        for k in range(0,sampleSize):
-            intervals[k] = [headways[k]]
-
-            for t in range(1,round(N_Step)):
-                intervals[k].append(intervals[k][t-1]+1)
-        return intervals
 
     #fonction de génération des trajectoires
     def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
@@ -61,7 +44,11 @@ class VehicleInput(object):
 
         #définition des instants de création des véhicules
         sampleSize = round(self.volume*tSimul/3600)
-        tiv = toolkit.generateSample(seed, sampleSize,3600/self.volume, tiv = None, tivprobcum = None)
+        tiv = self.generateHeadways(sample_size = round(self.volume*tSimul/3600),
+                                    scale = 3600/self.volume,
+                                    tiv = None,
+                                    tivprobcum = None,
+                                    seed = seed)
 
         h = list(itertools.accumulate(tiv))
 
@@ -230,7 +217,7 @@ class VehicleInput(object):
         step = 0.1
         N_Step = tSimul/step
 
-        intervals = VehicleInput.prepareIntervals(headways,sampleSize,N_Step)
+        intervals = toolkit.prepareIntervals(headways,sampleSize,N_Step)
 
         ##########################################################
                 # Initialisation du premier véhicule

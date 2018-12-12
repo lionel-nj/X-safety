@@ -28,24 +28,37 @@ align1.idx = 1
 alignments = [align0, align1]
 
 controlDevices = None
+seedBucket = [780,45]
+sim = simulation.Simulation(100, 1/10, 30, 2, 7, 2, 1,.5) # second and meter
+
 
 for volumes0 in volumes_to_test_on_0 :
     for volumes1 in volumes_to_test_on_1 :
 
 
-        vehicleInputs0 = cars.VehicleInput(alignmentIdx = world.alignments[0].idx, fileName = "horizontal.yml", volume = volumes0)
-        vehicleInputs1 = cars.VehicleInput(alignmentIdx = world.alignments[1].idx, fileName = "vertical.yml", volume = volumes1)
+        vehicleInputs0 = cars.VehicleInput(alignmentIdx = world.alignments[0].idx,
+                                           volume = volumes0,
+                                           headwayDistributionParameters = None, # [tiv, tivprobcum],
+                                           desiredSpeedParameters = [14, 2],
+                                           seed = seedBucket[0],
+                                           tSimul = sim.duration)
+
+        vehicleInputs1 = cars.VehicleInput(alignmentIdx = world.alignments[1].idx,
+                                          volume = volumes1,
+                                          headwayDistributionParameters = None, # [tiv, tivprobcum],
+                                          desiredSpeedParameters = [14, 2],
+                                          seed = seedBucket[1],
+                                          tSimul = sim.duration)
+
         vehicleInputs = [vehicleInputs0, vehicleInputs1]
 
         world.reset(alignments, controlDevices, vehicleInputs)
 
-        sim = simulation.Simulation(100, 1/10, 30, 2, 7, 2, 1,.5) # second and meter
 
         #creation des vehicules
         vehicleInputs = world.vehicleInputs
 
         vehiclesTrajectories = []
-        seedBucket = [780,45]
         for alignment, vehicleInput, seeds in zip(world.alignments, vehicleInputs, seedBucket):
             # for seeds in seedBucket :
 
@@ -65,25 +78,23 @@ for volumes0 in volumes_to_test_on_0 :
         toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
         toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
 #
-#         # #calcul du nombre d'interactions
-#         dmin = sim.interactionDistance
-#
-#         # affichage des nombres/matrices d'interactions
-#         encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
-#         encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
-#         encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
-#
-#         print(seed)
-#
-#
-# toolkit.save_yaml('encounters0.yml',encounters0)
-# toolkit.save_yaml('encounters1.yml',encounters1)
-# toolkit.save_yaml('encounters2.yml',encounters2)
+        # #calcul du nombre d'interactions
+        dmin = sim.interactionDistance
 
+        # affichage des nombres/matrices d'interactions
+        encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
+        encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
+        encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
+
+        print(seed)
+
+
+toolkit.save_yaml('encounters0.yml',encounters0)
+toolkit.save_yaml('encounters1.yml',encounters1)
+toolkit.save_yaml('encounters2.yml',encounters2)
+
+# print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
+# print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
+# print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
 
 os.system('say "travail terminé"')
-
-
-        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
-        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
-        # print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
