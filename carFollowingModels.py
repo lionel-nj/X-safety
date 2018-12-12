@@ -37,20 +37,26 @@ class Models(object):
 
         @staticmethod
         def position(previousPosition, velocity, followingAcceleration, step):
-            if velocity > 0:
-                return previousPosition + step * velocity
+            if velocity != 0:
+                return previousPosition + step * velocity + 0.5*followingAcceleration*(step**2)
             else :
-                return previousPosition - 0.5*(velocity**2)/followingAcceleration
+                return previousPosition
+            # else :
+            #     return previousPosition
+
 
         @staticmethod
         def speed(followingVelocity, followingAcceleration, step):
-            speedValue = max(0,followingVelocity + step*followingAcceleration)
-            return speedValue
+            speedValue = followingVelocity + step*followingAcceleration
+            return max(0,speedValue)
 
         @staticmethod
-        def acceleration(s0, v ,T, delta_v, a, v, delta, v0, s):
-            return a*(1-((v/v0)**delta)-(SStar(s0, v, T, delta_v, a, b)/s)**2)
+        def acceleration(s0, v ,T, delta_v, a, b, delta, v0, s):
+            return a*(1-((v/v0)**delta)-(Models.IDM.SStar(s0, v, T, delta_v, a, b)/s)**2)
 
         @staticmethod
         def SStar(s0, v, T, delta_v, a, b):
-            return s0 + max(0,v*T + v*delta_v/(2*((a*b)**0.5)))
+            if s0 + v*T + v*delta_v/(2*((a*b)**0.5)) > s0:
+                return s0 + v*T + v*delta_v/(2*((a*b)**0.5))
+            else:
+                return s0

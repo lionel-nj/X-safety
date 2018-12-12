@@ -54,7 +54,7 @@ class VehicleInput(object):
 
     #fonction de génération des trajectoires
     def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
-                            vehicleLengthSD, vehicleWidthSD, seed):
+                            vehicleLengthSD, vehicleWidthSD, seed, model):
         '''generates trajectories on an alignment class object
         tSimul : int
         sMin : float'''
@@ -135,7 +135,7 @@ class VehicleInput(object):
             dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],tSimul+intervals[k][0])
             rd.seed(seed+k)
             v0 = rd.normalvariate(14,2)
-            dataVehicles[k].velocities = [v0]
+            dataVehicles[k].velocities = [0]
             dataVehicles[k].userType = 1
 
             curvilinearpositions = moving.CurvilinearTrajectory()
@@ -145,10 +145,15 @@ class VehicleInput(object):
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
             if model == ' Naive':
                 dataVehicles[k].accelerations = [None]
-            elif model ==IDM :
-                dataVehicles[k].accelerations = [1]
+            elif model == 'IDM' :
+                dataVehicles[k].accelerations = [0]
+
+
+            leader = dataVehicles[k-1]
+            following = dataVehicles[k]
 
             if model == ' Naive':
+
                 for t in range(1,round(N_Step)):
 
 
@@ -165,20 +170,22 @@ class VehicleInput(object):
                     dataVehicles[k].accelerations.append(cfm.Models.Naive.acceleration())
 
             elif model == 'IDM' :
+
                 for t in range(1,round(N_Step)):
 
                     dataVehicles[k].velocities.append(cfm.Models.IDM.speed(following.velocities[t-1],
-                                                                       following.accelerations[t-1]),
-                                                                       step)
+                                                                       following.accelerations[t-1],
+                                                                       step))
+
                     curvilinearpositions.addPositionSYL(cfm.Models.IDM.position(curvilinearpositions[t-1][0],
-                                                                            dataVehicles[k].velocities[t],
-                                                                            step,
-                                                                            following.acceleration[t-1]),
+                                                                            dataVehicles[k].velocities[t-1],
+                                                                            following.accelerations[t-1],
+                                                                            step),
                                                                             0,
                                                                             alignment.idx)
                     dataVehicles[k].accelerations.append(cfm.Models.IDM.acceleration(
                                                                            s0 = 2, #m,
-                                                                           v = following.velocities[t-1],
+                                                                           v = following.velocities[t],
                                                                            T = 1.5,
                                                                            delta_v = following.velocities[t] - leader.velocities[t],
                                                                            a = 1, #m/s2
