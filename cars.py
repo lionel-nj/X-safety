@@ -68,11 +68,12 @@ class VehicleInput(object):
         intervals = [None]*sampleSize
 
         moving.prepareAlignments([alignment.points])
-
+        step = 0.25
+        N_Step = tSimul/step
         for k in range(0,sampleSize):
             intervals[k] = [h[k]]
 
-            for t in range(1,tSimul):
+            for t in range(1,round(N_Step)):
                 intervals[k].append(intervals[k][t-1]+1)
 
         ##########################################################
@@ -97,12 +98,12 @@ class VehicleInput(object):
         positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
         speed = []
-        for t in range(0,tSimul):
+        for t in range(0,round(N_Step)):
             speed.append(v0)
 
-        for t in range(1,tSimul):
+        for t in range(1,round(N_Step)):
             v = speed[t]
-            curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0,0,alignment.idx)
+            curvilinearpositions.addPositionSYL(curvilinearpositions[-1][0]+v0*step,0,alignment.idx)
             positions.addPosition(moving.getXYfromSY(curvilinearpositions[t][0],curvilinearpositions[t][1],0,[alignment.points]))
 
         dataVehicles[0].timeInterval = moving.TimeInterval(0,300)
@@ -111,6 +112,8 @@ class VehicleInput(object):
         dataVehicles[0].userType = 1
         dataVehicles[0].positions = positions
         dataVehicles[0].vehicleLength = L[0]
+        dataVehicles[0].accelerations = [None]*round(N_Step)
+
 
 
         ##########################################################
@@ -136,34 +139,58 @@ class VehicleInput(object):
             dataVehicles[k].userType = 1
 
             curvilinearpositions = moving.CurvilinearTrajectory()
-            curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.idx)
+            curvilinearpositions = curvilinearpositions.generate(0,0,1,alignment.idx)
 
             dataVehicles[k].curvilinearPositions = curvilinearpositions
             positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
+            if model == ' Naive':
+                dataVehicles[k].accelerations = [None]
+            elif model ==IDM :
+                dataVehicles[k].accelerations = [1]
 
-            for t in range(1,tSimul):
+            if model == ' Naive':
+                for t in range(1,round(N_Step)):
 
 
-                leader = dataVehicles[k-1]
-                following = dataVehicles[k]
-                d = leader.curvilinearPositions[t][0]-(following.curvilinearPositions[t-1][0]+v0) - leader.vehicleLength
-                TIV = d/v0
-                # s = VehicleInput.gap(leader.curvilinearPositions[t][0],following.curvilinearPositions[t-1][0] + velocite,dataVehicles[k-1].vehicleLength)
+                    leader = dataVehicles[k-1]
+                    following = dataVehicles[k]
 
-                if TIV < TIVmin:
+                    velocity = Models.Naive.speed(leader.curvilinearPositions[t][0],
+                                                  following.curvilinearPositions[t-1][0],
+                                                  v0,
+                                                  leader.vehicleLength,
+                                                  TIVmin)
+                    dataVehicles[k].velocities.append(velocity)
+                    curvilinearpositions.addPositionSYL(Models.Naive.position(curvilinearpositions[t-1][0], velocity, step), 0, alignment_idx)
+                    dataVehicles[k].accelerations.append(Models.Naive.acceleration())
 
-                    velocite = d/TIVmin
+            elif model == 'IDM' :
+                for t in range(1,round(N_Step)):
 
-                if velocite < 0:
-                    velocite = 0
+                    dataVehicles[k].velocities.append(Models.IDM.speed(following.velocities[t-1],
+                                                                       following.accelerations[t-1]),
+                                                                       step)
+                    curvilinearpositions.addPositionSYL(Models.IDM.position(curvilinearpositions[t-1][0],
+                                                                            dataVehicles[k].velocities[t],
+                                                                            step,
+                                                                            following.acceleration[t-1]),
+                                                                            0,
+                                                                            alignment.idx)
+                    dataVehicles[k].accelerations.append(Models.IDM.acceleration(
+                                                                           s0 = 2, #m,
+                                                                           v = following.velocities[t-1],
+                                                                           T = 1.5,
+                                                                           delta_v = following.velocities[t] - leader.velocities[t],
+                                                                           a = 1, #m/s2
+                                                                           b = 2, #m/s2,
+                                                                           delta = 4,
+                                                                           v0 = v0 ,
+                                                                           s = VehicleInput.gap(leader.curvilinearPositions[t][0],
+                                                                                                following.curvilinearPositions[t][0],
+                                                                                                leader.vehicleLength)))
 
-                curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0]+velocite,0,alignment.idx)
-                positions.addPosition(moving.getXYfromSY(curvilinearpositions[t][0],curvilinearpositions[t][1],0,[alignment.points]))
-
-                dataVehicles[k].velocities.append(velocite)
-                dataVehicles[k].curvilinearPositions = curvilinearpositions
-                dataVehicles[k].positions = positions
-                dataVehicles[k].vehicleLength = L[0]
+            dataVehicles[k].curvilinearPositions = curvilinearpositions
+            dataVehicles[k].vehicleLength = L[0]
 
 
         # toolkit.save_yaml(self.fileName,dataVehicles)
@@ -178,8 +205,8 @@ class VehicleInput(object):
 
         return dataVehicles, intervals
 
-    def generateIDMTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
-                            vehicleLengthSD, vehicleWidthSD, seed)      :
+    def generateNewellTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
+                            vehicleLengthSD, vehicleWidthSD, seed):
         '''generates trajectories on an alignment class object
         tSimul : int
         sMin : float'''
@@ -214,7 +241,6 @@ class VehicleInput(object):
         v0 = rd.normalvariate(14,2)
         rd.seed(seed+3)
         a0 = 1
-        d_n = TIVmin * v0
 
 
         curvilinearpositions = moving.CurvilinearTrajectory()
@@ -262,42 +288,36 @@ class VehicleInput(object):
             dataVehicles[k].userType = 1
 
             curvilinearpositions = moving.CurvilinearTrajectory()
-            curvilinearpositions = curvilinearpositions.generate(0,0,1,alignment.idx)
+            curvilinearpositions = curvilinearpositions.generate(0,0,2,alignment.idx)
 
             dataVehicles[k].curvilinearPositions = curvilinearpositions
             # positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
 
-            dataVehicles[k].accelerations = [1]
+            dataVehicles[k].accelerations = [1,1]
             dataVehicles[k].vehicleLength = L[0]
 
 
-            for t in range(1,round(N_Step)):
+            for t in range(2,round(N_Step)):
 
                 leader = dataVehicles[k-1]
                 following = dataVehicles[k]
+                d_n = 2
+
 
                 # d = leader.curvilinearPositions[t][0]-(following.curvilinearPositions[t-1][0]+v0) - leader.vehicleLength
-
-                dataVehicles[k].velocities.append(max(0,following.velocities[t-1] + step*following.accelerations[t-1]))
-                if following.velocities[t-1] + step*following.accelerations[t-1] > 0:
-                    curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0] + step*following.velocities[t-1],0,alignment.idx)
-                else:
-                    curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0] - (0.5*(following.velocities[t-1])**2)/following.accelerations[t-1],0,alignment.idx)
+                if (leader.curvilinearPositions[t-2][0]-following.curvilinearPositions[t-2][0]-d_n)/step > 0:
+                    dataVehicles[k].velocities.append((leader.curvilinearPositions[t-2][0]-following.curvilinearPositions[t-2][0]-d_n)/step)
+                else :
+                    dataVehicles[k].velocities.append(0)
+                #
+                curvilinearpositions.addPositionSYL(following.curvilinearPositions[t-1][0] + step*following.velocities[t-1] + 0.5*(step**2)*following.accelerations[t-1],0,alignment.idx)
+                # else:
+                #     curvilinearpositions.addPositionSYL(curvilinearpositions[t-1][0] - (0.5*(following.velocities[t-1])**2)/following.accelerations[t-1],0,alignment.idx)
 
                 # positions.addPosition(moving.getXYfromSY(curvilinearpositions[t][0],curvilinearpositions[t][1],0,[alignment.points]))
-                dataVehicles[k].accelerations.append(VehicleInput.accelerationRate(
-                                                                       s0 = 2, #m,
-                                                                       v = following.velocities[t-1],
-                                                                       T = 1.5,
-                                                                       delta_v = following.velocities[t] - leader.velocities[t],
-                                                                       a = 1, #m/s2
-                                                                       b = 2, #m/s2,
-                                                                       delta = 4,
-                                                                       v0 = v0 ,
-                                                                       s = VehicleInput.gap(leader.curvilinearPositions[t][0], following.curvilinearPositions[t][0], leader.vehicleLength)))
+                dataVehicles[k].accelerations.append((leader.velocities[t-2]-following.velocities[t-2])/step)
             dataVehicles[k].curvilinearPositions = curvilinearpositions
-            # dataVehicles[k].positions = positions
-# (s0, v, T, delta_v, a, b, delta, v0, s)
+
 
         # toolkit.save_yaml(self.fileName,dataVehicles)
         if alignment.idx == 0 :
@@ -307,35 +327,65 @@ class VehicleInput(object):
 
 
         return dataVehicles, intervals
-# TODO: completer les classes des modeles
 
 class Models(object):
-    def __init__(self, name, parameters):
-        self.name = name
-        self.parameters = parameters
 
     class Naive(object):
         def __init__(self, parameters):
             self.parameters = parameters
 
-        def nextPosition(previousPosition, desiredSpeed):
+        @staticmethod
+        def position(previousPosition, velocity, step):
+            return previousPosition + velocity*step
+
+        @staticmethod
+        def speed(curvilinearPositionLeaderAt, curvilinearPositionFollowingAt, velocity, leaderVehicleLength, v0, TIVmin):
+            d = curvilinearPositionLeaderAt - (curvilinearPositionFollowingAt + velocity) - leaderVehicleLength
+            TIV = d/v0
+            if TIV < TIVmin :
+                speedValue = d/TIVmin
+            if speedValue < 0 :
+                speedValue = 0
+            return speedValue
+
+    class Newell(object):
+
+
+        @staticmethod
+        def position(previousPosition, desiredSpeed):
             return None
 
-        def nextSpeed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed):
+        @staticmethod
+        def speed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed):
             return None
 
+        @staticmethod
+        def acceleration():
+            return None
 
     class IDM(object):
-        def __init__(self, parameters):
-            self.parameters = parameters
 
-        def nextPosition(previousPosition, desiredSpeed, acceleration):
-            return None
+        @staticmethod
+        def position(previousPosition, velocity, followingAcceleration, step):
+            if velocity > 0:
+                return previousPosition + step * velocity
+            else :
+                return previousPosition - 0.5*(velocity**2)/followingAcceleration
 
-        def nextSpeed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed, acceleration):
-            return None
+        @staticmethod
+        def speed(followingVelocity, followingAcceleration, step):
+            speedValue = max(0,followingVelocity + step*followingAcceleration)
+            return speedValue
 
-def trace(alignment_idx,y_axis):
+        @staticmethod
+        def acceleration(s0, v ,T, delta_v, a, v, delta, v0, s):
+            return a*(1-((v/v0)**delta)-(SStar(s0, v, T, delta_v, a, b)/s)**2)
+
+        @staticmethod
+        def SStar(s0, v, T, delta_v, a, b):
+            return s0 + max(0,v*T + v*delta_v/(2*((a*b)**0.5)))
+
+def trace(alignment_idx, y_axis):
     import matplotlib.pyplot as plt
 
     if alignment_idx == 0:
@@ -346,22 +396,25 @@ def trace(alignment_idx,y_axis):
         timeFile = toolkit.load_yaml('intervalsVertical.yml')
 
     x = []
-    # v = []
+    v = []
 
     for k in range (0,len(vehiclesFile)):
         x.append([])
-        # v.append([])
+        v.append([])
 
         for time in range(len(vehiclesFile[0].curvilinearPositions)):
-            # v[k].append(len(vehiclesFile[0][k].velocities[time]))
+            # v[k].append(vehiclesFile[k].velocities[time])
             x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
-            ylabel = "position on x axis"
+
         # if y_axis == 'x' :
         plt.plot(timeFile[k],x[k])
-        # else :
-        #     plt.plot(timeFile[k],v[k])
-
+    ylabel = "longitudinal positions"
     plt.xlabel('t')
     plt.ylabel('x')
+        # else :
+        #     ylabel = "speeds "
+        #     plt.plot(timeFile[k],v[k])
+        #     plt.xlabel('t')
+        #     plt.ylabel('v')
     plt.show()
     plt.close()
