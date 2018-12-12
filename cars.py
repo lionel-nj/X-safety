@@ -68,7 +68,7 @@ class VehicleInput(object):
         intervals = [None]*sampleSize
 
         moving.prepareAlignments([alignment.points])
-        step = 0.25
+        step = 0.1
         N_Step = tSimul/step
         for k in range(0,sampleSize):
             intervals[k] = [h[k]]
@@ -112,7 +112,7 @@ class VehicleInput(object):
         dataVehicles[0].userType = 1
         dataVehicles[0].positions = positions
         dataVehicles[0].vehicleLength = L[0]
-        dataVehicles[0].accelerations = [None]*round(N_Step)
+        dataVehicles[0].accelerations = [speed[0]/step]*round(N_Step)
 
 
 
@@ -142,8 +142,8 @@ class VehicleInput(object):
             curvilinearpositions = curvilinearpositions.generate(0,0,1,alignment.idx)
 
             dataVehicles[k].curvilinearPositions = curvilinearpositions
-            positions.addPosition(moving.getXYfromSY(0,0,0,[alignment.points]))
-            if model == ' Naive':
+
+            if model == 'Naive':
                 dataVehicles[k].accelerations = [None]
             elif model == 'IDM' :
                 dataVehicles[k].accelerations = [0]
@@ -152,22 +152,25 @@ class VehicleInput(object):
             leader = dataVehicles[k-1]
             following = dataVehicles[k]
 
-            if model == ' Naive':
-
+            if model == 'Naive':
                 for t in range(1,round(N_Step)):
 
 
                     leader = dataVehicles[k-1]
                     following = dataVehicles[k]
 
-                    velocity = cfm.Models.Naive.speed(leader.curvilinearPositions[t][0],
+
+                    dataVehicles[k].velocities.append(cfm.Models.Naive.speed(leader.curvilinearPositions[t][0],
                                                   following.curvilinearPositions[t-1][0],
                                                   v0,
                                                   leader.vehicleLength,
-                                                  TIVmin)
-                    dataVehicles[k].velocities.append(velocity)
-                    curvilinearpositions.addPositionSYL(cfm.Models.Naive.position(curvilinearpositions[t-1][0], velocity, step), 0, alignment_idx)
-                    dataVehicles[k].accelerations.append(cfm.Models.Naive.acceleration())
+                                                  TIVmin))
+                    curvilinearpositions.addPositionSYL(cfm.Models.Naive.position(curvilinearpositions[t-1][0], dataVehicles[k].velocities[t], step), 0, alignment.idx)
+                    dataVehicles[k].accelerations.append(None)
+
+                dataVehicles[k].curvilinearPositions = curvilinearpositions
+                dataVehicles[k].vehicleLength = L[0]
+
 
             elif model == 'IDM' :
 
@@ -186,9 +189,9 @@ class VehicleInput(object):
                     dataVehicles[k].accelerations.append(cfm.Models.IDM.acceleration(
                                                                            s0 = 2, #m,
                                                                            v = following.velocities[t],
-                                                                           T = 1.5,
+                                                                           T = 2,
                                                                            delta_v = following.velocities[t] - leader.velocities[t],
-                                                                           a = 1, #m/s2
+                                                                           a = 0.73, #m/s2
                                                                            b = 2, #m/s2,
                                                                            delta = 4,
                                                                            v0 = v0 ,
@@ -196,8 +199,8 @@ class VehicleInput(object):
                                                                                                 following.curvilinearPositions[t][0],
                                                                                                 leader.vehicleLength)))
 
-            dataVehicles[k].curvilinearPositions = curvilinearpositions
-            dataVehicles[k].vehicleLength = L[0]
+                dataVehicles[k].curvilinearPositions = curvilinearpositions
+                dataVehicles[k].vehicleLength = L[0]
 
 
         # toolkit.save_yaml(self.fileName,dataVehicles)
@@ -224,7 +227,7 @@ class VehicleInput(object):
 
         moving.prepareAlignments([alignment.points])
         headways = list(itertools.accumulate(tiv))
-        step = 0.25
+        step = 0.1
         N_Step = tSimul/step
 
         intervals = VehicleInput.prepareIntervals(headways,sampleSize,N_Step)

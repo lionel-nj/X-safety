@@ -12,8 +12,12 @@ class Models(object):
         def speed(curvilinearPositionLeaderAt, curvilinearPositionFollowingAt, velocity, leaderVehicleLength, TIVmin):
             d = curvilinearPositionLeaderAt - (curvilinearPositionFollowingAt + velocity) - leaderVehicleLength
             TIV = d/velocity
-            if TIV < TIVmin :
+
+            if TIV > TIVmin :
+                speedValue = velocity
+            else :
                 speedValue = d/TIVmin
+
             if speedValue < 0 :
                 speedValue = 0
             return speedValue
