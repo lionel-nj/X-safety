@@ -117,18 +117,18 @@ def trace(alignment_idx, y_axis):
         v.append([])
 
         for time in range(len(vehiclesFile[0].curvilinearPositions)):
-            # v[k].append(vehiclesFile[k].velocities[time])
+            v[k].append(vehiclesFile[k].velocities[time])
             x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
 
-        # if y_axis == 'x' :
-        plt.plot(timeFile[k],x[k])
-    ylabel = "longitudinal positions"
-    plt.xlabel('t')
-    plt.ylabel('x')
-        # else :
-        #     ylabel = "speeds "
-        #     plt.plot(timeFile[k],v[k])
-        #     plt.xlabel('t')
-        #     plt.ylabel('v')
+        if y_axis == 'x' :
+            plt.plot(timeFile[k],x[k])
+            ylabel = "longitudinal positions"
+            plt.xlabel('t')
+            plt.ylabel('x')
+        else :
+            plt.plot(timeFile[k],v[k])
+            ylabel = "speeds "
+            plt.xlabel('t')
+            plt.ylabel('v')
     plt.show()
     plt.close()
