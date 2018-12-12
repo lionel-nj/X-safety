@@ -86,7 +86,7 @@ def generateDistribution(data):
     save_yaml('tiv_prob_cum.yml',tivprobcum)
 
 
-def generateSample(seed, sample_size, scale = None, tiv = None, tivprobcum = None):
+def generateSample(sample_size, seed, scale = None, tiv = None, tivprobcum = None):
     if scale == None :
         tiv = load_yaml('tiv.yml')
         TIVProbCum = load_yaml('tiv_prob_cum.yml')
@@ -132,3 +132,12 @@ def trace(alignment_idx, y_axis):
             plt.ylabel('v')
     plt.show()
     plt.close()
+
+def prepareIntervals(headways,sampleSize,N_Step):
+    intervals = [None]*sampleSize
+    for k in range(0,sampleSize):
+        intervals[k] = [headways[k]]
+
+        for t in range(1,round(N_Step)):
+            intervals[k].append(intervals[k][t-1]+1)
+    return intervals
