@@ -339,9 +339,9 @@ class Models(object):
             return previousPosition + velocity*step
 
         @staticmethod
-        def speed(curvilinearPositionLeaderAt, curvilinearPositionFollowingAt, velocity, leaderVehicleLength, v0, TIVmin):
+        def speed(curvilinearPositionLeaderAt, curvilinearPositionFollowingAt, velocity, leaderVehicleLength, TIVmin):
             d = curvilinearPositionLeaderAt - (curvilinearPositionFollowingAt + velocity) - leaderVehicleLength
-            TIV = d/v0
+            TIV = d/velocity
             if TIV < TIVmin :
                 speedValue = d/TIVmin
             if speedValue < 0 :
