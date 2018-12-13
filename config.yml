@@ -48,8 +48,8 @@ control_devices:
 output :
   fileName :
     trajectoires :
-      horizontal : 'horizontal.yml'
-      vertical : 'vertical.yml'
+      0 : 'horizontal.yml'
+      1 : 'vertical.yml'
     encounterMatrices :
       0 : 'encounters0.yml'
       1 : 'encounters1.yml'
