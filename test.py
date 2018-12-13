@@ -34,14 +34,14 @@ alignments = [align0, align1]
 controlDevices = None
 seedBucket = config['seeds']
 
-sim = simulation.Simulation(tSimul = config['simulation']['duration'],
-                            step = config['simulation']['step'],
+sim = simulation.Simulation(duration = config['simulation']['duration'],
+                            timeStep = config['simulation']['step'],
                             interactionDistance = config['safetyParameters']['interactionDistance'],
                             minimumTimeHeadway = config['safetyParameters']['minimumTimeHeadway'],
                             averageVehicleLength = config['vehicleCaracteristics']['averageVehicleLength'],
-                            SDVehicleLength = config['vehicleCaracteristics']['SDVehicleLength'],
+                            vehicleLengthSD = config['vehicleCaracteristics']['SDVehicleLength'],
                             averageVehicleWidth = config['vehicleCaracteristics']['averageVehicleWidth'],
-                            SDVehicleWidth = config['vehicleCaracteristics']['SDVehicleWidth'])
+                            vehicleWidthSD = config['vehicleCaracteristics']['SDVehicleWidth'])
 
 
 for volumes0 in volumes_to_test_on_0 :
@@ -87,8 +87,8 @@ for volumes0 in volumes_to_test_on_0 :
                                                                         seed = seed,
                                                                         model = 'Naive')[0])
 
-        toolkit.save_yaml(config['fileName']['trajectoires'][0], vehiclesTrajectories[0])
-        toolkit.save_yaml(config['fileName']['trajectoires'][1], vehiclesTrajectories[1])
+        toolkit.save_yaml(config['output']['fileName']['trajectoires'][0], vehiclesTrajectories[0])
+        toolkit.save_yaml(config['output']['fileName']['trajectoires'][1], vehiclesTrajectories[1])
 #
         # #calcul du nombre d'interactions
         #et remplissage des matrices
