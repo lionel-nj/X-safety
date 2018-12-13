@@ -1,49 +1,40 @@
 simulation:
 
-  duration : 100
+  duration : 100.
   step : 0.1
   volumes :
-    0: [100,200]
-    1: [100,200]
+    0: [100.,200.]
+    1: [100.,200.]
 
 seeds: [780,45]
 
 safetyParameters:
-  interactionDistance : 30
-  minimumTimeHeadway : 2
+  interactionDistance : 30.
+  minimumTimeHeadway : 2.
 
 vehicleCaracteristics:
-  averageVehicleLength : 7
-  SDVehicleLength: 2
+  averageVehicleLength : 7.
+  SDVehicleLength: 2.
   averageVehicleWidth : 2.5
   SDVehicleWidth : .75
 
 alignments :
   0 :
-    entry_x : -1000
-    entry_y : 0
-    exit_x : 1000
-    exit_y : 0
-    id : 0
-    desiredSpeed : 14
-    speedSD : 2
+    entry_x : -1000.
+    entry_y : 0.
+    exit_x : 1000.
+    exit_y : 0.
+    id : 0.
+    desiredSpeed : 14.
+    speedSD : 2.
   1:
-    entry_x : 0
-    entry_y : -1000
-    exit_x : 0
-    exit_y : 1000
-    id : 1
-    desiredSpeed : 14
-    speedSD : 2
-
-control_devices:
-  0 :
-    curvilinear_position : 150
-    category : 0
-
-  1 :
-    curvilinear_position : 150
-    category : 0
+    entry_x : 0.
+    entry_y : -1000.
+    exit_x : 0.
+    exit_y : 1000.
+    id : 1.
+    desiredSpeed : 14.
+    speedSD : 2.
 
 output :
   fileName :
