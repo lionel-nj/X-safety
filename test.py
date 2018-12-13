@@ -7,8 +7,10 @@ import simulation
 import numpy as np
 import random as rd
 
-volumes_to_test_on_0 = [900]
-volumes_to_test_on_1 = [2]
+config = toolkit.load_yaml('config.yml')
+
+volumes_to_test_on_0 = config['simulation']['volumes'][0]
+volumes_to_test_on_1 = config['simulation']['volumes'][1]
 
 encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
@@ -18,18 +20,28 @@ encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range
 world = objectsofworld.World.load('default.yml')
 
 align0 = objectsofworld.Alignment()
-align0.makeAlignment(entryPoint = moving.Point(-1000,0),exitPoint = moving.Point(1000,0))
-align0.idx = 0
+align0.makeAlignment(entryPoint = moving.Point(config['alignments'][0]['entry_x'],config['alignments'][0]['entry_y']),
+                    exitPoint = moving.Point(config['alignments'][0]['exit_x'],config['alignments'][0]['exit_y']))
+align0.idx = config['alignments'][0]['id']
 
 align1 = objectsofworld.Alignment()
-align1.makeAlignment(entryPoint = moving.Point(0,-1000),exitPoint = moving.Point(0,1000))
-align1.idx = 1
+align1.makeAlignment(entryPoint = moving.Point(config['alignments'][1]['entry_x'],config['alignments'][1]['entry_y']),
+                    exitPoint = moving.Point(config['alignments'][1]['exit_x'],config['alignments'][1]['exit_y']))
+align1.idx = config['alignments'][1]['id']
 
 alignments = [align0, align1]
 
 controlDevices = None
-seedBucket = [780,45]
-sim = simulation.Simulation(100, 1/10, 30, 2, 7, 2, 1,.5) # second and meter
+seedBucket = config['seeds']
+
+sim = simulation.Simulation(tSimul = config['simulation']['duration'],
+                            step = config['simulation']['step'],
+                            interactionDistance = config['safetyParameters']['interactionDistance'],
+                            minimumTimeHeadway = config['safetyParameters']['minimumTimeHeadway'],
+                            averageVehicleLength = config['vehicleCaracteristics']['averageVehicleLength'],
+                            SDVehicleLength = config['vehicleCaracteristics']['SDVehicleLength'],
+                            averageVehicleWidth = config['vehicleCaracteristics']['averageVehicleWidth'],
+                            SDVehicleWidth = config['vehicleCaracteristics']['SDVehicleWidth'])
 
 
 for volumes0 in volumes_to_test_on_0 :
@@ -39,15 +51,15 @@ for volumes0 in volumes_to_test_on_0 :
         vehicleInputs0 = cars.VehicleInput(alignmentIdx = world.alignments[0].idx,
                                            volume = volumes0,
                                            headwayDistributionParameters = None, # [tiv, tivprobcum],
-                                           desiredSpeedParameters = [14, 2],
-                                           seed = seedBucket[0],
+                                           desiredSpeedParameters = [config['alignments'][0]['desiredSpeed'], config['alignments'][1]['speedSD']],
+                                           seed = config['seeds'][0],
                                            tSimul = sim.duration)
 
         vehicleInputs1 = cars.VehicleInput(alignmentIdx = world.alignments[1].idx,
                                           volume = volumes1,
                                           headwayDistributionParameters = None, # [tiv, tivprobcum],
-                                          desiredSpeedParameters = [14, 2],
-                                          seed = seedBucket[1],
+                                          desiredSpeedParameters = [config['alignments'][0]['desiredSpeed'], config['alignments'][1]['speedSD']],
+                                          seed = config['seeds'][1],
                                           tSimul = sim.duration)
 
         vehicleInputs = [vehicleInputs0, vehicleInputs1]
@@ -75,26 +87,24 @@ for volumes0 in volumes_to_test_on_0 :
                                                                         seed = seed,
                                                                         model = 'Naive')[0])
 
-        toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
-        toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
+        toolkit.save_yaml(config['fileName']['trajectoires'][0], vehiclesTrajectories[0])
+        toolkit.save_yaml(config['fileName']['trajectoires'][1], vehiclesTrajectories[1])
 #
         # #calcul du nombre d'interactions
-        dmin = sim.interactionDistance
-
-        # affichage des nombres/matrices d'interactions
-        encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[0]
-        encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[1]
-        encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,dmin)[2]
+        #et remplissage des matrices
+        encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[0]
+        encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[1]
+        encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[2]
 
         print(seed)
 
 
-toolkit.save_yaml('encounters0.yml',encounters0)
-toolkit.save_yaml('encounters1.yml',encounters1)
-toolkit.save_yaml('encounters2.yml',encounters2)
+toolkit.save_yaml(config['fileName']['encounterMatrices'][0],encounters0)
+toolkit.save_yaml(config['fileName']['encounterMatrices'][1],encounters1)
+toolkit.save_yaml(config['fileName']['encounterMatrices'][2],encounters2)
 
-# print(world.countAllEncounters(vehiclesTrajectories,dmin)[1])
-# print(world.countAllEncounters(vehiclesTrajectories,dmin)[2])
-# print(world.countAllEncounters(vehiclesTrajectories,dmin)[3])
+# print(world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[1])
+# print(world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[2])
+# print(world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[3])
 
 os.system('say "travail terminé"')

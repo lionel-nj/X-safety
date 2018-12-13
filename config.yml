@@ -1,69 +1,56 @@
 simulation:
 
-  t_simulation : 90
-  delta_t : 1
+  duration : 100
+  step : 0.1
+  volumes :
+    0: [100,200]
+    1: [100,200]
 
-scene:
+seeds: [780,45]
 
-  arrival_distributions:
-    distribution_arrival_horizontal :
-    distribution_arrival_vertical :
+safetyParameters:
+  interactionDistance : 30
+  minimumTimeHeadway : 2
 
-  alignments :
+vehicleCaracteristics:
+  averageVehicleLength : 7
+  SDVehicleLength: 2
+  averageVehicleWidth : 2.5
+  SDVehicleWidth : .75
 
-    horizontal :
-      list_of_points :
-        - !!python/object:trafficintelligence.moving.Trajectory
-          positions:
-          - - 1
-            - 40
-            - 400
-            - 25000
-          - - 2
-            - 80
-            - 800
-            - 50000
+alignments :
+  0 :
+    entry_x : -1000
+    entry_y : 0
+    exit_x : 1000
+    exit_y : 0
+    id : 0
+    desiredSpeed : 14
+    speedSD : 2
+  1:
+    entry_x : 0
+    entry_y : -1000
+    exit_x : 0
+    exit_y : 1000
+    id : 1
+    desiredSpeed : 14
+    speedSD : 2
 
-      width : 3.5
-      flow : 500
-      id : 1
+control_devices:
+  0 :
+    curvilinear_position : 150
+    category : 0
 
-    vertical :
-      list_of_points :
-        - !!python/object:trafficintelligence.moving.Trajectory
-          positions:
-          - - 0
-            - 300
-            - 1000
-            - 25000
-          - - 30
-            - 30
-            - 30
-            - 30
-
-      width : 3.5
-      flow : 500
-      id : 2
-
-  control_devices:
-    horizontal :
-      curvilinear_position : 150
-      category : 0
-
-    vertical :
-      curvilinear_position : 150
-      category : 0
-
-interactions :
-  dmin : 25
+  1 :
+    curvilinear_position : 150
+    category : 0
 
 output :
-  trajectoires :
-    horizontal : 'trajectoires_horizontales.yml'
-    vertical : 'trajectoires_verticales.yml'
-
-  indices :
-    distance_interaction :
-    s_min : 25
-    horizontal :
-    vertical :
+  fileName :
+    trajectoires :
+      horizontal : 'horizontal.yml'
+      vertical : 'vertical.yml'
+    encounterMatrices :
+      0 : 'encounters0.yml'
+      1 : 'encounters1.yml'
+      2 : 'encounters2.yml'
