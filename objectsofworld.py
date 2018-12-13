@@ -262,25 +262,3 @@ class World():
                         numberOfEncounterCrossingPaths += 1
                         break
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
-
-    #
-    # def trace(self,alignment_idx):
-    #     import matplotlib.pyplot as plt
-    #     x = []
-    #     # v = []
-    #
-    #     for k in range (0,len(self.vehicles[alignment_idx])):
-    #         x.append([])
-    #         # v.append([])
-    #
-    #         for time in range(0,len(self.vehicles[alignment_idx][0].curvilinearPositions)):
-    #             # v[k].append(self.vehicles[alignment_idx][k].velocities[time])
-    #             x[k].append(self.vehicles[alignment_idx][k].curvilinearPositions[time][0])
-    #             ylabel = "position on x axis"
-    #
-    #         plt.plot(temps[k],x[k])
-    #
-    #     plt.xlabel('t')
-    #     plt.ylabel('x')
-    #     plt.show()
-    #     plt.close()

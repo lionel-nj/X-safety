@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import collections
-import carFollowingModels as cfm
+import carFollowingModels as models
 import toolkit
 import itertools
 import shapely.geometry
@@ -78,7 +78,7 @@ class VehicleInput(object):
         L = []
         L.append(vehicleLength)
         rd.seed(seed+1)
-        v0 = rd.normalvariate(14,2)
+        v0 = rd.normalvariate(self.desiredSpeedParameters[0],self.desiredSpeedParameters[1])
 
         curvilinearpositions = moving.CurvilinearTrajectory()
         curvilinearpositions = curvilinearpositions.generate(0,v0,1,alignment.idx)
@@ -121,7 +121,7 @@ class VehicleInput(object):
 
             dataVehicles[k].timeInterval = moving.TimeInterval(intervals[k][0],tSimul+intervals[k][0])
             rd.seed(seed+k)
-            v0 = rd.normalvariate(14,2)
+            v0 = rd.normalvariate(self.desiredSpeedParameters[0],self.desiredSpeedParameters[1])
             dataVehicles[k].velocities = [0]
             dataVehicles[k].userType = 1
 
@@ -147,12 +147,12 @@ class VehicleInput(object):
                     following = dataVehicles[k]
 
 
-                    dataVehicles[k].velocities.append(cfm.Models.Naive.speed(leader.curvilinearPositions[t][0],
+                    dataVehicles[k].velocities.append(models.Models.Naive.speed(leader.curvilinearPositions[t][0],
                                                   following.curvilinearPositions[t-1][0],
                                                   v0,
                                                   leader.vehicleLength,
                                                   TIVmin))
-                    curvilinearpositions.addPositionSYL(cfm.Models.Naive.position(curvilinearpositions[t-1][0], dataVehicles[k].velocities[t], step), 0, alignment.idx)
+                    curvilinearpositions.addPositionSYL(models.Models.Naive.position(curvilinearpositions[t-1][0], dataVehicles[k].velocities[t], step), 0, alignment.idx)
                     dataVehicles[k].accelerations.append(None)
 
                 dataVehicles[k].curvilinearPositions = curvilinearpositions
@@ -163,17 +163,17 @@ class VehicleInput(object):
 
                 for t in range(1,round(N_Step)):
 
-                    dataVehicles[k].velocities.append(cfm.Models.IDM.speed(following.velocities[t-1],
+                    dataVehicles[k].velocities.append(models.Models.IDM.speed(following.velocities[t-1],
                                                                        following.accelerations[t-1],
                                                                        step))
 
-                    curvilinearpositions.addPositionSYL(cfm.Models.IDM.position(curvilinearpositions[t-1][0],
+                    curvilinearpositions.addPositionSYL(models.Models.IDM.position(curvilinearpositions[t-1][0],
                                                                             dataVehicles[k].velocities[t-1],
                                                                             following.accelerations[t-1],
                                                                             step),
                                                                             0,
                                                                             alignment.idx)
-                    dataVehicles[k].accelerations.append(cfm.Models.IDM.acceleration(
+                    dataVehicles[k].accelerations.append(models.Models.IDM.acceleration(
                                                                            s0 = 2, #m,
                                                                            v = following.velocities[t],
                                                                            T = 2,
@@ -190,13 +190,10 @@ class VehicleInput(object):
                 dataVehicles[k].vehicleLength = L[0]
 
 
-        # toolkit.save_yaml(self.fileName,dataVehicles)
         if alignment.idx == 0 :
             toolkit.save_yaml('intervalsHorizontal.yml',intervals)
-            # toolkit.save_yaml('horizontal.yml', dataVehicles)
         else :
             toolkit.save_yaml('intervalsVertical.yml',intervals)
-            # toolkit.save_yaml('vertical.yml', dataVehicles)
 
 
 

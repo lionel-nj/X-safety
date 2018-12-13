@@ -16,7 +16,6 @@ encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range
 encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
 
-
 world = objectsofworld.World.load('default.yml')
 
 align0 = objectsofworld.Alignment()
@@ -72,11 +71,9 @@ for volumes0 in volumes_to_test_on_0 :
 
         vehiclesTrajectories = []
         for alignment, vehicleInput, seeds in zip(world.alignments, vehicleInputs, seedBucket):
-            # for seeds in seedBucket :
 
             rd.seed(seeds)
             seed = rd.randint(1,100)
-            # vehiclesTrajectories = []
             vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment = alignment,
                                                                         tSimul = sim.duration,
                                                                         TIVmin = sim.minimumTimeHeadway,
@@ -95,9 +92,6 @@ for volumes0 in volumes_to_test_on_0 :
         encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[0]
         encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[1]
         encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,sim.interactionDistance)[2]
-
-        print(seed)
-
 
 toolkit.save_yaml(config['fileName']['encounterMatrices'][0],encounters0)
 toolkit.save_yaml(config['fileName']['encounterMatrices'][1],encounters1)
