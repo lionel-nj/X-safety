@@ -230,20 +230,34 @@ class World():
         rows = len(vehiclesData[0])
         columns = len(vehiclesData[1])
 
+
         matrix_intersection = [[0]*columns]*rows
         matrix_voie0 =[0]*rows
         matrix_voie1 = [0]*columns
 
-        numberOfEncountersSameWayVertical = 0
         numberOfEncountersSameWayHorizontal = 0
+        numberOfEncountersSameWayVertical = 0
         numberOfEncounterCrossingPaths = 0
+
 
         #interactions sur la meme voie horizontale
         for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
-            for h in range(0,rows-1):
+            for h in range(columns-1):
                 if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and matrix_voie0[h] == 0 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]:
-                    matrix_voie0[h] = 1
+                    matrix_voie1[h] = 1
                     numberOfEncountersSameWayHorizontal += 1
+
+        #interactions sur la meme voie horizontale
+
+        for h in range(0,rows-1):
+            t = 0
+            while t < len(vehiclesData[0][0].curvilinearPositions)-1:
+                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+
+                    if self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == True :
+                        numberOfEncountersSameWayHorizontal += 1
+                    matrix_voie0[h] += 1
+                t +=1
 
         #interactions sur la meme voie verticale
         for t in range(0,len(vehiclesData[1][0].curvilinearPositions)):
@@ -262,3 +276,5 @@ class World():
                         numberOfEncounterCrossingPaths += 1
                         break
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
+
+        # return matrix_voie0

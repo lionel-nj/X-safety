@@ -1,47 +1,9 @@
-simulation:
-
-  duration : 100.
-  step : 0.1
-  volumes :
-    0: [100.,200.]
-    1: [100.,200.]
-
-seeds: [780,45]
-
-safetyParameters:
-  interactionDistance : 30.
-  minimumTimeHeadway : 2.
-
-vehicleCaracteristics:
-  averageVehicleLength : 7.
-  SDVehicleLength: 2.
-  averageVehicleWidth : 2.5
-  SDVehicleWidth : .75
-
-alignments :
-  0 :
-    entry_x : -1000.
-    entry_y : 0.
-    exit_x : 1000.
-    exit_y : 0.
-    id : 0.
-    desiredSpeed : 14.
-    speedSD : 2.
-  1:
-    entry_x : 0.
-    entry_y : -1000.
-    exit_x : 0.
-    exit_y : 1000.
-    id : 1.
-    desiredSpeed : 14.
-    speedSD : 2.
-
-output :
-  fileName :
-    trajectoires :
-      0 : 'horizontal.yml'
-      1 : 'vertical.yml'
-    encounterMatrices :
-      0 : 'encounters0.yml'
-      1 : 'encounters1.yml'
-      2 : 'encounters2.yml'
+!!python/object:simulation.Simulation
+averageVehicleLength: 7.0
+averageVehicleWidth: 2.5
+duration: 100.0
+interactionDistance: 30.0
+minimumTimeHeadway: 2.0
+timeStep: 0.1
+vehicleLengthSD: 2.0
+vehicleWidthSD: 0.75

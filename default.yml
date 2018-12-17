@@ -1,87 +1,73 @@
 !!python/object:objectsofworld.World
 alignments:
 - !!python/object:objectsofworld.Alignment
-  connected_alignment_idx: 1
+  connected_alignment_idx: 1.0
   controlDevice: null
   crossingPoint: !!python/object:trafficintelligence.moving.Point
-    x: 500.0
-    y: 500.0
-  distance_to_crossing_point: 1500.0
-  idx: 0
+    x: 0.0
+    y: 0.0
+  distance_to_crossing_point: 1000.0
+  idx: 0.0
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
     - 1000.0
-    - 1500.0
-    - 1500.0
-    - 1500.0
     - 2000.0
     distances:
     - 1000.0
-    - 500.0
-    - 0.0
-    - 0.0
-    - 500.0
+    - 1000.0
     positions:
-    - - -1000
-      - 0
-      - 500.0
-      - 500.0
-      - 500.0
-      - 1000
-    - - 500
-      - 500
-      - 500.0
-      - 500.0
-      - 500.0
-      - 500
+    - - -1000.0
+      - 0.0
+      - 1000.0
+    - - 0.0
+      - 0.0
+      - 0.0
   width: null
 - !!python/object:objectsofworld.Alignment
-  connected_alignment_idx: 0
+  connected_alignment_idx: 0.0
   controlDevice: null
   crossingPoint: !!python/object:trafficintelligence.moving.Point
-    x: 500.0
-    y: 500.0
-  distance_to_crossing_point: 1500.0
-  idx: 1
+    x: 0.0
+    y: 0.0
+  distance_to_crossing_point: 1000.0
+  idx: 1.0
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
     - 1000.0
-    - 1500.0
-    - 1500.0
-    - 1500.0
     - 2000.0
     distances:
     - 1000.0
-    - 500.0
-    - 0.0
-    - 0.0
-    - 500.0
+    - 1000.0
     positions:
-    - - 500
-      - 500
-      - 500.0
-      - 500.0
-      - 500.0
-      - 500
-    - - -1000
-      - 0
-      - 500.0
-      - 500.0
-      - 500.0
-      - 1000
+    - - 0.0
+      - 0.0
+      - 0.0
+    - - -1000.0
+      - 0.0
+      - 1000.0
   width: null
 controlDevices: null
 crossingPoint: null
 pedestrians: null
 vehicleInputs:
 - !!python/object:cars.VehicleInput
-  aligmentIdx: 0
-  fileName: horizontal.yml
-  volume: 1000
+  alignmentIdx: 0.0
+  desiredSpeedParameters:
+  - 14.0
+  - 2.0
+  headwayDistributionParameters: null
+  seed: 780
+  tSimul: 100.0
+  volume: 500
 - !!python/object:cars.VehicleInput
-  aligmentIdx: 1
-  fileName: vertical.yml
-  volume: 700
+  alignmentIdx: 1.0
+  desiredSpeedParameters:
+  - 14.0
+  - 2.0
+  headwayDistributionParameters: null
+  seed: 45
+  tSimul: 100.0
+  volume: 2.0
 vehicles: null
