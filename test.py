@@ -23,59 +23,63 @@ def run(worldFile,configFile):
     alignments = [worldFile.alignments[0], worldFile.alignments[1]]
 
     seedBucket = [45,90]
-    v0 = rd.normalvariate(15,3)
-    v1 = rd.normalvariate(15,3)
 
-    leaderVehicleInput0 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
-                                                                                                          v0*sim.timeStep,
-                                                                                                          round(configFile.duration/configFile.timeStep),
-                                                                                                          worldFile.alignments[0].idx),
-                                              velocities = [v0 for k in range (round(configFile.duration/configFile.timeStep))],
-                                              vehicleLength = 7)
+    for alignment in alignments :
+        v0 = rd.normalvariate(15,3)
+        v1 = rd.normalvariate(15,3)
 
-    leaderVehicleInput1 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
-                                                                                                          v1,
-                                                                                                          round(configFile.duration/configFile.timeStep),
-                                                                                                          worldFile.alignments[1].idx),
-                                              velocities = [v1 for k in range (round(configFile.duration/configFile.timeStep))],
-                                              vehicleLength = 7)
+        leaderVehicleInput0 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
+                                                                                                              v0*sim.timeStep,
+                                                                                                              round(configFile.duration/configFile.timeStep),
+                                                                                                              alignment.idx),
+                                                  velocities = [v0 for k in range (round(configFile.duration/configFile.timeStep))],
+                                                  vehicleLength = 7)
 
-    vehiclesFromVehicleInput0 = [leaderVehicleInput0] + worldFile.initVehiclesOnAligment(0,
-                                                                                        -1+round(worldFile.vehicleInputs[0].volume*configFile.duration/3600),
-                                                                                        configFile,
-                                                                                        15)
-    vehiclesFromVehicleInput1 = [leaderVehicleInput1] + worldFile.initVehiclesOnAligment(1,
-                                                                                        -1+round(worldFile.vehicleInputs[0].volume*configFile.duration/3600),
-                                                                                        configFile,
-                                                                                        15)
-    for k in range (1, len(vehiclesFromVehicleInput0)):
-        for t in range(1,round(configFile.duration/configFile.timeStep)):
-            vehiclesFromVehicleInput0[k].updateVelocities(models.Models.Naive.speed(curvilinearPositionLeader = vehiclesFromVehicleInput0[k-1].curvilinearPositions[t][0],
-                                                                                    curvilinearPositionFollowing = vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
-                                                                                    desiredSpeed = vehiclesFromVehicleInput0[k].desiredSpeed,
-                                                                                    TIVmin = configFile.minimumTimeHeadway))
+        leaderVehicleInput1 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
+                                                                                                              v1,
+                                                                                                              round(configFile.duration/configFile.timeStep),
+                                                                                                              alignment.idx),
+                                                  velocities = [v1 for k in range (round(configFile.duration/configFile.timeStep))],
+                                                  vehicleLength = 7)
 
-            vehiclesFromVehicleInput0[k].updateCurvilinearPositions([models.Models.Naive.position(previousPosition = vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
-                                                                                                 velocity = vehiclesFromVehicleInput0[k].velocities[t-1],
-                                                                                                 step = configFile.timeStep), 0, worldFile.alignments[0]])
+        vehiclesFromVehicleInput0 = [leaderVehicleInput0] + worldFile.initVehiclesOnAligment(0,
+                                                                                            -1+round(worldFile.vehicleInputs[0].volume*configFile.duration/3600),
+                                                                                            configFile,
+                                                                                            15)
+        vehiclesFromVehicleInput1 = [leaderVehicleInput1] + worldFile.initVehiclesOnAligment(1,
+                                                                                            -1+round(worldFile.vehicleInputs[0].volume*configFile.duration/3600),
+                                                                                            configFile,
+                                                                                            15)
+        for k in range (1, len(vehiclesFromVehicleInput0)):
+            for t in range(1,round(configFile.duration/configFile.timeStep)):
+                vehiclesFromVehicleInput0[k].updateVelocities(models.Models.Naive.speed(curvilinearPositionLeader = vehiclesFromVehicleInput0[k-1].curvilinearPositions[t][0],
+                                                                                        curvilinearPositionFollowing = vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
+                                                                                        desiredSpeed = vehiclesFromVehicleInput0[k].desiredSpeed,
+                                                                                        TIVmin = configFile.minimumTimeHeadway))
+
+                vehiclesFromVehicleInput0[k].updateCurvilinearPositions([models.Models.Naive.position(previousPosition = vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
+                                                                                                     velocity = vehiclesFromVehicleInput0[k].velocities[t-1],
+                                                                                                     step = configFile.timeStep), 0, alignment])
 
 
-            vehiclesFromVehicleInput0[k].updateAccelerations(None)
-            #
-            # vehiclesFromVehicleInput0[k].updateMovingObject(newCurvilinearPosition = [models.Models.Naive.position(vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
-            #                                                                                             vehiclesFromVehicleInput0[k].velocities[t-1],
-            #                                                                                             configFile.timeStep),
-            #                                                                            0,
-            #                                                                            worldFile.alignments[0].idx],
-            #                                                 newVelocity = models.Models.Naive.speed(curvilinearPositionLeader = vehiclesFromVehicleInput0[k-1].curvilinearPositions[t][0],
-            #                                                                                         curvilinearPositionFollowing = models.Models.Naive.position(vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
-            #                                                                                                                      vehiclesFromVehicleInput0[k].velocities[t-1],
-            #                                                                                                                      configFile.timeStep),
-            #                                                                                         previousVelocity = vehiclesFromVehicleInput0[k].velocities[t-1],
-            #                                                                                         TIVmin = configFile.minimumTimeHeadway),
-            #                                                 newAcceleration = None)
-    toolkit.save_yaml('horizontal.yml', vehiclesFromVehicleInput0)
+                vehiclesFromVehicleInput0[k].updateAccelerations(None)
+                #
+                # vehiclesFromVehicleInput0[k].updateMovingObject(newCurvilinearPosition = [models.Models.Naive.position(vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
+                #                                                                                             vehiclesFromVehicleInput0[k].velocities[t-1],
+                #                                                                                             configFile.timeStep),
+                #                                                                            0,
+                #                                                                            worldFile.alignments[0].idx],
+                #                                                 newVelocity = models.Models.Naive.speed(curvilinearPositionLeader = vehiclesFromVehicleInput0[k-1].curvilinearPositions[t][0],
+                #                                                                                         curvilinearPositionFollowing = models.Models.Naive.position(vehiclesFromVehicleInput0[k].curvilinearPositions[t-1][0],
+                #                                                                                                                      vehiclesFromVehicleInput0[k].velocities[t-1],
+                #                                                                                                                      configFile.timeStep),
+                #                                                                                         previousVelocity = vehiclesFromVehicleInput0[k].velocities[t-1],
+                #                                                                                         TIVmin = configFile.minimumTimeHeadway),
+                #                                                 newAcceleration = None)
+        toolkit.save_yaml(alignment.name, vehiclesFromVehicleInput0)
 run(world,sim)
+
+
     # for volumes0 in volumes_to_test_on_0 :
     #     for volumes1 in volumes_to_test_on_1 :
     #
@@ -85,7 +89,7 @@ run(world,sim)
     #         vehicleInputs = [worldFile.vehicleInputs[0], worldFile.vehicleInputs[1]]
     #
     #         vehiclesTrajectories = []
-    #         for alignment, vehicleInput, seeds in zip(worldFile.alignments, vehicleInputs, seedBucket):
+    #         for alignment, vehicleInput,   in zip(worldFile.alignments, vehicleInputs, seedBucket):
     #
     #             rd.seed(seeds)
     #             seed = rd.randint(1,100)
