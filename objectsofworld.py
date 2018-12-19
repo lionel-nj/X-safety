@@ -276,6 +276,7 @@ class World():
 
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
+
     def initVehiclesOnAligment(self,alignmentIdx, numberOfVehicles, sim, v0):
         result = []
 
