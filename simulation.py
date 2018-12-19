@@ -1,3 +1,4 @@
+import toolkit
 
 class Simulation(object):
     '''Stores all simulation and world parameters'''

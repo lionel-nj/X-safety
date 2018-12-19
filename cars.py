@@ -1,4 +1,4 @@
-from trafficintelligence import moving
+import moving
 import decimal
 import random as rd
 import numpy as np
@@ -38,7 +38,7 @@ class VehicleInput(object):
     #fonction de génération des trajectoires
     def generateTrajectories(self, alignment, tSimul, TIVmin, averageVehicleLength, averageVehicleWidth,
                             vehicleLengthSD, vehicleWidthSD, seed, model):
-        '''generates trajectories on an alignment class object
+        '''generates trajectories of a MovingObject on an alignment class object
         tSimul : int
         sMin : float'''
 
@@ -61,7 +61,7 @@ class VehicleInput(object):
             intervals[k] = [h[k]]
 
             for t in range(1,round(N_Step)):
-                intervals[k].append(intervals[k][t-1]+1)
+                intervals[k].append(intervals[k][t-1] + step)
 
         ##########################################################
                 # Initialisation du premier véhicule
@@ -145,17 +145,26 @@ class VehicleInput(object):
                     #
                     # leader = dataVehicles[k-1]
                     # following = dataVehicles[k]
-
-
-                    dataVehicles[k].velocities.append(models.Models.Naive.speed(leader.curvilinearPositions[t][0],
-                                                  following.curvilinearPositions[t-1][0],
-                                                  v0,
-                                                  leader.vehicleLength,
-                                                  TIVmin))
-                    curvilinearpositions.addPositionSYL(models.Models.Naive.position(curvilinearpositions[t-1][0], dataVehicles[k].velocities[t], step), 0, alignment.idx)
-                    dataVehicles[k].accelerations.append(None)
-
-                dataVehicles[k].curvilinearPositions = curvilinearpositions
+                    dataVehicles[k].updateMovingObject(newCurvilinearPosition = [models.Models.Naive.position(curvilinearpositions[t-1][0],
+                                                                                                            dataVehicles[k].velocities[t],
+                                                                                                            step),
+                                                                                0,
+                                                                                alignment.idx],
+                                                        newVelocity = models.Models.Naive.speed(leader.curvilinearPositions[t][0],
+                                                                                      following.curvilinearPositions[t-1][0],
+                                                                                      v0,
+                                                                                      leader.vehicleLength,
+                                                                                      TIVmin),
+                                                        newAcceleration = None)
+                    #
+                    #
+                    # dataVehicles[k].velocities.append(models.Models.Naive.speed(leader.curvilinearPositions[t][0],
+                    #                               following.curvilinearPositions[t-1][0],
+                    #                               v0,
+                    #                               leader.vehicleLength,
+                    #                               TIVmin))
+                    # curvilinearpositions.addPositionSYL(models.Models.Naive.position(curvilinearpositions[t-1][0], dataVehicles[k].velocities[t], step), 0, alignment.idx)
+                    # dataVehicles[k].accelerations.append(None)
                 dataVehicles[k].vehicleLength = L[0]
 
 

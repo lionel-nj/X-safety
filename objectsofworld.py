@@ -1,6 +1,6 @@
 import cars
 from trafficintelligence import moving
-import random
+import random as rd
 import toolkit
 import math
 
@@ -278,3 +278,24 @@ class World():
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
         # return matrix_voie0
+    def initVehiclesOnAligment(self,alignmentIdx, numberOfVehicles, sim, v0):
+        result = []
+
+        for k in range(numberOfVehicles):
+            temp = moving.MovingObject()
+            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
+            v0 = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0], self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+
+            temp.curvilinearPositions = moving.CurvilinearTrajectory.generate(-(k+1),
+                                                                              v0,
+                                                                              1,
+                                                                              self.alignments[alignmentIdx].idx)
+            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
+            temp.vehicleLength = rd.normalvariate(7,1.5)
+            temp.velocities = [v0]
+            temp.accelerations = [None]
+            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
+            temp.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0], self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+            result.append(temp)
+
+        return result

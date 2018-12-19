@@ -9,25 +9,26 @@ class Models(object):
             return previousPosition + velocity*step
 
         @staticmethod
-        def speed(curvilinearPositionLeaderAt, curvilinearPositionFollowingAt, velocity, leaderVehicleLength, TIVmin):
-            d = curvilinearPositionLeaderAt - (curvilinearPositionFollowingAt + velocity) - leaderVehicleLength
-            TIV = d/velocity
+        def speed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed, TIVmin):
+            d = curvilinearPositionLeader - curvilinearPositionFollowing
+
+            TIV = d/desiredSpeed
 
             if TIV > TIVmin :
-                speedValue = velocity
+                speedValue = desiredSpeed
             else :
                 speedValue = d/TIVmin
 
-            if speedValue < 0 :
-                speedValue = 0
             return speedValue
+
+        def acceleration(previousSpeed, velocity, step):
+            return (velocity - previousSpeed)/step
 
     class Newell(object):
 
-
         @staticmethod
-        def position(previousPosition, desiredSpeed):
-            return None
+        def position(previousPosition, desiredSpeed, step):
+            return previousPosition + step*desiredSpeed
 
         @staticmethod
         def speed(curvilinearPositionLeader, curvilinearPositionFollowing, desiredSpeed):
