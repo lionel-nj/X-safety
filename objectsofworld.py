@@ -7,11 +7,12 @@ import math
 class Alignment():
     '''Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) '''
-    def __init__(self, idx = None, points = None, width = None, controlDevice = None):
+    def __init__(self, idx = None, points = None, width = None, controlDevice = None, name = None):
         self.idx = idx
         self.points = points
         self.width = width
         self.controlDevice = controlDevice
+        self.name = name
         #self.volume = volume
 
     def makeAlignment(self,entryPoint, exitPoint, others = None):
@@ -239,45 +240,42 @@ class World():
         numberOfEncountersSameWayVertical = 0
         numberOfEncounterCrossingPaths = 0
 
-
-        #interactions sur la meme voie horizontale
-        for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
-            for h in range(columns-1):
-                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and matrix_voie0[h] == 0 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]:
-                    matrix_voie1[h] = 1
-                    numberOfEncountersSameWayHorizontal += 1
-
         #interactions sur la meme voie horizontale
 
-        for h in range(0,rows-1):
-            t = 0
-            while t < len(vehiclesData[0][0].curvilinearPositions)-1:
-                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+        for h in range(columns-1):
+            c = 0
+            while t < vehiclesData[0][0].curvilinearPositions :
+                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == False 0 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+                    c=+1
+            t+=1
+            matrix_voie1[h] = c
+        numberOfEncountersSameWayHorizontal = sum(matrix_voie0)
 
-                    if self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == True :
-                        numberOfEncountersSameWayHorizontal += 1
-                    matrix_voie0[h] += 1
-                t +=1
+        #interactions sur la meme voie horizontale
 
-        #interactions sur la meme voie verticale
-        for t in range(0,len(vehiclesData[1][0].curvilinearPositions)):
-            for v in range(columns-1):
-                if self.isAnEncounter(vehiclesData,1,1,v,v+1,t,dmin)[0] == True and matrix_voie1[v] == 0 and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
-                    matrix_voie1[v] = 1
-                    numberOfEncountersSameWayVertical += 1
+        for v in range(rows-1):
+            c = 0
+            while t < vehiclesData[1][0].curvilinearPositions :
+                if self.isAnEncounter(vehiclesData,1,1,v,v+1,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,1,1,v,v+1,t+1,dmin)[0] == False 0 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+                    c=+1
+            t+=1
+            matrix_voie1[h] = c
+        numberOfEncountersSameWayHorizontal = sum(matrix_voie1)
 
         #interactions croisées
-        for t in range(0,len(vehiclesData[0][0].curvilinearPositions)):
-            for h in range(rows):
-                for v in range(columns):
-                    # print(h,v,self.isAnEncounter(h,v,t,500))
-                    if self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0] == True and matrix_intersection[h][v] == 0 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
-                        matrix_intersection[h][v] = 1
-                        numberOfEncounterCrossingPaths += 1
-                        break
+        for h in range(rows):
+            for v in range(columns):
+                c = 0
+                while t < len(vehiclesData[0][0].curvilinearPositions):
+
+                    if self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,0,1,h,v,t+1,dmin)[0] == False  and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
+                        c+=1
+                t+=1
+
+            matrix_intersection[h][v] = c
+
         return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
 
-        # return matrix_voie0
     def initVehiclesOnAligment(self,alignmentIdx, numberOfVehicles, sim, v0):
         result = []
 
