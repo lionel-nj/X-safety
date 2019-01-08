@@ -195,8 +195,9 @@ class World():
         ''' checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle j is the following vehicle'''
         if alignment_idx_j == alignment_idx_i:
-            vehicle_length = vehiclesData[alignment_idx_i][i].vehicleLength
-            d = cars.VehicleInput.gap(vehiclesData[alignment_idx_i][i].curvilinearPositions[t][0],vehiclesData[alignment_idx_j][j].curvilinearPositions[t][0],vehicle_length)
+            d = cars.VehicleInput.gap(vehiclesData[alignment_idx_i][i].curvilinearPositions[t][0],
+                                      vehiclesData[alignment_idx_j][j].curvilinearPositions[t][0],
+                                      vehiclesData[alignment_idx_i][i].vehicleLength)
             if d > dmin:
                 return True,d
             return False,d
@@ -229,52 +230,69 @@ class World():
         dmin : float'''
 
         rows = len(vehiclesData[0])
-        columns = len(vehiclesData[1])
+        # columns = len(vehiclesData[1])
 
 
-        matrix_intersection = [[0]*columns]*rows
-        matrix_voie0 =[0]*rows
-        matrix_voie1 = [0]*columns
+        # matrix_intersection = [[0]*columns]*rows
+        matrix_voie1 =[0]*(rows-3)
+        # matrix_voie1 = [0]*columns
 
-        numberOfEncountersSameWayHorizontal = 0
-        numberOfEncountersSameWayVertical = 0
-        numberOfEncounterCrossingPaths = 0
-
-        #interactions sur la meme voie horizontale
-
-        for h in range(columns-1):
+        for h in range(1, rows-2):
             c = 0
-            while t < vehiclesData[0][0].curvilinearPositions :
-                if self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == False 0 <= vehiclesData[0][h].curvilinearPositions[t][0]:
+            t = 0
+            while t < len(vehiclesData[0][0].curvilinearPositions)-1:
+                if (self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True
+                    and self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == False
+                    and 0 <= vehiclesData[0][h].curvilinearPositions[t][0]
+                    and 0 <= vehiclesData[0][h+1].curvilinearPositions[t][0]):
                     c=+1
-            t+=1
-            matrix_voie1[h] = c
-        numberOfEncountersSameWayHorizontal = sum(matrix_voie0)
-
-        #interactions sur la meme voie horizontale
-
-        for v in range(rows-1):
-            c = 0
-            while t < vehiclesData[1][0].curvilinearPositions :
-                if self.isAnEncounter(vehiclesData,1,1,v,v+1,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,1,1,v,v+1,t+1,dmin)[0] == False 0 <= vehiclesData[0][h].curvilinearPositions[t][0]:
-                    c=+1
-            t+=1
-            matrix_voie1[h] = c
+                t+=1
+            matrix_voie1[h-1] = c
         numberOfEncountersSameWayHorizontal = sum(matrix_voie1)
 
-        #interactions croisées
-        for h in range(rows):
-            for v in range(columns):
-                c = 0
-                while t < len(vehiclesData[0][0].curvilinearPositions):
+        #interactions sur la meme voie verticale
 
-                    if self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0] == True and self.isAnEncounter(vehiclesData,0,1,h,v,t+1,dmin)[0] == False  and 10 <= vehiclesData[0][h].curvilinearPositions[t][0] and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]:
-                        c+=1
+        # for h in range(columns-1):
+        #     c = 0
+        #     while t < vehiclesData[0][0].curvilinearPositions :
+        #         if (self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] == True
+        #             and self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == False
+        #             and 0 <= vehiclesData[0][h].curvilinearPositions[t][0]):
+        #             c=+1
+        #     t+=1
+        #     matrix_voie1[h] = c
+        # numberOfEncountersSameWayHorizontal = sum(matrix_voie0)
+
+        #interactions sur la meme voie horizontale
+
+        for h in range(1, rows-2):
+            c = 0
+            t = 0
+            while t < len(vehiclesData[0][0].curvilinearPositions)-1 :
+                if (self.isAnEncounter(vehiclesData,0,0,h,h+1,t,dmin)[0] )== True :
+                    # and self.isAnEncounter(vehiclesData,0,0,h,h+1,t+1,dmin)[0] == False
+                    # and 0 <= vehiclesData[0][h].curvilinearPositions[t][0]):
+                    c=+1
                 t+=1
+            matrix_voie1[h-1] = c
+        numberOfEncountersSameWayHorizontal = sum(matrix_voie1)
 
-            matrix_intersection[h][v] = c
+        # #interactions croisées
+        # for h in range(rows):
+        #     for v in range(columns):
+        #         c = 0
+        #         while t < len(vehiclesData[0][0].curvilinearPositions):
+        #
+        #             if (self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0] == True
+        #                 and self.isAnEncounter(vehiclesData,0,1,h,v,t+1,dmin)[0] == False
+        #                 and 10 <= vehiclesData[0][h].curvilinearPositions[t][0]
+        #                 and 10 <= vehiclesData[1][v].curvilinearPositions[t][0]):
+        #                 c+=1
+        #         t+=1
+        #
+        #     matrix_intersection[h][v] = c
 
-        return numberOfEncountersSameWayHorizontal,numberOfEncountersSameWayVertical,numberOfEncounterCrossingPaths,numberOfEncountersSameWayVertical+numberOfEncountersSameWayHorizontal+numberOfEncounterCrossingPaths,matrix_intersection, matrix_voie0, matrix_voie1
+        return numberOfEncountersSameWayHorizontal, matrix_voie1
 
 
     def initVehiclesOnAligment(self,alignmentIdx, numberOfVehicles, sim, v0):
