@@ -26,10 +26,17 @@ class VehicleInput(object):
         toolkit.save_yaml(self.fileName, self)
 
     @staticmethod
-    def gap(sLeader,sFollowing,lengthLeader):
-        "calculates gaps between two vehicles"
+    def distanceGap(sLeader,sFollowing,lengthLeader):
+        "calculates distance gaps between two vehicles"
         distance = sLeader-sFollowing-lengthLeader
         return distance
 
     def generateHeadways(self, sample_size, seed, scale = None, tiv = None, tivprobcum = None):
         return toolkit.generateSample(sample_size = sample_size, scale = scale, seed = seed , tiv = None, tivprobcum = None)
+
+
+class CarGeometry():
+    def __init__(self, length = None, width = None, polygon = None):
+        self.length = length
+        self.width = width
+        self.polygon = polygon
