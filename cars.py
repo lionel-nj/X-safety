@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import collections
-import carFollowingModels as models
+# import carFollowingModels as models
 import toolkit
 import itertools
 import shapely.geometry
@@ -33,7 +33,6 @@ class VehicleInput(object):
 
     def generateHeadways(self, sample_size, seed, scale = None, tiv = None, tivprobcum = None):
         return toolkit.generateSample(sample_size = sample_size, scale = scale, seed = seed , tiv = None, tivprobcum = None)
-
 
 class CarGeometry():
     def __init__(self, length = None, width = None, polygon = None):

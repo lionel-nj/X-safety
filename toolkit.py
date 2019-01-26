@@ -99,37 +99,45 @@ def generateSample(sample_size, seed, scale = None, tiv = None, tivprobcum = Non
         save_yaml('headway_sample.yml',list(result))
         return list(result)
 
-def trace(alignment_idx, y_axis):
+
+def saveHeadwaysAsIntervals(sample,simDuration):
+    """saves headways as intervals of size : simDuration"""
+    result = []
+    k = 0
+    s = 0
+    while k < len(sample):
+        if k == 0:
+            result.append([sample[k],simDuration])
+        else :
+            s = sample[k]+result[k-1][0]
+            result.append([s,simDuration])
+        k+=1
+    return result
+
+def trace(trajectoriesFile, y_axis):
     import matplotlib.pyplot as plt
 
-    if alignment_idx == 0:
-        vehiclesFile = load_yaml('horizontal.yml')
-        timeFile  = load_yaml('intervalsHorizontal.yml')
-    else :
-        vehiclesFile = load_yaml('vertical.yml')
-        timeFile = load_yaml('intervalsVertical.yml')
-
     x = []
-    v = []
+    # v = []
 
-    for k in range (0,len(vehiclesFile)):
+    for k in range (0,len(trajectoriesFile)):
         x.append([])
-        v.append([])
+        # v.append([])
 
-        for time in range(len(vehiclesFile[0].curvilinearPositions)):
-            v[k].append(vehiclesFile[k].velocities[time])
-            x[k].append(vehiclesFile[k].curvilinearPositions[time][0])
+        for time in range(len(trajectoriesFile[0].curvilinearPositions)):
+            # v[k].append(trajectoriesFile[k].velocities[time])
+            x[k].append(trajectoriesFile[k].curvilinearPositions[time][0])
 
         if y_axis == 'x' :
-            plt.plot(timeFile[k],x[k])
+            plt.plot([k*0.1 for k in range (0,len(trajectoriesFile[k].curvilinearPositions))],x[k])
             ylabel = "longitudinal positions"
             plt.xlabel('t')
             plt.ylabel('x')
-        else :
-            plt.plot(timeFile[k],v[k])
-            ylabel = "speeds "
-            plt.xlabel('t')
-            plt.ylabel('v')
+        # else :
+        #     plt.plot([k*0.1 for k in range (0,len(trajectoriesFile[k].curvilinearPositions))],v[k])
+        #     ylabel = "speeds "
+        #     plt.xlabel('t')
+        #     plt.ylabel('v')
     plt.show()
     plt.close()
 
@@ -141,3 +149,7 @@ def prepareIntervals(headways,sampleSize,N_Step):
         for t in range(1,round(N_Step)):
             intervals[k].append(intervals[k][t-1]+1)
     return intervals
+
+def changeVolumeOnVehicleInput(worldFile,newVolume,alignment_idx):
+    """modifies the volume on a particular alignment"""
+    worldFile.vehicleInputs[alignment_idx].volume = newVolume

@@ -4,134 +4,134 @@ import cars
 import objectsofworld
 import toolkit
 import simulation
+import math
 import numpy as np
 import random as rd
-import carFollowingModels as models
 
 world = objectsofworld.World.load('default.yml')
 sim = toolkit.load_yaml('config.yml')
 
 def run(worldFile,configFile):
-
-    volumes_to_test_on_0 = [800,]
-    volumes_to_test_on_1 = [20,]
-    #
-    # encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
-    # encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
-    # encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+    """execution of a single simulation with a particular set of parameters"""
 
     alignments = [worldFile.alignments[0], worldFile.alignments[1]]
 
     seedBucket = [45,90]
-
-    for alignment in alignments :
+    vehiclesInitialization = []
+    for alignment, seed in zip(alignments, seedBucket) :
         v0 = rd.normalvariate(15,3)
         v1 = rd.normalvariate(15,3)
 
-        leaderVehicleInput0 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
-                                                                                                              v0*sim.timeStep,
-                                                                                                              round(configFile.duration/configFile.timeStep),
-                                                                                                              alignment.idx),
-                                                  velocities = [v0 for k in range (round(configFile.duration/configFile.timeStep))],
-                                                  vehicleLength = 7)
+        intervalsOfVehicleExistenceOnVehicleInput = toolkit.saveHeadwaysAsIntervals(worldFile.vehicleInputs[0].generateHeadways(sample_size = math.ceil(worldFile.vehicleInputs[0].volume*configFile.duration/3600)-1,
+                                                                                                                                seed = seed),
+                                                                                     configFile.duration)
+        firstVehicleOnAlignment = moving.MovingObject()
 
-        leaderVehicleInput1 = moving.MovingObject(curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
-                                                                                                              v1,
-                                                                                                              round(configFile.duration/configFile.timeStep),
-                                                                                                              alignment.idx),
-                                                  velocities = [v1 for k in range (round(configFile.duration/configFile.timeStep))],
-                                                  vehicleLength = 7)
+        firstVehicleOnAlignment.velocities = [v0 for k in range (round(configFile.duration/configFile.timeStep))]
+        firstVehicleOnAlignment.velocities = moving.CurvilinearTrajectory.generate(0,
+                                                                                   0,
+                                                                                   1,
+                                                                                   None)
+        for k in range(1,math.ceil(configFile.duration/configFile.timeStep)):
+            firstVehicleOnAlignment.velocities.addPositionSYL(v0,0,None)
 
-        vehiclesGeneratedByVehicleInput0 = [leaderVehicleInput0] + worldFile.initVehiclesOnAligment(0,
-                                                                                            round(worldFile.vehicleInputs[0].volume*configFile.duration/3600)-1,
+        firstVehicleOnAlignment.vehicleLength = 7
+        firstVehicleOnAlignment.timeInterval = intervalsOfVehicleExistenceOnVehicleInput[0]
+        firstVehicleOnAlignment.curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
+                                                                                             0,
+                                                                                             math.ceil(firstVehicleOnAlignment.timeInterval[0]/configFile.timeStep)-1,
+                                                                                             alignment.idx)
+
+        firstVehicleOnAlignment.curvilinearPositions.concatenate(moving.CurvilinearTrajectory.generate(0,
+                                                                                                       v0*configFile.timeStep,
+                                                                                                       math.ceil( (configFile.duration/configFile.timeStep) - (firstVehicleOnAlignment.timeInterval[0]/configFile.timeStep) ),
+                                                                                                       alignment.idx))
+
+        firstVehicleOnAlignment.reactionTime = rd.normalvariate(2.5,1)
+
+        vehiclesGeneratedByVehicleInput = [firstVehicleOnAlignment] + worldFile.initVehiclesOnAligment(0,
+                                                                                            math.ceil(worldFile.vehicleInputs[int(alignment.idx)].volume*configFile.duration/3600)-1,
                                                                                             configFile,
-                                                                                            15)
-        vehiclesGeneratedByVehicleInput1 = [leaderVehicleInput1] + worldFile.initVehiclesOnAligment(1,
-                                                                                            round(worldFile.vehicleInputs[0].volume*configFile.duration/3600)-1,
-                                                                                            configFile,
-                                                                                            15)
-        for k in range (1, len(vehiclesGeneratedByVehicleInput0)):
-            for t in range(1,round(configFile.duration/configFile.timeStep)):
-                #acceleration = ?? donné par le modèle
-                vehiclesGeneratedByVehicleInput0[k].updateVelocities(previousVelocity = vehiclesGeneratedByVehicleInput0[k].velocities[t-1],
-                                                                    acceleration = acceleration,
-                                                                    configFile.timeStep,
-                                                                    vehiclesGeneratedByVehicleInput0[k].maxSpeed)
-                                                                    # models.Models.Naive.speed(curvilinearPositionLeader = vehiclesGeneratedByVehicleInput0[k-1].curvilinearPositions[t][0],
-                                                                    #                     curvilinearPositionFollowing = vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[t-1][0],
-                                                                    #                     desiredSpeed = vehiclesGeneratedByVehicleInput0[k].desiredSpeed,
-                                                                    #                     TIVmin = configFile.minimumTimeHeadway))
+                                                                                            intervalsOfVehicleExistenceOnVehicleInput)
+        vehiclesInitialization.append(vehiclesGeneratedByVehicleInput)
+    for initializedVehicles in vehiclesInitialization :
+        for k in range (1, len(initializedVehicles)):
 
-                vehiclesGeneratedByVehicleInput0[k].updateCurvilinearPositions(vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[t-1],
-                                                                                speed = vehiclesGeneratedByVehicleInput0[k].velocities[t-1] ,
-                                                                                acceleration = acceleration,
-                                                                                sim.timeStep,
-                                                                                vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[0].lanes[0]
-                                                                                # [models.Models.Naive.position(previousPosition = vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[t-1][0],
-                                                                                #                      velocity = vehiclesGeneratedByVehicleInput0[k].velocities[t-1],
-                                                                                #                      step = configFile.timeStep), 0, alignment.idx])
+            reactionTime = initializedVehicles[k].reactionTime/configFile.timeStep
+            creationTimeOfCurrentVehicle = initializedVehicles[k].timeInterval[0]/configFile.timeStep
+            creationTimeOfPrecedingVehicle = initializedVehicles[k-1].timeInterval[0]/configFile.timeStep
 
-                #
-                # vehiclesGeneratedByVehicleInput0[k].updateMovingObject(newCurvilinearPosition = [models.Models.Naive.position(vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[t-1][0],
-                #                                                                                             vehiclesGeneratedByVehicleInput0[k].velocities[t-1],
-                #                                                                                             configFile.timeStep),
-                #                                                                            0,
-                #                                                                            worldFile.alignments[0].idx],
-                #                                                 newVelocity = models.Models.Naive.speed(curvilinearPositionLeader = vehiclesGeneratedByVehicleInput0[k-1].curvilinearPositions[t][0],
-                #                                                                                         curvilinearPositionFollowing = models.Models.Naive.position(vehiclesGeneratedByVehicleInput0[k].curvilinearPositions[t-1][0],
-                #                                                                                                                      vehiclesGeneratedByVehicleInput0[k].velocities[t-1],
-                #                                                                                                                      configFile.timeStep),
-                #                                                                                         previousVelocity = vehiclesGeneratedByVehicleInput0[k].velocities[t-1],
-                #                                                                                         TIVmin = configFile.minimumTimeHeadway),
-                #                                                 newAcceleration = None)
-        toolkit.save_yaml(alignment.name, vehiclesGeneratedByVehicleInput0)
-        print(worldFile.countAllEncounters([vehiclesGeneratedByVehicleInput0], sim.interactionDistance))
-        return vehiclesGeneratedByVehicleInput0
+            #pour tous les movingObjects sauf le premier qui est initialise manuellement
+            for t in range(1,math.ceil(configFile.duration/configFile.timeStep)):
+                #boucle allant de 1 (premiere coordonnee deja initialisee) à la durée de la simulation
+                if t < creationTimeOfCurrentVehicle:
+                    #tant que t < instant de creation du vehicule courant (k), on ne met pas a jour la position, elle vaut juste 0
+                    initializedVehicles[k].curvilinearPositions.addPositionSYL(0,0,initializedVehicles[k].curvilinearPositions.lanes[0])
+                else :
+                    #une fois que t=>  instant de creation du vehicule on procede a la mise a jour des positions selon newell
+                    #espacement initial = (position du vehicule leader - sa longueur) a l'instant ou le vehicule suiveur est cree sur le reseau
+                    previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k-1].curvilinearPositions[math.ceil(t-reactionTime)][0]
+                    initialSpacing = initializedVehicles[k-1].curvilinearPositions[int(creationTimeOfCurrentVehicle)+1][0]# - initializedVehicles[k-1].vehicleLength
+                    #-1 pour etre un instant avant que le vehicule courant ne bouge
+                    #initialSpacing = position leader - position vehicule suiveur(=0) a linstant d'apparition du vehicule suiveur
+                    dn = max(0,initialSpacing - initializedVehicles[k].reactionTime * v0)
+                    #dn : formule page 196 du paper
+                    currentVehicleDesiredSpeed = initializedVehicles[k].desiredSpeed
+                    # tiv = (initializedVehicles[k-1].curvilinearPositions[t][0] - (initializedVehicles[k].curvilinearPositions[t-1][0] + currentVehicleDesiredSpeed * configFile.timeStep) - initializedVehicles[k-1].vehicleLength) / currentVehicleDesiredSpeed
+                    tiv = (previousVehicleCurvilinearPositionAtPrecedentTime - (initializedVehicles[k].curvilinearPositions[math.ceil(t-reactionTime)][0] + currentVehicleDesiredSpeed * configFile.timeStep) - initializedVehicles[k-1].vehicleLength) / currentVehicleDesiredSpeed
+                    #la position du vehicule courant a l'instant t n'est pas connue, on l'estime donc avec la methode de vitesse constante dans le cadre du calcul du tiv
+                    tiv_min = configFile.minimumTimeHeadway
+                    if tiv < tiv_min:
+                        #si le temps intervehiculaire n'est pas suffisamment grand, alors on applique la méthode de Newell, sinon on calcule la prochaine position selon la méthode des vitesses constants : x(n+1)(t)=x(n+1)(t)+v*t
+                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
+                                                                          timeStep = configFile.timeStep,
+                                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = previousVehicleCurvilinearPositionAtPrecedentTime,
+                                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
+                                                                          changeOfAlignment = False,
+                                                                          Dn = dn)
+                    else:
+                        initializedVehicles[k].updateCurvilinearPositions(method = 'constantSpeed',
+                                                                          time = t,
+                                                                          timeStep =  configFile.timeStep,
+                                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
+                                                                          changeOfAlignment = False,
+                                                                          seed = seed + k)
+    #print(worldFile.countAllEncounters([vehiclesGeneratedByVehicleInput], configFile.interactionDistance))
+    return vehiclesInitialization
 
-a = run(world,sim)
-# vehiclesData[alignment_idx_i][i].curvilinearPositions[t][0]
-
-    # for volumes0 in volumes_to_test_on_0 :
-    #     for volumes1 in volumes_to_test_on_1 :
-    #
-    #         worldFile.vehicleInputs[0].volume = volumes0
-    #         worldFile.vehicleInputs[1].volume = volumes1
-    #
-    #         vehicleInputs = [worldFile.vehicleInputs[0], worldFile.vehicleInputs[1]]
-    #
-    #         vehiclesTrajectories = []
-    #         for alignment, vehicleInput,   in zip(worldFile.alignments, vehicleInputs, seedBucket):
-    #
-    #             rd.seed(seeds)
-    #             seed = rd.randint(1,100)
-    #             vehiclesTrajectories.append(vehicleInput.generateTrajectories(alignment = alignment,
-    #                                                                         tSimul = configFile.duration,
-    #                                                                         TIVmin = configFile.minimumTimeHeadway,
-    #                                                                         averageVehicleLength = configFile.averageVehicleWidth,
-    #                                                                         averageVehicleWidth = configFile.averageVehicleWidth,
-    #                                                                         vehicleLengthSD = configFile.vehicleLengthSD,
-    #                                                                         vehicleWidthSD = configFile.vehicleWidthSD,
-    #                                                                         seed = seed,
-    #                                                                         model = 'Naive')[0])
-    #             # vehiclesTrajectories.append(vehicleInput.generateNewellTrajectories(alignment = alignment,
-    #             #                                                             tSimul = configFile.duration,
-    #             #                                                             TIVmin = configFile.minimumTimeHeadway,
-    #             #                                                             averageVehicleLength = configFile.averageVehicleWidth,
-    #             #                                                             averageVehicleWidth = configFile.averageVehicleWidth,
-    #             #                                                             vehicleLengthSD = configFile.vehicleLengthSD,
-    #             #                                                             vehicleWidthSD = configFile.vehicleWidthSD,
-    #             #                                                             seed = seed)[0])
-    #
-    #         toolkit.save_yaml('horizontal.yml', vehiclesTrajectories[0])
-    #         toolkit.save_yaml('vertical.yml', vehiclesTrajectories[1])
-
+# run(world,sim)
+trajectoryData = run(world,sim)
+temp = world.countAllEncounters(trajectoryData,30)
 #
-#         # #calcul du nombre d'interactions
-#         #et remplissage des matrices
-#         encounters0[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,configFile.interactionDistance)
-#         encounters1[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,configFile.interactionDistance)[1]
-#         encounters2[volumes0,volumes1] = world.countAllEncounters(vehiclesTrajectories,configFile.interactionDistance)[2]
 #
+toolkit.trace(run(world,sim)[0],'x')
+toolkit.trace(run(world,sim)[1],'x')
+#
+# #
+# #
+# volumes_to_test_on_0 = [2000,]
+# volumes_to_test_on_1 = [700,]
+#
+#
+# encounters0 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+# encounters1 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+# #encounters2 = { (i,j):0 for i in range(len(volumes_to_test_on_0)) for j in range(len(volumes_to_test_on_1)) }
+#
+#
+# for volumesToTestOn0, volumesToTestOn1 in zip (volumes_to_test_on_0, volumes_to_test_on_1):
+#     toolkit.changeVolumeOnVehicleInput(world, volumesToTestOn0,0)
+#     toolkit.changeVolumeOnVehicleInput(world, volumesToTestOn1,1)
+#
+#     data = [run(world,sim)[0],run(world,sim)[1]]
+#
+# # # #calcul du nombre d'interactions
+# # # #et remplissage des matrices
+# #
+#     encounters0[volumesToTestOn0,volumesToTestOn1] = world.countAllEncounters(data,sim.interactionDistance)
+#     print(encounters0)
+    # encounters1[volumesToTestOn0,volumesToTestOn1] = world.countAllEncounters(data,configFile.interactionDistance)[1]
+    # encounters2[volumesToTestOn0,volumesToTestOn1] = world.countAllEncounters(data,configFile.interactionDistance)[2]
+
 # toolkit.save_yaml(config['output']['fileName']['encounterMatrices'][0],encounters0)
 # toolkit.save_yaml(config['output']['fileName']['encounterMatrices'][1],encounters1)
 # toolkit.save_yaml(config['output']['fileName']['encounterMatrices'][2],encounters2)
