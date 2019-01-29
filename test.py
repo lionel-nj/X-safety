@@ -1,26 +1,21 @@
-import os
 from trafficintelligence import moving
-import cars
 import objectsofworld
 import toolkit
-import simulation
 import math
-import numpy as np
-import random as rd
+import random
 
 world = objectsofworld.World.load('default.yml')
 sim = toolkit.load_yaml('config.yml')
 
 def run(worldFile,configFile):
     """execution of a single simulation with a particular set of parameters"""
-
     alignments = [worldFile.alignments[0], worldFile.alignments[1]]
 
     seedBucket = [45,90]
     vehiclesInitialization = []
     for alignment, seed in zip(alignments, seedBucket) :
-        v0 = rd.normalvariate(15,3)
-        v1 = rd.normalvariate(15,3)
+        v0 = random.normalvariate(15,3)
+        v1 = random.normalvariate(15,3)
 
         intervalsOfVehicleExistenceOnVehicleInput = toolkit.saveHeadwaysAsIntervals(worldFile.vehicleInputs[0].generateHeadways(sample_size = math.ceil(worldFile.vehicleInputs[0].volume*configFile.duration/3600)-1,
                                                                                                                                 seed = seed),
@@ -36,6 +31,7 @@ def run(worldFile,configFile):
             firstVehicleOnAlignment.velocities.addPositionSYL(v0,0,None)
 
         firstVehicleOnAlignment.vehicleLength = 7
+        firstVehicleOnAlignment.desiredSpeed = v0
         firstVehicleOnAlignment.timeInterval = intervalsOfVehicleExistenceOnVehicleInput[0]
         firstVehicleOnAlignment.curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
                                                                                              0,
@@ -47,65 +43,63 @@ def run(worldFile,configFile):
                                                                                                        math.ceil( (configFile.duration/configFile.timeStep) - (firstVehicleOnAlignment.timeInterval[0]/configFile.timeStep) ),
                                                                                                        alignment.idx))
 
-        firstVehicleOnAlignment.reactionTime = rd.normalvariate(2.5,1)
+        firstVehicleOnAlignment.reactionTime = random.normalvariate(2.5,1)
 
         vehiclesGeneratedByVehicleInput = [firstVehicleOnAlignment] + worldFile.initVehiclesOnAligment(0,
                                                                                             math.ceil(worldFile.vehicleInputs[int(alignment.idx)].volume*configFile.duration/3600)-1,
                                                                                             configFile,
                                                                                             intervalsOfVehicleExistenceOnVehicleInput)
         vehiclesInitialization.append(vehiclesGeneratedByVehicleInput)
+
+        #modification de la premiere coordonnes des vehicules
+        #
+        # for k in range(1, len(vehiclesInitialization[int(alignment.idx)])) :
+        #     DT = vehiclesInitialization[int(alignment.idx)][k].timeInterval[0] - vehiclesInitialization[int(alignment.idx)][k-1].timeInterval[0]
+        #
+        #     vehiclesInitialization[int(alignment.idx)][k].curvilinearPositions.setPosition(i = 0, s = -DT* vehiclesInitialization[int(alignment.idx)][k].desiredSpeed, y = 0, lane = alignment.idx)  #
+
     for initializedVehicles in vehiclesInitialization :
         for k in range (1, len(initializedVehicles)):
 
             reactionTime = initializedVehicles[k].reactionTime/configFile.timeStep
             creationTimeOfCurrentVehicle = initializedVehicles[k].timeInterval[0]/configFile.timeStep
-            creationTimeOfPrecedingVehicle = initializedVehicles[k-1].timeInterval[0]/configFile.timeStep
+            tiv_min = random.normalvariate(1.5, 1)
 
             #pour tous les movingObjects sauf le premier qui est initialise manuellement
-            for t in range(1,math.ceil(configFile.duration/configFile.timeStep)):
-                #boucle allant de 1 (premiere coordonnee deja initialisee) à la durée de la simulation
-                if t < creationTimeOfCurrentVehicle:
+            for t in range(1, math.ceil(configFile.duration/configFile.timeStep)):
+                #boucle allant de 1 (premiere coorandomonnee deja initialisee) à la durée de la simulation
+                while t < creationTimeOfCurrentVehicle:# and initializedVehicles[k].curvilinearPositions[t-1][0]>=0 :
                     #tant que t < instant de creation du vehicule courant (k), on ne met pas a jour la position, elle vaut juste 0
-                    initializedVehicles[k].curvilinearPositions.addPositionSYL(0,0,initializedVehicles[k].curvilinearPositions.lanes[0])
+                    initializedVehicles[k].curvilinearPositions.addPositionSYL(0, 0, initializedVehicles[k].curvilinearPositions.lanes[0])
+                    initializedVehicles[k].velocities.addPositionSYL(initializedVehicles[k].desiredSpeed, 0, None)
+                    break
+
                 else :
                     #une fois que t=>  instant de creation du vehicule on procede a la mise a jour des positions selon newell
                     #espacement initial = (position du vehicule leader - sa longueur) a l'instant ou le vehicule suiveur est cree sur le reseau
                     previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k-1].curvilinearPositions[math.ceil(t-reactionTime)][0]
-                    initialSpacing = initializedVehicles[k-1].curvilinearPositions[int(creationTimeOfCurrentVehicle)+1][0]# - initializedVehicles[k-1].vehicleLength
-                    #-1 pour etre un instant avant que le vehicule courant ne bouge
-                    #initialSpacing = position leader - position vehicule suiveur(=0) a linstant d'apparition du vehicule suiveur
-                    dn = max(0,initialSpacing - initializedVehicles[k].reactionTime * v0)
-                    #dn : formule page 196 du paper
-                    currentVehicleDesiredSpeed = initializedVehicles[k].desiredSpeed
-                    # tiv = (initializedVehicles[k-1].curvilinearPositions[t][0] - (initializedVehicles[k].curvilinearPositions[t-1][0] + currentVehicleDesiredSpeed * configFile.timeStep) - initializedVehicles[k-1].vehicleLength) / currentVehicleDesiredSpeed
-                    tiv = (previousVehicleCurvilinearPositionAtPrecedentTime - (initializedVehicles[k].curvilinearPositions[math.ceil(t-reactionTime)][0] + currentVehicleDesiredSpeed * configFile.timeStep) - initializedVehicles[k-1].vehicleLength) / currentVehicleDesiredSpeed
-                    #la position du vehicule courant a l'instant t n'est pas connue, on l'estime donc avec la methode de vitesse constante dans le cadre du calcul du tiv
-                    tiv_min = configFile.minimumTimeHeadway
-                    if tiv < tiv_min:
-                        #si le temps intervehiculaire n'est pas suffisamment grand, alors on applique la méthode de Newell, sinon on calcule la prochaine position selon la méthode des vitesses constants : x(n+1)(t)=x(n+1)(t)+v*t
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                                          timeStep = configFile.timeStep,
-                                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = previousVehicleCurvilinearPositionAtPrecedentTime,
-                                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                                          changeOfAlignment = False,
-                                                                          Dn = dn)
-                    else:
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'constantSpeed',
-                                                                          time = t,
-                                                                          timeStep =  configFile.timeStep,
-                                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                                          changeOfAlignment = False,
-                                                                          seed = seed + k)
-    #print(worldFile.countAllEncounters([vehiclesGeneratedByVehicleInput], configFile.interactionDistance))
+                    spacing = initializedVehicles[k-1].curvilinearPositions[int(creationTimeOfCurrentVehicle)][0] - initializedVehicles[k].vehicleLength
+                    # #dn : formule page 196 du paper
+                    dn = initializedVehicles[k-1].desiredSpeed*tiv_min*configFile.timeStep
+                    Dn = dn - initializedVehicles[k-1].vehicleLength #+ initializedVehicles[k-1].velocities[math.ceil(t-reactionTime)][0]*(configFile.timeStep**2)
+                    # #la position du vehicule courant a l'instant t n'est pas connue, on l'estime donc avec la methode de vitesse constante dans le cadre du calcul du tiv
+                    initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
+                                                                      timeStep = configFile.timeStep,
+                                                                      leaderVehicleCurvilinearPositionAtPrecedentTime = previousVehicleCurvilinearPositionAtPrecedentTime,
+                                                                      nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
+                                                                      changeOfAlignment = False,
+                                                                      Dn = Dn)
+
+    # print(worldFile.countAllEncounters([vehiclesGeneratedByVehicleInput], configFile.interactionDistance))
     return vehiclesInitialization
 
-# run(world,sim)
-trajectoryData = run(world,sim)
-temp = world.countAllEncounters(trajectoryData,30)
+run(world,sim)
+# trajectoryData = run(world,sim)
+# temp = world.countAllEncounters(trajectoryData,30)
 #
 #
-toolkit.trace(run(world,sim)[0],'x')
 toolkit.trace(run(world,sim)[1],'x')
+# toolkit.trace(run(world,sim)[1],'x')
 #
 # #
 # #

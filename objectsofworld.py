@@ -502,8 +502,8 @@ class World():
     def showAlignments(self):
         import matplotlib.pyplot as plt
 
-        moving.Trajectory.plot(world.alignments[0].points)
-        moving.Trajectory.plot(world.alignments[1].points)
+        moving.Trajectory.plot(self.alignments[0].points)
+        moving.Trajectory.plot(self.alignments[1].points)
         plt.show()
 
     def existingUsers(self, t):
@@ -630,6 +630,8 @@ class World():
                                                                               0,
                                                                               1,
                                                                               self.alignments[alignmentIdx].idx)
+            temp.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
+                                                 self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
             temp.velocities = moving.CurvilinearTrajectory.generate(0,
                                                                     0,
                                                                     1,
@@ -639,10 +641,9 @@ class World():
             temp.vehicleLength = rd.normalvariate(7, 1.5)
             temp.timeInterval = intervalsOfVehicleExistence[k]
             rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.reactionTime = rd.normalvariate(1.5, 0.2)
+            temp.reactionTime = rd.normalvariate(2, 0.5)
             rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-                                                 self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+
             result.append(temp)
 
         return result
