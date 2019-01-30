@@ -642,6 +642,8 @@ class World():
             temp.timeInterval = intervalsOfVehicleExistence[k]
             rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
             temp.reactionTime = rd.normalvariate(2, 0.5)
+            temp.tiv_min = rd.normalvariate(2, 0.5)
+            temp.dn = temp.desiredSpeed * temp.tiv_min
             rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
 
             result.append(temp)
