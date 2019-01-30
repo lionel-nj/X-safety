@@ -62,7 +62,7 @@ vehicleInputs:
   - 14.0
   - 2.0
   headwayDistributionParameters: null
-  seed: 780
+  seed: 45
   tSimul: 100.0
   volume: 700
 - !!python/object:cars.VehicleInput
@@ -71,7 +71,7 @@ vehicleInputs:
   - 14.0
   - 2.0
   headwayDistributionParameters: null
-  seed: 45
+  seed: 90
   tSimul: 100.0
   volume: 700
 vehicles: null
