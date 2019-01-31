@@ -53,7 +53,9 @@ alignments:
       - 1000.0
   width: null
 controlDevices: null
-crossingPoint: null
+crossingPoint: !!python/object:trafficintelligence.moving.Point
+    x: 0.0
+    y: 0.0
 pedestrians: null
 vehicleInputs:
 - !!python/object:cars.VehicleInput
@@ -64,7 +66,7 @@ vehicleInputs:
   headwayDistributionParameters: null
   seed: 45
   tSimul: 100.0
-  volume: 700
+  volume: 400
 - !!python/object:cars.VehicleInput
   alignmentIdx: 1.0
   desiredSpeedParameters:
@@ -73,5 +75,5 @@ vehicleInputs:
   headwayDistributionParameters: null
   seed: 90
   tSimul: 100.0
-  volume: 700
+  volume: 400
 vehicles: null

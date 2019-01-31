@@ -46,7 +46,6 @@ def run(worldFile, configFile):
 
         vehiclesGeneratedByVehicleInput = [firstVehicleOnAlignment] + worldFile.initVehiclesOnAligment(int(alignment.idx),
                                                                                                        math.ceil(worldFile.vehicleInputs[int(alignment.idx)].volume*configFile.duration/3600)-1,
-                                                                                                       configFile,
                                                                                                        intervalsOfVehicleExistenceOnVehicleInput)
         vehiclesInitialization.append(vehiclesGeneratedByVehicleInput)
 
@@ -68,16 +67,16 @@ def run(worldFile, configFile):
                     #tant que t < instant de creation du vehicule courant (k), la position vaut l'espacement dn entre les 2 vehicules
 
                     initializedVehicles[k].curvilinearPositions.addPositionSYL(initializedVehicles[k].curvilinearPositions[0][0], 0, initializedVehicles[k].curvilinearPositions.lanes[0])
-                    initializedVehicles[k].velocities.addPositionSYL(initializedVehicles[k].desiredSpeed, 0, None)
+                    initializedVehicles[k].velocities.addPositionSYL(0, 0, None)
 
 
                 else :
                     #une fois que t=>  instant de creation du vehicule on procede a la mise a jour des positions selon newell
-                    #espacement initial = (position du vehicule leader - sa longueur) a l'instant ou le vehicule suiveur est cree sur le reseau
                     if t > reactionTime:
-                        previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k-1].curvilinearPositions[math.ceil(t-reactionTime)][0]
+                        previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k-1].curvilinearPositions[math.ceil(t-reactionTime
+                                                                                                                                    )][0]
                     else:
-                        previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0]
+                        previousVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn
 
                     initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
                                                                       timeStep = configFile.timeStep,
@@ -85,15 +84,16 @@ def run(worldFile, configFile):
                                                                       nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
                                                                       changeOfAlignment = False)
 
-    # print(worldFile.countAllEncounters([vehiclesGeneratedByVehicleInput], configFile.interactionDistance))
+    print(world.countAllEncounters(vehiclesInitialization,configFile.interactionDistance))
     return vehiclesInitialization
 
-run(world,sim)
-# trajectoryData = run(world,sim)
-# temp = world.countAllEncounters(trajectoryData,30)
+# run(world,sim)
 #
-#
-toolkit.trace(run(world,sim)[1],'x')
+trajectoryData = run(world,sim)
+# temp = world.countAllEncounters(trajectoryData,50)
+# #
+# #
+# toolkit.trace(run(world,sim)[0],'x')
 # toolkit.trace(run(world,sim)[1],'x')
 #
 # #

@@ -2,7 +2,7 @@
 averageVehicleLength: 7.0
 averageVehicleWidth: 2.5
 duration: 100.0
-interactionDistance: 25
+interactionDistance: 50
 minimumTimeHeadway: 2.0
 timeStep: 0.1
 vehicleLengthSD: 2.0
