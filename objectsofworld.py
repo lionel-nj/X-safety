@@ -519,6 +519,13 @@ class World():
 
         return sorted(result, key=takeEntry)
 
+    def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t):
+        d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[alignment_idx].distance_to_crossing_point
+        if d < 0 :
+            return True
+        else:
+            return False
+
     def minDistanceChecked(self, vehiclesData, leader_alignment_idx_i, follower_alignment_idx_j, i, j, t, dmin):
         """ checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle and j is the following vehicle"""
@@ -534,10 +541,8 @@ class World():
 
         else:
             angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
-            d1 = vehiclesData[alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[
-                alignment_idx_i].distance_to_crossing_point
-            d2 = vehiclesData[alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[
-                alignment_idx_j].distance_to_crossing_point
+            d1 = vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[leader_alignment_idx_i].distance_to_crossing_point
+            d2 = vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[follower_alignment_idx_j].distance_to_crossing_point
             d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
             if d >= dmin:
                 return True, d
@@ -563,6 +568,7 @@ class World():
 
         result = []
         rows = len(vehiclesData[0])
+        columns = len(vehiclesData[1])
 
         # matrix_intersection = [[0]*columns]*rows
 
@@ -578,12 +584,10 @@ class World():
 
                 while t < len(vehiclesData[alignment][0].curvilinearPositions) - 1:
                     if (self.isAnEncounter(vehiclesData, alignment, alignment, h, h + 1, t, dmin)[0] == True
-                        and 0 < vehiclesData[alignment][h].curvilinearPositions[t][0]
-                        and 0 < vehiclesData[alignment][h+1].curvilinearPositions[t][0]):
+                        and 0 < vehiclesData[alignment][h].velocities[t][0]
+                        and 0 < vehiclesData[alignment][h+1].velocities[t][0]):
                         interactionTime[h].append(t)
                     t += 1
-
-                numberOfEncountersSameWay = 0
 
                 if len(interactionTime[h]) < 2:
                     numberOfEncountersSameWay = len(interactionTime[h])
@@ -599,21 +603,36 @@ class World():
             result.append(totalnumberOfEncountersSameWay)
 
         # interactions croisées
-        # d = 0
-        # for h in range(rows):
-        #     for v in range(columns):
-        #         c = 0
-        #         while t < len(vehiclesData[0][0].curvilinearPositions):
-        #
-        #             if (self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0] == True
-        #                 and self.isAnEncounter(vehiclesData,0,1,h,v,t+1,dmin)[0] == False
-        #                 and 0 < vehiclesData[0][h].curvilinearPositions[t][0]
-        #                 and 0 < vehiclesData[1][v].curvilinearPositions[t][0]):
-        #                 c+=1
-        #         t+=1
-        #
-        #     matrix_intersection[h][v] = c
-        #     d+=sum(matrix_intersection[h])
+
+        interactionTime = []
+        totalnumberOfEncounters = 0
+        for h in range(rows):
+            interactionTime.append([])
+            for v in range(columns):
+                interactionTime[h].append([])
+
+                t = 0
+                while t < len(vehiclesData[0][0].curvilinearPositions):
+                    if ((self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0]
+                        and 0 < vehiclesData[0][h].velocities[t][0]
+                        and 0 < vehiclesData[1][v].velocities[t][0])):
+                        # and isVehicleBeforeCrossingPointAt(self, 0, h, t)
+                        # and isVehicleBeforeCrossingPointAt(self, 1, v, t)):
+                        interactionTime[h][v].append(t)
+                    t += 1
+
+                if len(interactionTime[h][v]) < 2:
+                    numberOfEncounters = len(interactionTime[h][v])
+
+                else:
+                    numberOfEncounters = 1
+                    for k in range(len(interactionTime[h][v]) - 1):
+                        if interactionTime[h][v][k+1] != interactionTime[h][v][k] + 1:
+                            numberOfEncounters += 1
+
+                totalnumberOfEncounters += numberOfEncounters
+
+        result.append(totalnumberOfEncounters)
 
         return result
 
