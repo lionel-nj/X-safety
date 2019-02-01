@@ -13,17 +13,21 @@ from trafficintelligence import moving
 from scipy import stats
 
 def load_yaml(filename):
+    """ loads a yaml file"""
     return yaml.load(open(filename))
 
 def save_yaml(filename,data):
+    """saves data to a yaml file"""
     with open(filename, 'w') as outfile:
         yaml.dump(data,outfile,default_flow_style = False)
 
 def copy_yaml(filename,newname):
+    """copies a yaml file"""
     data = load_yaml(filename)
     save_yaml(newname,data)
 
 def update_yaml(filename,element,key):
+    """updates a yaml file"""
     data = load_yaml(filename)
     try:
         data[key] = element
@@ -32,6 +36,7 @@ def update_yaml(filename,element,key):
         print("the key requested does not exist in the yaml file")
 
 def delete_element_from_yaml(filename, key):
+    """deletes a yaml file"""
     data = load_yaml(filename)
     try:
         del data[key]
@@ -40,6 +45,7 @@ def delete_element_from_yaml(filename, key):
         print("the key requested does not exist in the yaml file")
 
 def generateDistribution(data):
+    """generates a distribution from a set of data"""
     'input : fichier csv'
     with open(data, 'r') as f:
         liste = csv.reader(f)
@@ -87,6 +93,7 @@ def generateDistribution(data):
 
 
 def generateSample(sample_size, seed, scale = None, tiv = None, tivprobcum = None):
+    """generates a sample from a given distribution"""
     if scale == None :
         tiv = load_yaml('tiv.yml')
         TIVProbCum = load_yaml('tiv_prob_cum.yml')
@@ -115,6 +122,7 @@ def saveHeadwaysAsIntervals(sample,simDuration):
     return result
 
 def trace(trajectoriesFile, y_axis):
+    """plots trajectories or speeds"""
     import matplotlib.pyplot as plt
 
     x = []
@@ -142,6 +150,7 @@ def trace(trajectoriesFile, y_axis):
     plt.close()
 
 def prepareIntervals(headways,sampleSize,N_Step):
+    """prepares the intervals"""
     intervals = [None]*sampleSize
     for k in range(0,sampleSize):
         intervals[k] = [headways[k]]
@@ -151,5 +160,5 @@ def prepareIntervals(headways,sampleSize,N_Step):
     return intervals
 
 def changeVolumeOnVehicleInput(worldFile,newVolume,alignment_idx):
-    """modifies the volume on a particular alignment"""
+    """changes the volume on a particular alignment"""
     worldFile.vehicleInputs[alignment_idx].volume = newVolume
