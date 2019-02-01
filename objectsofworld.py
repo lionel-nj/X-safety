@@ -162,9 +162,11 @@ class World():
                                                                                            self.controlDevices)
     @staticmethod
     def load(filename):
+        """loads a yaml file"""
         return toolkit.load_yaml(filename)
 
     def save(self, filename):
+        """saves data to yaml file"""
         toolkit.save_yaml(filename, self)
 
     @staticmethod
@@ -180,6 +182,7 @@ class World():
         self.save('default.yml')
 
     def showAlignments(self):
+        """plots alignments in a word representation file"""
         import matplotlib.pyplot as plt
 
         moving.Trajectory.plot(self.alignments[0].points)
@@ -187,6 +190,7 @@ class World():
         plt.show()
 
     def existingUsers(self, t):
+        """determines all existing users in a word file"""
 
         result = []
         for k in range(0, len(self.vehicles)):
@@ -200,6 +204,7 @@ class World():
         return sorted(result, key = takeEntry)
 
     def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t):
+        """ determines if a vehicle if located ahead of a crossing point in a world representation """
         d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[alignment_idx].distance_to_crossing_point
         if d < 0 :
             return True
@@ -243,9 +248,10 @@ class World():
 
 
     def count(self, method, vehiclesData, dmin, alignmentIdx = None):
-
-
-        if method == 'sameWay':
+        """ counts according to the selected method (cross or in line)
+         the number of interactions taking place at a distance smaller than dmin.
+        """
+        if method == 'inLine':
             rows = len(vehiclesData[alignmentIdx])
 
             interactionTime = []
@@ -275,7 +281,7 @@ class World():
 
             return totalNumberOfEncountersSameWay
 
-        else:
+        elif method == 'crossing':
             rows = len(vehiclesData[0])
             columns = len(vehiclesData[1])
             interactionTime = []
@@ -305,23 +311,19 @@ class World():
 
                     totalNumberOfCrossingEncounters += numberOfEncounters
 
-            return totalNumberOfCrossingEncounters
+        else :
+            return None
 
     def countAllEncounters(self, vehiclesData, dmin):
         """counts the encounters in a world
         vehiclesData : list of list of moving objects
         dmin : float"""
 
-        # result = []
-        # rows = len(vehiclesData[0])
-        # columns = len(vehiclesData[1])
-
         alignments = [0, 1]
-        # interactionTime = []
         totalNumberOfEncounters = []
 
         for alignment in alignments:
-            totalNumberOfEncounters.append(self.count(method = 'sameWay', vehiclesData = vehiclesData,
+            totalNumberOfEncounters.append(self.count(method = 'inLine', vehiclesData = vehiclesData,
                                                       alignmentIdx = alignment, dmin = dmin))
 
         totalNumberOfEncounters.append(self.count(method = 'crossing', vehiclesData = vehiclesData, dmin = dmin))
@@ -329,6 +331,7 @@ class World():
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
     def initVehiclesOnAligment(self, alignmentIdx, numberOfVehicles, intervalsOfVehicleExistence):
+        """initializes a certain number of vehicles on an alignment """
         result = []
         intervalsOfVehicleExistence.pop(0)
         # retrait du premier vehicule : deja pris en compte manuellement
