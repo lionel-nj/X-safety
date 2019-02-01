@@ -190,7 +190,7 @@ class World():
             if moving.Interval.contains(self.pedestrians[k].getTimeInterval(), t):
                 result.append(self.pedestrians[k])
 
-        return sorted(result, key=takeEntry)
+        return sorted(result, key = takeEntry)
 
     def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t):
         d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[alignment_idx].distance_to_crossing_point
@@ -234,31 +234,24 @@ class World():
         else:
             return False, d
 
-    def countAllEncounters(self, vehiclesData, dmin):
-        """counts the encounters in a world
-        vehiclesData : list of list of moving objects
-        dmin : float"""
 
-        result = []
-        rows = len(vehiclesData[0])
-        columns = len(vehiclesData[1])
+    def count(self, method, vehiclesData, dmin, alignmentIdx = None):
 
-        # matrix_intersection = [[0]*columns]*rows
 
-        alignments = [0, 1]
-        interactionTime = []
-        totalnumberOfEncountersSameWay = 0
+        if method == 'sameWay':
+            rows = len(vehiclesData[alignmentIdx])
 
-        for alignment in alignments:
+            interactionTime = []
+            totalNumberOfEncountersSameWay = 0
 
-            for h in range(0, rows - 2):
+            for h in range(0, rows - 1):
                 t = 0
                 interactionTime.append([])
 
-                while t < len(vehiclesData[alignment][0].curvilinearPositions) - 1:
-                    if (self.isAnEncounter(vehiclesData, alignment, alignment, h, h + 1, t, dmin)[0] == True
-                        and 0 < vehiclesData[alignment][h].velocities[t][0]
-                        and 0 < vehiclesData[alignment][h+1].velocities[t][0]):
+                while t < len(vehiclesData[alignmentIdx][0].curvilinearPositions) - 1:
+                    if (self.isAnEncounter(vehiclesData, alignmentIdx, alignmentIdx, h, h + 1, t, dmin)[0] == True
+                        and 0 < vehiclesData[alignmentIdx][h].velocities[t][0]
+                        and 0 < vehiclesData[alignmentIdx][h+1].velocities[t][0]):
                         interactionTime[h].append(t)
                     t += 1
 
@@ -271,43 +264,62 @@ class World():
                         if interactionTime[h][k+1] != interactionTime[h][k] + 1:
                             numberOfEncountersSameWay += 1
 
-                totalnumberOfEncountersSameWay += numberOfEncountersSameWay
+                totalNumberOfEncountersSameWay += numberOfEncountersSameWay
 
-            result.append(totalnumberOfEncountersSameWay)
+            return totalNumberOfEncountersSameWay
 
-        # interactions croisées
+        else:
+            rows = len(vehiclesData[0])
+            columns = len(vehiclesData[1])
+            interactionTime = []
+            totalNumberOfCrossingEncounters = 0
 
-        interactionTime = []
-        totalnumberOfEncounters = 0
-        for h in range(rows):
-            interactionTime.append([])
-            for v in range(columns):
-                interactionTime[h].append([])
+            for h in range(rows):
+                interactionTime.append([])
+                for v in range(columns):
+                    interactionTime[h].append([])
 
-                t = 0
-                while t < len(vehiclesData[0][0].curvilinearPositions):
-                    if ((self.isAnEncounter(vehiclesData,0,1,h,v,t,dmin)[0]
-                        and 0 < vehiclesData[0][h].velocities[t][0]
-                        and 0 < vehiclesData[1][v].velocities[t][0])):
-                        # and isVehicleBeforeCrossingPointAt(self, 0, h, t)
-                        # and isVehicleBeforeCrossingPointAt(self, 1, v, t)):
-                        interactionTime[h][v].append(t)
-                    t += 1
+                    t = 0
+                    while t < len(vehiclesData[0][0].curvilinearPositions):
+                        if ((self.isAnEncounter(vehiclesData, 0, 1, h, v, t, dmin)[0]
+                             and 0 < vehiclesData[0][h].velocities[t][0]
+                             and 0 < vehiclesData[1][v].velocities[t][0])):
+                            interactionTime[h][v].append(t)
+                        t += 1
 
-                if len(interactionTime[h][v]) < 2:
-                    numberOfEncounters = len(interactionTime[h][v])
+                    if len(interactionTime[h][v]) < 2:
+                        numberOfEncounters = len(interactionTime[h][v])
 
-                else:
-                    numberOfEncounters = 1
-                    for k in range(len(interactionTime[h][v]) - 1):
-                        if interactionTime[h][v][k+1] != interactionTime[h][v][k] + 1:
-                            numberOfEncounters += 1
+                    else:
+                        numberOfEncounters = 1
+                        for k in range(len(interactionTime[h][v]) - 1):
+                            if interactionTime[h][v][k + 1] != interactionTime[h][v][k] + 1:
+                                numberOfEncounters += 1
 
-                totalnumberOfEncounters += numberOfEncounters
+                    totalNumberOfCrossingEncounters += numberOfEncounters
 
-        result.append(totalnumberOfEncounters)
+            return totalNumberOfCrossingEncounters
 
-        return result
+    def countAllEncounters(self, vehiclesData, dmin):
+        """counts the encounters in a world
+        vehiclesData : list of list of moving objects
+        dmin : float"""
+
+        # result = []
+        # rows = len(vehiclesData[0])
+        # columns = len(vehiclesData[1])
+
+        alignments = [0, 1]
+        # interactionTime = []
+        totalNumberOfEncounters = []
+
+        for alignment in alignments:
+            totalNumberOfEncounters.append(self.count(method = 'sameWay', vehiclesData = vehiclesData,
+                                                      alignmentIdx = alignment, dmin = dmin))
+
+        totalNumberOfEncounters.append(self.count(method = 'crossing', vehiclesData = vehiclesData, dmin = dmin))
+
+        return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
     def initVehiclesOnAligment(self, alignmentIdx, numberOfVehicles, intervalsOfVehicleExistence):
         result = []
