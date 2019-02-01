@@ -124,9 +124,9 @@ class Alignment():
 
 class ControlDevice():
     """generic traffic control devices"""
-    categories = {'stop': 0,
-                  'yield': 1,
-                  'traffic light': 2}
+    categories = {0 : 'stop',
+                  1 : 'yield',
+                  2: 'traffic light'}
 
     def __init__(self, curvilinearPosition=None, alignmentIdx=None, category=None):
         self.curvilinearPosition = curvilinearPosition
@@ -135,7 +135,14 @@ class ControlDevice():
 
     def __repr__(self):
         return "position:{}, alignment:{}, category:{}".format(self.curvilinearPosition, self.alignmentIdx,
-                                                               self.category)
+                                                               self.categories[self.category])
+    def save(self, filename):
+        toolkit.save_yaml(filename, self)
+
+    @staticmethod
+    def load(filename):
+        return toolkit.load_yaml(filename)
+
 
 class World():
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
@@ -324,7 +331,7 @@ class World():
     def initVehiclesOnAligment(self, alignmentIdx, numberOfVehicles, intervalsOfVehicleExistence):
         result = []
         intervalsOfVehicleExistence.pop(0)
-        # retrait du premier vehicule : deja pris en compte manuellememnt
+        # retrait du premier vehicule : deja pris en compte manuellement
 
         for k in range(numberOfVehicles - 1):
             # -1 a cause du retrait du premier vehicule
