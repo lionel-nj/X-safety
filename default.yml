@@ -4,7 +4,11 @@ speedVariations: 5
 alignments:
 - !!python/object:objectsofworld.Alignment
   connected_alignment_idx: 1.0
-  controlDevice: null
+  controlDevice: !!python/object:objectsofworld.ControlDevice
+    alignmentIdx: 0.0
+    category: 0
+    curvilinearPosition: 800
+
   crossingPoint: !!python/object:trafficintelligence.moving.Point
     x: 0.0
     y: 0.0
@@ -29,10 +33,11 @@ alignments:
   width: null
 - !!python/object:objectsofworld.Alignment
   connected_alignment_idx: 0.0
-  controlDevice: null
-  crossingPoint: !!python/object:trafficintelligence.moving.Point
-    x: 0.0
-    y: 0.0
+  controlDevice: !!python/object:objectsofworld.ControlDevice
+    alignmentIdx: 1.0
+    category: 0
+    curvilinearPosition: 800
+  crossingPoint: null
   distance_to_crossing_point: 1000.0
   idx: 1.0
   name: 'vertical.yml'
