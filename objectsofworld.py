@@ -122,6 +122,12 @@ class Alignment():
 
         return angle
 
+    def alignmentHasROW(self):
+        if self.controlDevice == None:
+            return True
+        else:
+            return False
+
 class ControlDevice():
     """generic traffic control devices"""
     categories = {0 : 'stop',
@@ -143,6 +149,11 @@ class ControlDevice():
     def load(filename):
         return toolkit.load_yaml(filename)
 
+    def isVehicleAtControlDevice(self, vehicle, time):
+        if vehicle.curvilinearPositions[time][0] == self.curvilinearPosition:
+            return True
+        else:
+            return False
 
 class World():
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
@@ -368,3 +379,9 @@ class World():
             result.append(temp)
 
         return result
+
+    def findApprocachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
+        for k in range (len(listOfVehiclesOnMainAlignment)):
+            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+            if distanceToCrossingPoint > 0 :
+                return k
