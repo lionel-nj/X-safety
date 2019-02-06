@@ -162,3 +162,18 @@ def prepareIntervals(headways,sampleSize,N_Step):
 def changeVolumeOnVehicleInput(worldFile,newVolume,alignment_idx):
     """changes the volume on a particular alignment"""
     worldFile.vehicleInputs[alignment_idx].volume = newVolume
+
+def lossOfTime(beta, tnr):
+    import math
+    return beta * (math.exp(tnr/beta) - (1 + tnr/beta))
+
+def crossingRisk(gap: object, tsa: object, R0: object, alpha: object) -> object:
+    import math
+    if t <= tsa :
+        return math.inf
+    else:
+        return R0 * (t-tsa)**(-alpha)
+
+def timeGap(worldFile, rowVehicle, rowVehicleAlignmentId, time):
+    timeGap = (-rowVehicle.curvilinearPositions[time][0] + worldFile.alignments[rowVehicleAlignmentId].distance_to_crossing_point) / rowVehicle.velocities[time][0]
+    return timeGap
