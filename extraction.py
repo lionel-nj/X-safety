@@ -82,3 +82,8 @@ plt.plot(x, pexp,label="theorical (negative exponential)")
 plt.legend()
 plt.savefig('cumulative_distribution_sort.pdf', bbox_inches='tight')
 plt.close()
+
+if __name__ == "__main__":
+    import doctest
+
+    doctest.testmod()

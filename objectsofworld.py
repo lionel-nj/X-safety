@@ -4,6 +4,7 @@ import toolkit
 import math
 import cars
 
+
 class Alignment():
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
@@ -128,10 +129,11 @@ class Alignment():
         else:
             return False
 
+
 class ControlDevice():
     """generic traffic control devices"""
-    categories = {0 : 'stop',
-                  1 : 'yield',
+    categories = {0: 'stop',
+                  1: 'yield',
                   2: 'traffic light'}
 
     def __init__(self, curvilinearPosition=None, alignmentIdx=None, category=None):
@@ -142,6 +144,7 @@ class ControlDevice():
     def __repr__(self):
         return "position:{}, alignment:{}, category:{}".format(self.curvilinearPosition, self.alignmentIdx,
                                                                self.categories[self.category])
+
     def save(self, filename):
         toolkit.save_yaml(filename, self)
 
@@ -149,11 +152,12 @@ class ControlDevice():
     def load(filename):
         return toolkit.load_yaml(filename)
 
-    def isVehicleAtControlDevice(self, vehicle, time):
-        if vehicle.curvilinearPositions[time][0] == self.curvilinearPosition:
+    def isVehicleAtControlDevice(self, vehicle, time, precision):
+        if self.curvilinearPosition >= vehicle.curvilinearPositions[time][0] >= self.curvilinearPosition - precision:
             return True
         else:
             return False
+
 
 class World():
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
@@ -162,7 +166,7 @@ class World():
         # self.vehicleInput = vehicleInput
         self.vehicles = vehicles  # dict de veh
         self.pedestrians = pedestrians  # sorted dict de ped
-        self.alignments = alignments  # liste de alignements
+        self.alignments = alignments  # liste d alignements
         self.controlDevices = controlDevices  # liste de CD
         self.crossingPoint = crossingPoint  # moving.Point
 
@@ -171,6 +175,7 @@ class World():
                                                                                            self.pedestrians,
                                                                                            self.alignments,
                                                                                            self.controlDevices)
+
     @staticmethod
     def load(filename):
         """loads a yaml file"""
@@ -195,10 +200,17 @@ class World():
     def showAlignments(self):
         """plots alignments in a word representation file"""
         import matplotlib.pyplot as plt
-
-        moving.Trajectory.plot(self.alignments[0].points)
-        moving.Trajectory.plot(self.alignments[1].points)
+        for alignments in self.alignments:
+            moving.Trajectory.plot(alignments.points)
+            moving.Trajectory.plot(alignments.points)
         plt.show()
+        plt.close()
+
+    def getAlignments(self):
+        result = []
+        for alignment in self.alignments:
+            result.append(alignment)
+        return result
 
     def existingUsers(self, t):
         """determines all existing users in a word file"""
@@ -212,12 +224,13 @@ class World():
             if moving.Interval.contains(self.pedestrians[k].getTimeInterval(), t):
                 result.append(self.pedestrians[k])
 
-        return sorted(result, key = takeEntry)
+        return sorted(result, key=takeEntry)
 
-    def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t):
+    def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t, vehiclesData):
         """ determines if a vehicle if located ahead of a crossing point in a world representation """
-        d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[alignment_idx].distance_to_crossing_point
-        if d < 0 :
+        d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[
+            alignment_idx].distance_to_crossing_point
+        if d < 0:
             return True
         else:
             return False
@@ -237,8 +250,10 @@ class World():
 
         else:
             angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
-            d1 = vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[leader_alignment_idx_i].distance_to_crossing_point
-            d2 = vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[follower_alignment_idx_j].distance_to_crossing_point
+            d1 = vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[
+                leader_alignment_idx_i].distance_to_crossing_point
+            d2 = vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[
+                follower_alignment_idx_j].distance_to_crossing_point
             d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
             if d >= dmin:
                 return True, d
@@ -252,13 +267,12 @@ class World():
         t : time, integer
         dmin : float  """
         d = self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[1]
-        if self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[0] == False:
+        if not self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[0]:
             return True, d
         else:
             return False, d
 
-
-    def count(self, method, vehiclesData, dmin, alignmentIdx = None):
+    def count(self, method, vehiclesData, dmin, alignmentIdx=None):
         """ counts according to the selected method (cross or in line)
          the number of interactions taking place at a distance smaller than dmin.
         """
@@ -273,9 +287,9 @@ class World():
                 interactionTime.append([])
 
                 while t < len(vehiclesData[alignmentIdx][0].curvilinearPositions) - 1:
-                    if (self.isAnEncounter(vehiclesData, alignmentIdx, alignmentIdx, h, h + 1, t, dmin)[0] == True
-                        and 0 < vehiclesData[alignmentIdx][h].velocities[t][0]
-                        and 0 < vehiclesData[alignmentIdx][h+1].velocities[t][0]):
+                    if (self.isAnEncounter(vehiclesData, alignmentIdx, alignmentIdx, h, h + 1, t, dmin)[0]
+                            and 0 < vehiclesData[alignmentIdx][h].velocities[t][0]
+                            and 0 < vehiclesData[alignmentIdx][h + 1].velocities[t][0]):
                         interactionTime[h].append(t)
                     t += 1
 
@@ -285,7 +299,7 @@ class World():
                 else:
                     numberOfEncountersSameWay = 1
                     for k in range(len(interactionTime[h]) - 1):
-                        if interactionTime[h][k+1] != interactionTime[h][k] + 1:
+                        if interactionTime[h][k + 1] != interactionTime[h][k] + 1:
                             numberOfEncountersSameWay += 1
 
                 totalNumberOfEncountersSameWay += numberOfEncountersSameWay
@@ -322,7 +336,7 @@ class World():
 
                     totalNumberOfCrossingEncounters += numberOfEncounters
 
-        else :
+        else:
             return None
 
     def countAllEncounters(self, vehiclesData, dmin):
@@ -330,58 +344,56 @@ class World():
         vehiclesData : list of list of moving objects
         dmin : float"""
 
-        alignments = [0, 1]
         totalNumberOfEncounters = []
 
-        for alignment in alignments:
-            totalNumberOfEncounters.append(self.count(method = 'inLine', vehiclesData = vehiclesData,
-                                                      alignmentIdx = alignment, dmin = dmin))
+        for alignment in self.alignments:
+            totalNumberOfEncounters.append(self.count(method='inLine', vehiclesData=vehiclesData,
+                                                      alignmentIdx=alignment.idx, dmin=dmin))
 
-        totalNumberOfEncounters.append(self.count(method = 'crossing', vehiclesData = vehiclesData, dmin = dmin))
+        totalNumberOfEncounters.append(self.count(method='crossing', vehiclesData=vehiclesData, dmin=dmin))
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
-    def initVehiclesOnAligment(self, alignmentIdx, numberOfVehicles, intervalsOfVehicleExistence):
-        """initializes a certain number of vehicles on an alignment """
-        result = []
-        intervalsOfVehicleExistence.pop(0)
-        # retrait du premier vehicule : deja pris en compte manuellement
+    def initVehicleOnAligment(self, alignmentIdx, intervalOfVehicleExistence):
+        """generates a MovingObject """
 
-        for k in range(numberOfVehicles - 1):
-            # -1 a cause du retrait du premier vehicule
-            temp = moving.MovingObject()
-            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.curvilinearPositions = moving.CurvilinearTrajectory.generate(0,
-                                                                              0,
-                                                                              1,
-                                                                              self.alignments[alignmentIdx].idx)
-            temp.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-                                                 self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
-            temp.velocities = moving.CurvilinearTrajectory.generate(0,
-                                                                    0,
-                                                                    1,
-                                                                    None)
-            temp.desiredSpeedParameters = [self.speedLimit, self.speedVariations]
+        result = moving.MovingObject()
+        result.curvilinearPositions = moving.CurvilinearTrajectory()
+        result.velocities = moving.CurvilinearTrajectory()
+        result.timeInterval = intervalOfVehicleExistence
 
-            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.vehicleLength = rd.normalvariate(7, 1.5)
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
+                                               self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
 
-            temp.timeInterval = intervalsOfVehicleExistence[k]
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.vehicleLength = rd.normalvariate(self.vehicleInputs[alignmentIdx].geometryParam[0],
+                                                self.vehicleInputs[alignmentIdx].geometryParam[1])
 
-            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.reactionTime = rd.normalvariate(2, 0.5)
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.reactionTime = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['tn']['scale'],
+                                               self.vehicleInputs[alignmentIdx].driverParam['tn']['sd'])
 
-            temp.tiv_min = rd.normalvariate(2, 0.5)
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.tiv_min = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['tiv_min']['scale'],
+                                          self.vehicleInputs[alignmentIdx].driverParam['tiv_min']['sd'])
 
-            rd.seed(self.vehicleInputs[alignmentIdx].seed + k)
-            temp.dn = temp.desiredSpeed * temp.tiv_min
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.criticalGap = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['critGap']['scale'],
+                                              self.vehicleInputs[alignmentIdx].driverParam['critGap']['sd'])
 
-            result.append(temp)
+        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.dn = result.desiredSpeed * result.tiv_min
 
         return result
 
     def findApprocachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-        for k in range (len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0 :
+        for k in range(len(listOfVehiclesOnMainAlignment)):
+            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
+                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+            if distanceToCrossingPoint > 0:
                 return k
+
+    if __name__ == "__main__":
+        import doctest
+        doctest.testmod()

@@ -3,6 +3,7 @@ import objectsofworld
 import toolkit
 import math
 import random
+import numpy as np
 
 world = objectsofworld.World.load('default.yml')
 sim = toolkit.load_yaml('config.yml')
@@ -19,18 +20,22 @@ def run(worldFile, configFile):
 
 
     configFile : yaml configuration file previously loaded via toolkit method
-    """
-    alignments = [worldFile.alignments[0], worldFile.alignments[1]]
+#     """
+    alignments = world.getAlignments()
 
-    seedBucket = [45, 90]
     vehiclesInitialization = []
-    for alignment, seed in zip(alignments, seedBucket):
+    increment = 0
+
+    for alignment in alignments:
+        seed = configFile.seed + increment
+        increment += 1
         v0 = random.normalvariate(15, 3)
 
         intervalsOfVehicleExistenceOnVehicleInput = toolkit.saveHeadwaysAsIntervals(
             worldFile.vehicleInputs[0].generateHeadways(
-                sample_size = math.ceil(worldFile.vehicleInputs[0].volume * configFile.duration / 3600) - 1,
-                seed = seed),
+                sample_size=math.ceil(worldFile.vehicleInputs[0].volume * configFile.duration / 3600) - 1,
+                seed=seed,
+                distribution='exponential'),
             configFile.duration)
         firstVehicleOnAlignment = moving.MovingObject()
 
@@ -55,9 +60,9 @@ def run(worldFile, configFile):
         firstVehicleOnAlignment.curvilinearPositions.concatenate(moving.CurvilinearTrajectory.generate(0,
                                                                                                        v0 * configFile.timeStep,
                                                                                                        math.ceil((
-                                                                                                                             configFile.duration / configFile.timeStep) - (
-                                                                                                                             firstVehicleOnAlignment.timeInterval[
-                                                                                                                                 0] / configFile.timeStep)),
+                                                                                                                         configFile.duration / configFile.timeStep) - (
+                                                                                                                         firstVehicleOnAlignment.timeInterval[
+                                                                                                                             0] / configFile.timeStep)),
                                                                                                        alignment.idx))
 
         firstVehicleOnAlignment.reactionTime = random.normalvariate(2.5, 1)
@@ -81,48 +86,80 @@ def run(worldFile, configFile):
 
             reactionTime = initializedVehicles[k].reactionTime / configFile.timeStep
             creationTimeOfCurrentVehicle = initializedVehicles[k].timeInterval[0] / configFile.timeStep
+            t = 1
 
-            for t in range(1, math.ceil(configFile.duration / configFile.timeStep)):
+            while 0 < t < math.ceil(configFile.duration / configFile.timeStep):
+                # print('entre dans boucle')
+                # print(t)
+                # for t in range(1, math.ceil(configFile.duration / configFile.timeStep)):
                 # boucle allant de 1 (premiere coordonnee deja initialisee) à la durée de la simulation
 
-                #####
-                while not(alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].alignmentHasROW())
-                    and alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].controlDevice.isVehicleaTCrossingPoint(initializedVehicles[k], t):
-                    for k in range (0,1/configFile.timeStep):
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                                        timeStep = configFile.timeStep,
-                                                                        leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
-                                                                        nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                                        changeOfAlignment)
+                #####  1ere boucle
+                while (not (alignments[int(initializedVehicles[k].curvilinearPositions.lanes[t-1])].alignmentHasROW())
+                       and alignments[
+                           initializedVehicles[k].curvilinearPositions.lanes[t-1]].controlDevice.isVehicleAtControlDevice(
+                            initializedVehicles[k], t - 1, 0.5)):
+                    # marque le stop durant 1s
+                    if initializedVehicles[k].velocities[t-1][0] == 0:
+                        for h in range(0, int(1 / configFile.timeStep)):
+                            initializedVehicles[k].updateCurvilinearPositions(method="newell",
+                                                                              timeStep=configFile.timeStep,
+                                                                              leaderVehicleCurvilinearPositionAtPrecedentTime=
+                                                                              initializedVehicles[k].curvilinearPositions[
+                                                                                  t - 1][0] + initializedVehicles[k].dn,
+                                                                              nextAlignment_idx=initializedVehicles[
+                                                                                  k].curvilinearPositions.lanes[0],
+                                                                              changeOfAlignment=False)
 
-                    arrivalTimeAtCrossing = lpVehicle.curvilinearPositions.positions[0].index(1000) + 1/configFile.timeStep
-                    time = arrivalTimeAtCrossing
+                            # determination du temps d'arrivee a l'intersection = temps d'arrivee + temps de stop (1sec)
+                            arrivalTimeAtCrossing = int(initializedVehicles[k].curvilinearPositions.positions[0].index(
+                                toolkit.find_nearest(np.array(initializedVehicles[k].curvilinearPositions.positions[0]), 600)) + 1/configFile.timeStep)
+                            time = arrivalTimeAtCrossing
 
-                    rowVehicle = worldFile.findApprocachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
-                    rowVehicleAlignment = rowVehicle.curvilinearPositions.lanes[time]
+                    else:
+                        arrivalTimeAtCrossing = int(initializedVehicles[k].curvilinearPositions.positions[0].index(
+                            toolkit.find_nearest(np.array(initializedVehicles[k].curvilinearPositions.positions[0]), 600)))
 
-                    observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, arrivalTimeAtCrossing)
+                        time = arrivalTimeAtCrossing
+                     
+                    # determination du prochain vehicule prioritaire a l'instant  d'arrivee a l'intersection
+                    rowVehicle = worldFile.findApprocachingVehicleOnMainAlignment(time, 0,
+                                                                                  vehiclesInitialization[0])
+                    rowVehicleAlignment = int(vehiclesInitialization[0][rowVehicle].curvilinearPositions.lanes[time])
+                    # deuxieme boucle
+                    # observation du creneau
+                    observedGap = toolkit.timeGap(worldFile, vehiclesInitialization[0][rowVehicle], rowVehicleAlignment, arrivalTimeAtCrossing)
+                    criticalGap = initializedVehicles[k].criticalGap
+                    while (observedGap < criticalGap):# and t < math.ceil(configFile.duration / configFile.timeStep)):
+                        #si le creneau observé est plus petit que le creneau critique : on ne passe pas
+                        for index in range(math.ceil(observedGap)):
+                            initializedVehicles[k].updateCurvilinearPositions(method="newell",
+                                                                              timeStep=configFile.timeStep,
+                                                                              leaderVehicleCurvilinearPositionAtPrecedentTime=
+                                                                              initializedVehicles[
+                                                                                  k].curvilinearPositions[t - 1][0] +
+                                                                              initializedVehicles[k].dn,
+                                                                              nextAlignment_idx=initializedVehicles[
+                                                                                  k].curvilinearPositions.lanes[0],
+                                                                              changeOfAlignment=False)
+                        t = arrivalTimeAtCrossing + math.ceil(observedGap)
+                        rowVehicle = rowVehicle + 1  # worldFile.findApproachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
+                        observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, t)
 
-                    enter = True
-                    while observedGap < initializedVehicles[k].criticalGap:
-                        enter = False
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                                        timeStep = configFile.timeStep,
-                                                                        leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
-                                                                        nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                                        changeOfAlignment)
-                        time = time + math.ceil(observedGap)
-                        rowVehicle = rowVehicle + 1 #worldFile.findApproachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
-                        observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, time)
-
-                    else :
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                                        timeStep = configFile.timeStep,
-                                                                        leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t][0] + initializedVehicles[k].dn,
-                                                                        nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0], changeOfAlignment)
+                    else:
+                        # sinon on passe
+                        initializedVehicles[k].updateCurvilinearPositions(method="newell",
+                                                                          timeStep=configFile.timeStep,
+                                                                          leaderVehicleCurvilinearPositionAtPrecedentTime=
+                                                                          initializedVehicles[k].curvilinearPositions[
+                                                                              int(t-reactionTime)][0],  #t-1 ? 
+                                                                          nextAlignment_idx=initializedVehicles[
+                                                                              k].curvilinearPositions.lanes[0],
+                                                                          changeOfAlignment=False)
+                        t = t + 1
                 else:
-                    mise a jour selon Newell : code effectué plus haut
-                    ###
+                    # mise a jour selon Newell
+
                     if t < creationTimeOfCurrentVehicle:  # and initializedVehicles[k].curvilinearPositions[t-1][0]>=0 :
                         # tant que t < instant de creation du vehicule courant (k), la position vaut l'espacement dn entre les 2 vehicules
 
@@ -130,62 +167,72 @@ def run(worldFile, configFile):
                             initializedVehicles[k].curvilinearPositions[0][0], 0,
                             initializedVehicles[k].curvilinearPositions.lanes[0])
                         initializedVehicles[k].velocities.addPositionSYL(initializedVehicles[k].desiredSpeed, 0, None)
+                        t = t + 1
 
                     else:
                         # une fois que t=>  instant de creation du vehicule on procede a la mise a jour des positions selon newell
                         if t > reactionTime:
                             previousVehicleCurvilinearPositionAtPrecedentTime = \
-                                initializedVehicles[k - 1].curvilinearPositions[math.ceil(t - reactionTime)][0]
+                                initializedVehicles[k - 1].curvilinearPositions[t - math.ceil(reactionTime)][0]
+                            # t = t + 1
                         else:
                             previousVehicleCurvilinearPositionAtPrecedentTime = \
                                 initializedVehicles[k].curvilinearPositions[t - 1][0] + initializedVehicles[k].dn
+                            # t = t + 1
 
-                        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                                          timeStep = configFile.timeStep,
-                                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = previousVehicleCurvilinearPositionAtPrecedentTime,
+                        initializedVehicles[k].updateCurvilinearPositions(method="newell",
+                                                                          timeStep=configFile.timeStep,
+                                                                          leaderVehicleCurvilinearPositionAtPrecedentTime=previousVehicleCurvilinearPositionAtPrecedentTime,
                                                                           nextAlignment_idx=
-                                                                          initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                                          changeOfAlignment = False)
+                                                                          initializedVehicles[
+                                                                              k].curvilinearPositions.lanes[0],
+                                                                          changeOfAlignment=False)
+                        t = t + 1
     return vehiclesInitialization
 
-trajectoryData = run(world, sim)
+
+# trajectoryData = run(world, sim)
 # temp = world.countAllEncounters(trajectoryData,50)
-toolkit.trace(run(world, sim)[0], 'x')
-# toolkit.trace(run(world,sim)[1],'x')
+# toolkit.trace(run(world, sim)[0], 'x')
+toolkit.trace(run(world, sim)[1], 'x')
 
-while not(alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].alignmentHasROW())
-      and alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].controlDevice.isVehicleaTCrossingPoint(initializedVehicles[k], t):
-    for k in range (0,1/configFile.timeStep):
-        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                          timeStep = configFile.timeStep,
-                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
-                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                          changeOfAlignment)
-      
-    arrivalTimeAtCrossing = lpVehicle.curvilinearPositions.positions[0].index(1000) + 1/configFile.timeStep
-    time = arrivalTimeAtCrossing
+# while not(alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].alignmentHasROW())
+#       and alignments[initializedVehicles[k].curvilinearPositions.lanes[t]].controlDevice.isVehicleaTCrossingPoint(initializedVehicles[k], t):
+#     for k in range (0,1/configFile.timeStep):
+#         initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
+#                                                           timeStep = configFile.timeStep,
+#                                                           leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
+#                                                           nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
+#                                                           changeOfAlignment)
+#
+#     arrivalTimeAtCrossing = lpVehicle.curvilinearPositions.positions[0].index(1000) + 1/configFile.timeStep
+#     time = arrivalTimeAtCrossing
+#
+#     rowVehicle = worldFile.findApprocachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
+#     rowVehicleAlignment = rowVehicle.curvilinearPositions.lanes[time]
+#
+#     observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, arrivalTimeAtCrossing)
+#
+#     enter = True
+#     while observedGap < initializedVehicles[k].criticalGap:
+#         enter = False
+#         initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
+#                                                           timeStep = configFile.timeStep,
+#                                                           leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
+#                                                           nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
+#                                                           changeOfAlignment)
+#         time = time + math.ceil(observedGap)
+#         rowVehicle = rowVehicle + 1 #worldFile.findApproachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
+#         observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, time)
+#
+#     else :
+#         initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
+#                                                           timeStep = configFile.timeStep,
+#                                                           leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t][0] + initializedVehicles[k].dn,
+#                                                           nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0], changeOfAlignment)
+# else:
+#     mise a jour selon Newell : code effectué plus haut
 
-    rowVehicle = worldFile.findApprocachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
-    rowVehicleAlignment = rowVehicle.curvilinearPositions.lanes[time]
-
-    observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, arrivalTimeAtCrossing)
-
-    enter = True
-    while observedGap < initializedVehicles[k].criticalGap:
-        enter = False
-        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                          timeStep = configFile.timeStep,
-                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t-1][0] + initializedVehicles[k].dn,
-                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0],
-                                                          changeOfAlignment)
-        time = time + math.ceil(observedGap)
-        rowVehicle = rowVehicle + 1 #worldFile.findApproachingVehicleOnMainAlignment(time, mainAlignment, listOfVehiclesOnMainAlignment)
-        observedGap = toolkit.timeGap(worldFile, rowVehicle, rowVehicleAlignment, time)
-      
-    else :
-        initializedVehicles[k].updateCurvilinearPositions(method = 'newell',
-                                                          timeStep = configFile.timeStep,
-                                                          leaderVehicleCurvilinearPositionAtPrecedentTime = initializedVehicles[k].curvilinearPositions[t][0] + initializedVehicles[k].dn,
-                                                          nextAlignment_idx = initializedVehicles[k].curvilinearPositions.lanes[0], changeOfAlignment)
-else:
-    mise a jour selon Newell : code effectué plus haut
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

@@ -3,17 +3,13 @@ speedLimit: 14
 speedVariations: 5
 alignments:
 - !!python/object:objectsofworld.Alignment
-  connected_alignment_idx: 1.0
-  controlDevice: !!python/object:objectsofworld.ControlDevice
-    alignmentIdx: 0.0
-    category: 0
-    curvilinearPosition: 800
-
+  connected_alignment_idx: 1
+  controlDevice: null
   crossingPoint: !!python/object:trafficintelligence.moving.Point
     x: 0.0
     y: 0.0
   distance_to_crossing_point: 1000.0
-  idx: 0.0
+  idx: 0
   name: 'horizontal.yml'
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
@@ -32,14 +28,14 @@ alignments:
       - 0.0
   width: null
 - !!python/object:objectsofworld.Alignment
-  connected_alignment_idx: 0.0
+  connected_alignment_idx: 0
   controlDevice: !!python/object:objectsofworld.ControlDevice
-    alignmentIdx: 1.0
+    alignmentIdx: 1
     category: 0
-    curvilinearPosition: 800
+    curvilinearPosition: 600
   crossingPoint: null
   distance_to_crossing_point: 1000.0
-  idx: 1.0
+  idx: 1
   name: 'vertical.yml'
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
@@ -57,14 +53,17 @@ alignments:
       - 0.0
       - 1000.0
   width: null
-controlDevices: null
+controlDevice: !!python/object:objectsofworld.ControlDevice
+    alignmentIdx: 1
+    category: 0
+    curvilinearPosition: 600
 crossingPoint: !!python/object:trafficintelligence.moving.Point
     x: 0.0
     y: 0.0
 pedestrians: null
 vehicleInputs:
 - !!python/object:cars.VehicleInput
-  alignmentIdx: 0.0
+  alignmentIdx: 0
   desiredSpeedParameters:
   - 14.0
   - 2.0
@@ -73,7 +72,7 @@ vehicleInputs:
   tSimul: 100.0
   volume: 400
 - !!python/object:cars.VehicleInput
-  alignmentIdx: 1.0
+  alignmentIdx: 1
   desiredSpeedParameters:
   - 14.0
   - 2.0

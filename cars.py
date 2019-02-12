@@ -1,41 +1,39 @@
-import moving
-import decimal
-import random as rd
-import numpy as np
-import matplotlib.pyplot as plt
-import math
-import collections
-# import carFollowingModels as models
 import toolkit
-import itertools
-import shapely.geometry
-from math import sqrt
-import objectsofworld
-import random as rd
+
 
 class VehicleInput(object):
-    def __init__(self, alignmentIdx, volume, desiredSpeedParameters, seed, tSimul, headwayDistributionParameters = None):
+    def __init__(self, alignmentIdx, desiredSpeedParameters, headwayDistributionParameters, seed, tSimul, volume,
+                 geometryParam, driverParam={'tn': {'scale': None, 'sd': None}, 'tiv_min': {'scale': None, 'sd': None},
+                                             'critGap': {'scale': None, 'sd': None}}, headways=None):
         self.alignmentIdx = alignmentIdx
-        self.volume = volume
-        self.headwayDistributionParameters = headwayDistributionParameters
         self.desiredSpeedParameters = desiredSpeedParameters
+        self.headways = headways
+        self.headwayDistributionParameters = headwayDistributionParameters
         self.seed = seed
         self.tSimul = tSimul
+        self.volume = volume
+        self.geometryParam = geometryParam
+        self.driverParam = driverParam
 
-    def save(self):
-        toolkit.save_yaml(self.fileName, self)
+    def save(self, filename):
+        toolkit.save_yaml(filename, self)
 
     @staticmethod
-    def distanceGap(sLeader,sFollowing,lengthLeader):
-        "calculates distance gaps between two vehicles"
-        distance = sLeader-sFollowing-lengthLeader
+    def distanceGap(sLeader, sFollowing, lengthLeader):
+        """calculates distance gaps between two vehicles"""
+        distance = sLeader - sFollowing - lengthLeader
         return distance
 
-    def generateHeadways(self, sample_size, seed, scale = None, tiv = None, tivprobcum = None):
-        return toolkit.generateSample(sample_size = sample_size, scale = scale, seed = seed , tiv = None, tivprobcum = None)
+    def generateHeadways(self, duration, seed, tiv=None, tivprobcum=None):
+        """ generates a set a headways"""
+        self.headways = toolkit.generateSample(duration=duration, seed=seed,
+                                               distribution=self.headwayDistributionParameters[0],
+                                               scale=self.headwayDistributionParameters[1], tiv=tiv,
+                                               tivprobcum=tivprobcum)
 
-class CarGeometry():
-    def __init__(self, length = None, width = None, polygon = None):
+
+class CarGeometry:
+    def __init__(self, length=None, width=None, polygon=None):
         self.length = length
         self.width = width
         self.polygon = polygon
