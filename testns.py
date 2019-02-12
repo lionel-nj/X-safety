@@ -35,7 +35,7 @@ for t in np.arange(0., sim.duration, sim.timeStep):
         for idx, v in enumerate(al.vehicles):
 
             if t < v.timeInterval[0]:
-                # si t < instant de creation du vehicule, la position vaut l'espacement dn entre les deux vehicules
+                # #si t < instant de creation du vehicule, la position vaut l'espacement dn entre les deux vehicules
                 if idx - 1 >= 0:
                     v.curvilinearPositions.addPositionSYL(
                         al.vehicles[idx - 1].curvilinearPositions[0][0] - v.dn,
