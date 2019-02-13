@@ -37,7 +37,7 @@ vehicleInputs:
   - 2.0
   headwayDistributionParameters: !!python/tuple
     - 'exponential'
-    - 1.5
+    - 1.8
   seed: 45
   tSimul: 100.0
   volume: 400
@@ -49,7 +49,7 @@ vehicleInputs:
       scale: 6
       sd: 1
     tiv_min:
-      scale: 2
+      scale: 1.8
       sd: 0.5
     tn:
       scale: 2

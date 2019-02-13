@@ -100,6 +100,10 @@ def generateSample(duration, seed, distribution, scale=None, tiv=None, tivprobcu
 
         elif distribution == "empirical":
             result.append(utils.EmpiricalContinuousDistribution(tiv, tivprobcum).rvs(size=1, random_state=seed + k)[0])
+
+        if sum(result) > duration:
+            result.pop(-1)
+            return result
         k = k+1
 
     return list(result)
@@ -119,33 +123,31 @@ def saveHeadwaysAsIntervals(sample, simDuration):
     return result
 
 
-def trace(trajectoriesFile, y_axis):
+def trace(vehicle, y_axis, timeStep):
     """plots trajectories or speeds"""
     import matplotlib.pyplot as plt
+    import numpy as np
 
     x = []
     # v = []
 
-    for k in range(0, len(trajectoriesFile)):
-        x.append([])
-        # v.append([])
+    for position in vehicle.curvilinearPositions:
+        # v[k].append(trajectoriesFile[k].velocities[time])
+        x.append(position[0])
 
-        for time in range(len(trajectoriesFile[0].curvilinearPositions)):
-            # v[k].append(trajectoriesFile[k].velocities[time])
-            x[k].append(trajectoriesFile[k].curvilinearPositions[time][0])
+    if y_axis == 'x':
+        plt.plot([k for k in np.arange(vehicle.timeInterval[0],vehicle.timeInterval[1], timeStep)], x)
+        ylabel = "longitudinal positions"
+        plt.xlabel('t')
+        plt.ylabel('x')
+    # else :
+    #     plt.plot([k*0.1 for k in range (0,len(trajectoriesFile[k].curvilinearPositions))],v[k])
+    #     ylabel = "speeds "
+    #     plt.xlabel('t')
+    #     plt.ylabel('v')
+    #plt.show()
+    #plt.close()
 
-        if y_axis == 'x':
-            plt.plot([k * 0.1 for k in range(0, len(trajectoriesFile[k].curvilinearPositions))], x[k])
-            ylabel = "longitudinal positions"
-            plt.xlabel('t')
-            plt.ylabel('x')
-        # else :
-        #     plt.plot([k*0.1 for k in range (0,len(trajectoriesFile[k].curvilinearPositions))],v[k])
-        #     ylabel = "speeds "
-        #     plt.xlabel('t')
-        #     plt.ylabel('v')
-    plt.show()
-    plt.close()
 
 
 def prepareIntervals(headways, sampleSize, N_Step):
