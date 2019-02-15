@@ -23,13 +23,14 @@ for al in world.alignments:
 
 for t in np.arange(0., sim.duration, sim.timeStep):
     for vi in world.vehicleInputs:
-        for elt in vi.cumulatedHeadways:
-            if t <= vi.cumulatedHeadways[0] < t + sim.timeStep:
-                world.alignments[vi.alignmentIdx].vehicles.append(world.initVehicleOnAligment(vi.alignmentIdx,
-                                                                                              [vi.cumulatedHeadways[0],
-                                                                                               sim.duration]))
-                vi.cumulatedHeadways.pop(0)
-            pass
+        futureHeadways = []
+        for h in vi.cumulatedHeadways:
+            if t <= h < t + sim.timeStep:
+                vi.alignment.vehicles.append(world.initVehicleOnAligment(vi.alignmentIdx, h))
+            else:
+                futureHeadways.append(h)
+        vi.cumulatedHeadways = futureHeadways
+                #vi.cumulatedHeadways.pop(0)
 
         # todo: trouver les nouveaux vehicules apparaissant dans [t, t+timeStep[ et creer un MovingObject correspondant
 
@@ -38,6 +39,7 @@ for t in np.arange(0., sim.duration, sim.timeStep):
         for idx, v in enumerate(al.vehicles):
 
             # sinon on met a jour les positions selon la valeur de t par rapport a celle du temps de reaction du conducteur
+            #NS: pourquoi ferait-on comme ça?? on devrait soit le faire dynamiquement à chaque pas de temps, soit le faire une fois à l'initalisation des véhicules
             if idx == 0:
                 leaderVehicle = None
             else:

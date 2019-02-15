@@ -354,17 +354,17 @@ class World():
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
-    def initVehicleOnAligment(self, alignmentIdx, intervalOfVehicleExistence):
+    def initVehicleOnAligment(self, alignmentIdx, firstTimeInstant):
         """generates a MovingObject """
 
         result = moving.MovingObject()
         result.curvilinearPositions = moving.CurvilinearTrajectory()
         result.velocities = moving.CurvilinearTrajectory()
-        result.timeInterval = intervalOfVehicleExistence
+        result.timeInterval = moving.TimeInterval(firstTimeInstant, firstTimeInstant)
 
-        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+#        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+#            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
+#            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1]) # pourquoi le code est-il dupliqué??
 
         result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
             self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
@@ -386,7 +386,7 @@ class World():
             self.vehicleInputs[alignmentIdx].driverParam["critGap"]["scale"],
             self.vehicleInputs[alignmentIdx].driverParam["critGap"]["sd"])
 
-        result.dn = result.desiredSpeed * result.tiv_min
+        result.dn = 1000./120.#kj=120 veh/km #result.desiredSpeed * result.tiv_min
 
         return result
 
