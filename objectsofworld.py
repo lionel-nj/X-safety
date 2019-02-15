@@ -78,8 +78,8 @@ class Alignment():
     def connectAlignments(self, other):
         """ adds a connected_alignment_idx & a crossingPoint member to the alignment
          identifie le point x,y de croisement"""
-        self.connected_alignment_idx = other.idx  # mise en relation des aligments qui s'entrecroisent
-        other.connected_alignment_idx = self.idx  # mise en relation des aligments qui s'entrecroisent
+        self.connected_alignment_idx = other.idx  # mise en relation des aligments qui s"entrecroisent
+        other.connected_alignment_idx = self.idx  # mise en relation des aligments qui s"entrecroisent
         self.crossingPoint = self.points.getIntersections(other.points[0], other.points[-1])[1][0]
         other.crossingPoint = other.points.getIntersections(self.points[0], self.points[-1])[1][0]
 
@@ -132,9 +132,9 @@ class Alignment():
 
 class ControlDevice():
     """generic traffic control devices"""
-    categories = {0: 'stop',
-                  1: 'yield',
-                  2: 'traffic light'}
+    categories = {0: "stop",
+                  1: "yield",
+                  2: "traffic light"}
 
     def __init__(self, curvilinearPosition=None, alignmentIdx=None, category=None):
         self.curvilinearPosition = curvilinearPosition
@@ -195,7 +195,7 @@ class World():
         self.controlDevices = controlDevices
         self.alignments = alignments
         self.vehicleInputs = vehicleInputs
-        self.save('default.yml')
+        self.save("default.yml")
 
     def showAlignments(self):
         """plots alignments in a word representation file"""
@@ -276,7 +276,7 @@ class World():
         """ counts according to the selected method (cross or in line)
          the number of interactions taking place at a distance smaller than dmin.
         """
-        if method == 'inLine':
+        if method == "inLine":
             rows = len(vehiclesData[alignmentIdx])
 
             interactionTime = []
@@ -306,7 +306,7 @@ class World():
 
             return totalNumberOfEncountersSameWay
 
-        elif method == 'crossing':
+        elif method == "crossing":
             rows = len(vehiclesData[0])
             columns = len(vehiclesData[1])
             interactionTime = []
@@ -347,10 +347,10 @@ class World():
         totalNumberOfEncounters = []
 
         for alignment in self.alignments:
-            totalNumberOfEncounters.append(self.count(method='inLine', vehiclesData=vehiclesData,
+            totalNumberOfEncounters.append(self.count(method="inLine", vehiclesData=vehiclesData,
                                                       alignmentIdx=alignment.idx, dmin=dmin))
 
-        totalNumberOfEncounters.append(self.count(method='crossing', vehiclesData=vehiclesData, dmin=dmin))
+        totalNumberOfEncounters.append(self.count(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
@@ -362,32 +362,35 @@ class World():
         result.velocities = moving.CurvilinearTrajectory()
         result.timeInterval = intervalOfVehicleExistence
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
-        result.desiredSpeed = rd.normalvariate(self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-                                               self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
+            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
-        result.vehicleLength = rd.normalvariate(self.vehicleInputs[alignmentIdx].geometryParam[0],
-                                                self.vehicleInputs[alignmentIdx].geometryParam[1])
+        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
+            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
-        result.reactionTime = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['tn']['scale'],
-                                               self.vehicleInputs[alignmentIdx].driverParam['tn']['sd'])
+        result.vehicleLength = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].geometryParam[0],
+            self.vehicleInputs[alignmentIdx].geometryParam[1])
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
-        result.tiv_min = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['tiv_min']['scale'],
-                                          self.vehicleInputs[alignmentIdx].driverParam['tiv_min']['sd'])
+        result.reactionTime = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].driverParam["tn"]["scale"],
+            self.vehicleInputs[alignmentIdx].driverParam["tn"]["sd"])
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
-        result.criticalGap = rd.normalvariate(self.vehicleInputs[alignmentIdx].driverParam['critGap']['scale'],
-                                              self.vehicleInputs[alignmentIdx].driverParam['critGap']['sd'])
+        result.tiv_min = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["scale"],
+            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["sd"])
 
-        rd.seed(self.vehicleInputs[alignmentIdx].seed)
+        result.criticalGap = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
+            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["scale"],
+            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["sd"])
+
         result.dn = result.desiredSpeed * result.tiv_min
 
         return result
 
-    def findApprocachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
+    def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
         for k in range(len(listOfVehiclesOnMainAlignment)):
             distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
                                       listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]

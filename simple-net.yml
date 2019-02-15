@@ -35,15 +35,195 @@ vehicleInputs:
   desiredSpeedParameters:
   - 14.0
   - 2.0
-  headwayDistributionParameters: !!python/tuple
-    - 'exponential'
-    - 1.8
+  headwayDistribution : !!python/object:cars.Distribution
+    distribution: !!python/object/new:scipy.stats._continuous_distns.expon_gen
+      state: !!python/tuple
+        - a: 0.0
+          b: .inf
+          badvalue: .nan
+          extradoc: null
+          longname: null
+          momtype: 1
+          name: expon
+          seed: null
+          shapes: null
+          xtol: 1.0e-14
+        - !!python/object/apply:numpy.random.__RandomState_ctor
+          state: !!python/tuple
+            - MT19937
+            - !!python/object/apply:numpy.core.multiarray._reconstruct
+              args:
+                - !!python/name:numpy.ndarray ''
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+              state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 624
+                - !!python/object/apply:numpy.dtype
+                  args:
+                    - u4
+                    - 0
+                    - 1
+                  state: !!python/tuple
+                    - 3
+                    - <
+                    - null
+                    - null
+                    - null
+                    - -1
+                    - -1
+                    - 0
+                - false
+                - !!binary |
+                  Psu1xws0TNJxuDkxu5pLWakL48Q3oLq5oAE2lQb6lMz4ZBYflm+UZBGzG/SZLytvYAU2Ml/c+QI/
+                  xJNts8ph5fIh+xHqLPgzcMRsT6/SK03Ko855EkHx1AfhGAVsJPzlR4ySl7gMsw0VmoColshfDhmp
+                  9nqTj7sSGpvtC8P5uPUgnk3lpI9PrxiOX5l/VJkvDdHK8PlfU54/a6KAXSXkEUlaUp8w7o4mHG2C
+                  D/bRi8N3aWrDLjHG9Z4UjErJJuR0SS6b764nI4/mZtxEMWxELeTXyiNtyRJbciNZrptG+KD81t8/
+                  QFLNRcUgH3DrMoI6YRpZYqyB0bYVGjRMKpil5TY00qlZGZ4FYaxlHmWuy2f/kthgAgIEYu31Xg9m
+                  y6ZZdlK0Cv5UJdHtUv7BtBmbFAv8GAAgDC1rWmlDJ0yd39QGBAEijaleGEYopsvtsIA1BrKiVOYg
+                  257/HxJmwv6x1xQn/GgnY1DH7TWpJuwIKlz1Sae8Gv9WuakWMDmMOsrVkj0pIvsaNFJ+qjCMgbL3
+                  YsO3XmXthsiW6VPNopH6GcgAdCM3etUzyeHdrdsGVwTxr91FlnL1i3XFolxGaO+M5njTlokr8691
+                  83Dw9Z2mkooLEbF8Fq/3uUYUiymWAkuQ4FpMzys5kjHYHJwhvFCtirw4k3iv4O1p8sFtz3SexWLr
+                  PlVkvI94Zo7Axr7a3kTZiezfR5rLLGc2IXaiD5NqAqbKnYVy88s1GLSSX1zEEYZzQPJVo0xSWxUK
+                  bZPpZBJILZKeywqnagaYX6jkP+4cQzWq2jvklK0q90KOwuu5WccHFcNohTfxZq1PkHvyNcKt4EWO
+                  snl7jFngRPdjqa7g47XCeSM0gwoLk3InvlZWHSzVgQ4JB5tYeNjqNTvIhbF5F1JIeBd2UxnJQtUg
+                  3s4YVO58CYeFWriHLbScsxEQAijoQKtyw1L+Nb+FhiKjBQCgakfUf9m9hYbx/1PqlK2igq23PokE
+                  /D9QQA34C/K7zmhkOiELW41j0uf426olA/TrEwK0t4chr7rNkyI1uNhsQVofenVOGkOSSkj91QBB
+                  1QI/i23e5wrKfJtGIplYCXzUvVKBCwmHHVGaURi5f2iytX51bKIm2s12vXTITQcCHiwBEq3QMpiy
+                  t63AQdht8cSFqoKVjHdESNNPWrz+l7iQJU4J8T2iMulBqIow1Rl02zEzyNIKm6/ePlWB+5AepAuv
+                  KxitlmW2q799nx+XDjBXgXrmiKNb29cKPAHFeflHreLhG5vxx/Byrw4QX8bcwyhcAOf1jHwRsB2C
+                  GkFkVrRxp1B3XAsbVVm71QL6XiOErIGn9mtYsAS11xSrDVn3qEiGf9NG4IM0fNMF8V0w7fCyQLqG
+                  xyvCUj/uE1YZvB8Ch7mgLaOm6bmsfm7toJkwrLVR5BMq0Mx7HxhFg3qXMxKbdjYQDa6iXzdk8svm
+                  nPEuy9hUHCpITeEGQ6pi65y6esj6nFFJgU/ss9Deg85fpga9nwzRhoPcHDmb0brIwqqXXFi2bjUY
+                  3+KN3wiD8pD0VgHPKZIqcf5oEYjLsMuStqXOlUDom0Om15ihBvFidiAI8k/h1N3qQsYYfIrMfJuH
+                  hwsJa8ZPIcfMTwy1wF5kmJgg2JYWaVWnTotvatPIFNK+1KOETJHBv5sJjTxCDqrR09jRC/UyBT8E
+                  Ib4YKeYa8d0qSE/EESWg/FjFCEPVzvQk3fo4VhMb86fL/23ussDItG/fNezRq+r0mzb1F1fw+Nl5
+                  yRYsFqnQyj5qkFwiRDGD4+sezjguo0gHiNMwnqgHkRuQ9rbGMSx3YgtAjTKLNDTldAlv26SrE/nj
+                  1526sdFh9N4UCjWWkyIQ0r2zvKoisO4t0yHohswZf+5zFBBnwfr5daYIxdAaFLGsKHvdAWyz64SD
+                  pmaujZWf5SOf3JrwJHOk+BVqAH4/uAe/bBYtI/Ubi5v0phQ40/PTRAB/PFNt89W19LG+KtsyDkrr
+                  fp18SsLcEVcponStuKeNMu96nXCsxs/eSuypeIv3TQOsOglSoIKP/uo9IY/PAEctcB6peyEKYrnw
+                  eylRRjF4wZantI94cfYasV1dy1XryIk7dmCB44Z9bSKhAm1j/TPIVsIXt1wfKBs6tDjLk872O0+v
+                  v5KCxYdvbqdTYiqPwOKOxjqdFu1E4qwORhjpXyGggRqe9lstb9BxA7mTyzq1TMqUGKx1BBSw505e
+                  Mpv1P3gGEhhwQYFRP2VlyLRausLdgBaBapFdUitJk06CsGgpcAZJkOxXiRMNl/a7gRvIv/iRQuN5
+                  XL5GAanlj7nXKOaDW9iCux2ZUD9On28bfkAive/otM0CAlZAu0u5szSIbz9TO6OopMHQtSzm/V//
+                  m88SXxK41c9TOsJbzAF6zD47MkgqhbAR5Jt6kMsBc608EdZjm5ZDF1FCJ70z6ZJORuSK4rw6Wbfk
+                  MEbxn39fSV0jrl+ohWFVMCeEEdEbmbWXfrW1sFyRpQomCT/9DWsAYD4VUSZjO2DLbZ1HQOzimr03
+                  3u3Qsl7koewles61RfGEbS0c9Gi5Guz1ZFi2thq/dLmkzeFjEFtuHs1xknoU4DrrWGs7Xms72hs4
+                  TOIEiXwb9j+GYtjhD1TmOcw1oI2OshOqrTyvpI+X7zUQQReOrFt7r6TSW5RkS7XJEccOMw3RefBd
+                  1KzD1j95i0eNdj/5Yk0bmhfMoNsJIMMrcmNgGqumrhHVWUdDWpzthCnCZ25oHSiAJFJz4x8aUaJU
+                  XxK/+szvj2tNqyjBnMaUVCSkeqyPTI2/52QKQXETjBalTkwQBI20E3wTQGRUhWK/Qje7Ya1AV1sP
+                  kl7PRDqhbj7JdVA7gjcQhL01GIrBDQbTqP6Rcp0urUh2xYxV4f8ImUb0Pfza6+qbf9k8O1vXNmms
+                  /gg4+h4BK4uzmW5RwtdgOPi7pYd+2lsHz3TN/zeHuXJN70Xh1yTb5OQFrIxlZYTuZUxXC0kOcS3u
+                  R8FTQQca5OQ3ibGu/Cn2T95uHdU9Wz3D/h9FUceWcPLZydMmuhwI1PlB9nUzvzSICx90m8sIypHp
+                  5KuhlZoLn+6Z5Y/7lHe2FaVQDxUeKvMivTku0twswiOp4e2sG8BIaxX9jqoAAhMyJsvjdhJqBmLp
+                  Va4BO0Y/L7/Vxe5Ai+RCzW7o+p6oOsRfkQ32d7DMwwlf2RI940w+ekfaMEJs+rxdS/OK7vxLlKH2
+                  nOCdwpIWjPbnvymW90eHbY+ps4njzZliKfNX2qIB25LHIamrKx6Qlx8tSyeLoNn/WINe8Q3gjPhB
+                  8djap/1uMWvoSFtcDdmXHpXVbLWsEz5REL1b7buPso2bnjduXJqyBhU0InC0
+            - 624
+            - 0
+            - 0.0
+
+  headwayParam: 1.8
   seed: 45
   tSimul: 100.0
   volume: 400
   geometryParam: !!python/tuple
     - 7
     - 1
+  driverDistribution : !!python/object:cars.Distribution
+    distribution: !!python/object/new:scipy.stats._continuous_distns.norm_gen
+      state: !!python/tuple
+        - a: -.inf
+          b: .inf
+          badvalue: .nan
+          extradoc: null
+          longname: null
+          momtype: 1
+          name: norm
+          seed: null
+          shapes: null
+          xtol: 1.0e-14
+        - !!python/object/apply:numpy.random.__RandomState_ctor
+          state: !!python/tuple
+            - MT19937
+            - !!python/object/apply:numpy.core.multiarray._reconstruct
+              args:
+                - !!python/name:numpy.ndarray ''
+                - !!python/tuple
+                  - 0
+                - !!binary |
+                  Yg==
+              state: !!python/tuple
+                - 1
+                - !!python/tuple
+                  - 624
+                - !!python/object/apply:numpy.dtype
+                  args:
+                    - u4
+                    - 0
+                    - 1
+                  state: !!python/tuple
+                    - 3
+                    - <
+                    - null
+                    - null
+                    - null
+                    - -1
+                    - -1
+                    - 0
+                - false
+                - !!binary |
+                  hYlseVHfplIwG3vu6d2daYNSI10noQo5pxwBFDAL4K5cGxJbhBh+7zgWwHdAG80XqpIDOSGK0PNd
+                  mncG92Ku5fEDZF0VaRmhrwDWKzWEhXLAS7l1eDP7UmMF9FqBcmp3FJ8w9GiAz+7PdHytVdasA0h4
+                  bb/xt78BWClX7MkHtBYFvESu1ADCt0L1WBdD5pwNW1+Esk//7BCQv+n2FsgsFh7tqGu1xOwD2DLa
+                  zmClge4XrwyU4cj5CS3xEB1D9fhTWLO1MX7KwCy31cCBf+iOyOnWQJMjOxjqofJVRMK6EWDxO3KC
+                  TZNUQns/DmZjF+Gc6JEV389NJXhL5wJYLWSEj0Rd0XADiwKS6GScHSGeKnL5LM991rY9q3/RqdPO
+                  frs9b/Ao9jsAiZcSsvghD64wIBSJpJFH85uEScA+HLpdOSw5VhigHxw0lVi6wfNDhyypW4ac6rMr
+                  MjKW/vGRHLLaBaDZE1uQ9QnkTOmYl85PfpvrfbSSEK+lmlsa2RxG78lqb+TLRbVHAlTuWT1MTuVs
+                  A45IcS+zCFj78Cr2PQccI4op1kh0j7jEX1QohFG024CPEQAP4iUXHOg13T5ZeP5x5oagqOI1p+1z
+                  U4Gsk9NuksDyd56EIsmcEX7MAW8aQzSuROK2BYVcFPctT1wZA35m5cCbPJOTVRLNfz1R+38wscId
+                  GKHFGFbsKoUKgpKkX9J2P35NWusUQ1Qt/4fuNNkD0+B8UQwRtvdxUadq4IZqX6BQRrU5o3GQMbfu
+                  kJ6i1+2D/0oe7V5mazdQhcn6v16kTiMeUP9ysLx2GUjuW/kQqNPJzcIAmgsDBjXmXgIomUHw2IGh
+                  EV8gji2tPKEGY3LcAnIelUnq0nJVeHVNT20uWycyaa+9PODUOl3BqOcuqVfFNr+VXU3lYN8K1JID
+                  lQT9NJ91lm0lEFsNhyhY1DHS2+h8B12i5WxNtyfXk4F7y9jn1K0+aSIWQ4xXEHiT5rWVSh/EaUP5
+                  yv01eRLBhBVT8zNYoWSR7S7hgQVyBUgh7uBa+Yyzxh03jhIDh9R0evDqGWJVJuUFUA45mdx4bFuu
+                  TJFWFttHHgh/pWn0ss7+wA1gqFcsUMjv7UDWZ40ATmxGJnkPAQmWs9jLC6+6APCfn/czWSIvInPy
+                  pkfyBIsUUpzeLR/bkWJRMVAgAv1m0tTUiq7f1QyhQObH3uszORogWQqEBfZw6/hrhJ/H0fxGU6oo
+                  xcmhZluRqMdt4emkgp+KWXnZs/lAuyXsPza2cZptkS3BN4SXGwlWE6mr9SgIzIWSTGcm5Gkmqrp1
+                  hW4iLLLb4wUgId5NJLPDgY376vFvbfl3q91hr9YrMfo/HC5FnTHHNTNoQWvgfZXBIj/rVHxB6C1x
+                  8/DV9X1KupE9duTkTMK/syG6MnF6sr62EWbBMleAUsQr40tmN1Mmy25G6tAt6LA6D4bSplEYyVt/
+                  i5nVVwfsTjjjBcgsmG58H2LN1GlE9yyXvWkwvYDSX/hcwSIlthbOSMAZ7D1OJMzKyhEJZp/AJ9xw
+                  GwxtzmKh5M1ahZeW+2DZtS6GQk3hxN29BVEMpBiPcfY1YeXbibQHy7Jyxb4dpZmZU8mE/p044BPm
+                  kQvD4PQJ7WJmJLyH4dk/Nv3rBE2MNLMiBE1TBsMDfTCoPqWuQxM6oOlk1+56xvhtKo4mOYXBeaW/
+                  FIvqcdX7AhKd0TYd6WgsQPvCw0ny7QKaDzXOUY8JLq/WCh8y7rbDq/5vux5pHhOoNxyMcNNQVWbw
+                  NJNn8VeXBZN0fOuR0mNF9wxGTggF2iNo+8sXSaCDqI5m8JEN+g2fC5uXnCZp75HYleDhgpcLlBis
+                  hm5n1T5MtREjE3eViCxoFX7vCVvspjsWrvOUor7/KzGDnu6QuPLyy5okT0fLwOjcFF4+KkKye9Rv
+                  EAte/FhPORVKD+UalKaXDsB76JpT/1U9Exp9qx91aQDhGRtmcgmoa6dUexssjg/URXq3qj8WOhda
+                  bv0ZADsBtg5w1otSOSb8OmwpUG53yjva12UCKx1wAObPTtq5RqMxuBRMeRPKnb89PuMwWbVTBXdX
+                  aU2KUICn97RLTGTlDO1kcoxv74N7KrgsPERy9U2rO7ETxGaU2EKV3KZIaylWnzhy53CDuUAQCHC/
+                  cIjhqf5Fk8GIKMfM9U3ZHmqjqaAC832lmWe4CNzTks3TIyrUjQKQtuaXUC8yPDV4aLIzqgW6r+ll
+                  w2YfzKBHdWfA70pBW6iyo1nmgzqvX0km34gHkmTxjkDzRESiE/yUdf8K23aCDzUOMcXAF4tDOnG9
+                  NNI9tO/h2/A44Op+39Tisg6b1s7bEx51ePl4pqAyhhfCB1+PSl5YeGCsGPqqYINzi3ISMgY/IvWf
+                  019AayXVHngiIs/navzemW2D2WyjaQpKTmqyu5xt3YlE5/ewt6ODI8nRuMlfFjAWwKmX1iWObkTa
+                  Ur5Fufsb9MTax0KdI3OHFLNYSjObaK6AJkzxU8BpvwzNr6pyF+8d5jebIP0lBp75+o7BeTrGeYuK
+                  +uPQgQ5/BqeHqppGh4r3PZKHpBxOsV3kAVpeVZMmVvKIABnqLcDjKx8kxVjzXUlrKm9KRPRHITQG
+                  w0zEMjfy51gr2OFHjKgiE1zZT30GQsiyWJz3HDFYxYOnT8lU+VpsmoGXAEndN1LjLflPa4oT5JAl
+                  PcMm0K52UDJ/knUNHa28GUdfg9f+YLk5LRq3ELyOc5bitGlafFphur4gsZqvClh+d994b2C9Eolo
+                  5rOxqp+1sudgSYcPsZORc71/YSs8h3qjj/24mJUAUaJdcWsKI8M/4NTQJF08u6gtjpUUs7Cf0WNM
+                  1o7B9lQBQLVmIG8OzAsbDmFIUEz303xP8O5fprYqJ3uCmJCOuGBXvOzMGcQNw9IrT+BE/XjVgTPh
+                  MOKDzVNxQC+WAjZUAmrbIFg/WL8QzVzcaN4Ll7G9xbJCZNCyE287bUN4kq30GBxB7wN8NgUoa3FE
+                  sdQyW2mHuKu8+SCg4CdkGkJSfj7Lrlz/BEzEKFYU7xbW7un3tSQvSqabYDP0Z/bCUIOvccZ9sqM9
+                  VpR+gC9splDzm38jTMXbXjJOwOFDaH4PC36oxLNM7SqzcvbNbY6DisAOiZK4YJEzcX6tjZWshREN
+                  U+ChMeLqWAXRKPnd5rFFWUTo5QlRf2TX5krh4t2zu39jzAIQKbH7HB3EI29K2xoSaxOVJclrR4kx
+                  stIYEPOqM1oYTiNwfkkiGUX+FNhoDGOp4cOMFE04O1TewQHydCgy7/Dmo6O8A9cteBjtcMd1+Quk
+                  JbLuacxstgAcNDlAd9uQPljfqb9t3sHkGBRgDUxu4PgSafnmMEVF9AKCzMwC
+            - 142
+            - 0
+            - 0.0
+
   driverParam:
     critGap:
       scale: 6

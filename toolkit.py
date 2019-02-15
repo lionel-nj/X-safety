@@ -92,13 +92,14 @@ def generateSample(duration, seed, distribution, scale=None, tiv=None, tivprobcu
     """generates a sample from a given distribution, or from a theorical distribution
     :rtype: object
     """
+    from scipy.stats import expon
     k = 0
     result = []
     while sum(result) < duration:
-        if distribution == "exponential":
-            result.append(stats.expon.rvs(scale=scale, size=1, random_state=seed + k)[0])
+        if distribution is not None:
+            result.append(expon.rvs(scale=scale, size=1, random_state=seed + k)[0])
 
-        elif distribution == "empirical":
+        else:
             result.append(utils.EmpiricalContinuousDistribution(tiv, tivprobcum).rvs(size=1, random_state=seed + k)[0])
 
         if sum(result) > duration:
