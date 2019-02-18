@@ -137,7 +137,7 @@ def trace(vehicle, y_axis, timeStep):
         x.append(position[0])
 
     if y_axis == 'x':
-        plt.plot([k for k in np.arange(vehicle.timeInterval[0],vehicle.timeInterval[1], timeStep)], x)
+        plt.plot([k for k in np.arange(vehicle.timeInterval.first, vehicle.timeInterval.last, timeStep)], x)
         ylabel = "longitudinal positions"
         plt.xlabel('t')
         plt.ylabel('x')

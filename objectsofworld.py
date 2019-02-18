@@ -360,7 +360,8 @@ class World():
         result = moving.MovingObject()
         result.curvilinearPositions = moving.CurvilinearTrajectory()
         result.velocities = moving.CurvilinearTrajectory()
-        result.timeInterval = intervalOfVehicleExistence
+        result.timeInterval = moving.TimeInterval(first=intervalOfVehicleExistence[0],
+                                                  last=intervalOfVehicleExistence[1])
 
         result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
             self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
