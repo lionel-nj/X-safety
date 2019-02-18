@@ -21,18 +21,8 @@ for vi in world.vehicleInputs:
 for al in world.alignments:
     al.vehicles = []
 
-for t in np.arange(0., sim.duration, sim.timeStep):
-    for vi in world.vehicleInputs:
-        futureHeadways = []
-        for h in vi.cumulatedHeadways:
-            if t <= h < t + sim.timeStep:
-                vi.alignment.vehicles.append(world.initVehicleOnAligment(vi.alignmentIdx, h))
-            else:
-                futureHeadways.append(h)
-        vi.cumulatedHeadways = futureHeadways
-                #vi.cumulatedHeadways.pop(0)
-
-        # todo: trouver les nouveaux vehicules apparaissant dans [t, t+timeStep[ et creer un MovingObject correspondant
+for i in range(int(np.floor(sim.duration/sim.timeStep))):
+    world.initUsers(i, sim.timeStep)
 
     # pass
     for al in world.alignments:
@@ -47,7 +37,7 @@ for t in np.arange(0., sim.duration, sim.timeStep):
 
             v.updateCurvilinearPositions(method="newell",
                                          timeStep=sim.timeStep,
-                                         leaderVehicle=leaderVehicle,
+                                         #leaderVehicle=leaderVehicle,
                                          nextAlignment_idx=0,
                                          changeOfAlignment=False,
-                                         time=t)
+                                         instant=i)

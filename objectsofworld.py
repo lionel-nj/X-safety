@@ -354,48 +354,68 @@ class World():
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
-    def initVehicleOnAligment(self, alignmentIdx, firstTimeInstant):
-        """generates a MovingObject """
+    def initUser(self, vehicleInput, firstInstant, timeStep, initialHeadway):
+        """generates a MovingObject on the VehicleInput alignment"""
 
-        result = moving.MovingObject()
-        result.curvilinearPositions = moving.CurvilinearTrajectory()
-        result.velocities = moving.CurvilinearTrajectory()
-        result.timeInterval = moving.TimeInterval(firstTimeInstant, firstTimeInstant)
+        obj = moving.MovingObject(#timeInterval = moving.TimeInterval(firstInstant, firstInstant), 
+                                  #positions = moving.CurvilinearTrajectory([0.], [0.], [vehicleInput.alignmentIdx]),
+                                  #velocities = moving.CurvilinearTrajectory(),
+                                  initCurvilinear = True)
+        obj.initialHeadway = initialHeadway
 
-#        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-#            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-#            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1]) # pourquoi le code est-il dupliqué??
+#        obj.desiredSpeed = alignment.driverDistribution.distribution.rvs(
+#            alignment.desiredSpeedParameters[0],
+#            alignment.desiredSpeedParameters[1]) # pourquoi le code est-il dupliqué??
 
-        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
+        obj.desiredSpeed = vehicleInput.driverDistribution.distribution.rvs(
+            vehicleInput.desiredSpeedParameters[0],
+            vehicleInput.desiredSpeedParameters[1])
 
-        result.vehicleLength = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].geometryParam[0],
-            self.vehicleInputs[alignmentIdx].geometryParam[1])
+        obj.vehicleLength = vehicleInput.driverDistribution.distribution.rvs(
+            vehicleInput.geometryParam[0],
+            vehicleInput.geometryParam[1])
 
-        result.reactionTime = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["tn"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["tn"]["sd"])
+        obj.tau = vehicleInput.driverDistribution.distribution.rvs(
+            vehicleInput.driverParam["tn"]["scale"],
+            vehicleInput.driverParam["tn"]["sd"])
 
-        result.tiv_min = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["sd"])
+        obj.tiv_min = vehicleInput.driverDistribution.distribution.rvs(
+            vehicleInput.driverParam["tiv_min"]["scale"],
+            vehicleInput.driverParam["tiv_min"]["sd"])
 
-        result.criticalGap = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["sd"])
+        obj.criticalGap = vehicleInput.driverDistribution.distribution.rvs(
+            vehicleInput.driverParam["critGap"]["scale"],
+            vehicleInput.driverParam["critGap"]["sd"])
 
-        result.dn = 1000./120.#kj=120 veh/km #result.desiredSpeed * result.tiv_min
+        obj.d = 1000./120.#kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+        if len(vehicleInput.alignment.vehicles) == 0:
+            obj.leader = None
+            s = (timeStep*firstInstant-initialHeadway)*obj.desiredSpeed
+            obj.timeInterval = moving.TimeInterval(firstInstant, firstInstant)
+            obj.curvilinearPositions = moving.CurvilinearTrajectory([s], [0.], [vehicleInput.alignmentIdx])
+            obj.curvilinearVelocities = moving.CurvilinearTrajectory()
+        else:
+            obj.leader = vehicleInput.alignment.vehicles[-1] # TODO verify?
 
-        return result
+        vehicleInput.alignment.vehicles.append(obj)
+
+    def initUsers(self, i, timeStep):
+        '''Initializes new users on their respective alignments '''
+        for vi in self.vehicleInputs:
+            futureHeadways = []
+            for h in vi.cumulatedHeadways:
+                if i <= h/timeStep < i+1:
+                    self.initUser(vi, i+1, timeStep, h)
+                else:
+                    futureHeadways.append(h)
+            vi.cumulatedHeadways = futureHeadways
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-        for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
-                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0:
-                return k
+       for k in range(len(listOfVehiclesOnMainAlignment)):
+           distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
+                                     listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+           if distanceToCrossingPoint > 0:
+               return k
 
     if __name__ == "__main__":
         import doctest
