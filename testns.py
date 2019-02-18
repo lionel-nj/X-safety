@@ -29,7 +29,7 @@ for t in np.arange(0., sim.duration, sim.timeStep):
                                                                                               [vi.cumulatedHeadways[0],
                                                                                                sim.duration]))
                 vi.cumulatedHeadways.pop(0)
-        world.alignments[vi.alignmentIdx].vehicles = world.alignments[vi.alignmentIdx].vehicles[0:int(sim.duration*vi.volume/3600)]
+        world.alignments[vi.alignmentIdx].vehicles = world.alignments[vi.alignmentIdx].vehicles[0:round(sim.duration*vi.volume/3600)]
             # pass
 
         # todo: trouver les nouveaux vehicules apparaissant dans [t, t+timeStep[ et creer un MovingObject correspondant
