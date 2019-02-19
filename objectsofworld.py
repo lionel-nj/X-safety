@@ -354,14 +354,15 @@ class World():
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
-    def initUser(self, vehicleInput, firstInstant, timeStep, initialHeadway):
+    def initUser(self, userNum, vehicleInput, firstInstant, timeStep, initialHeadway):
         """generates a MovingObject on the VehicleInput alignment"""
 
-        obj = moving.MovingObject(#timeInterval = moving.TimeInterval(firstInstant, firstInstant), 
+        obj = moving.MovingObject(userNum, #timeInterval = moving.TimeInterval(firstInstant, firstInstant), 
                                   #positions = moving.CurvilinearTrajectory([0.], [0.], [vehicleInput.alignmentIdx]),
                                   #velocities = moving.CurvilinearTrajectory(),
                                   initCurvilinear = True)
         obj.initialHeadway = initialHeadway
+        obj.initialAlignmentIdx = vehicleInput.alignmentIdx
 
 #        obj.desiredSpeed = alignment.driverDistribution.distribution.rvs(
 #            alignment.desiredSpeedParameters[0],
@@ -390,25 +391,24 @@ class World():
         obj.d = 1000./120.#kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
         if len(vehicleInput.alignment.vehicles) == 0:
             obj.leader = None
-            s = (timeStep*firstInstant-initialHeadway)*obj.desiredSpeed
-            obj.timeInterval = moving.TimeInterval(firstInstant, firstInstant)
-            obj.curvilinearPositions = moving.CurvilinearTrajectory([s], [0.], [vehicleInput.alignmentIdx])
-            obj.curvilinearVelocities = moving.CurvilinearTrajectory()
         else:
             obj.leader = vehicleInput.alignment.vehicles[-1] # TODO verify?
+        obj.instantAtX0 = None
 
         vehicleInput.alignment.vehicles.append(obj)
 
-    def initUsers(self, i, timeStep):
+    def initUsers(self, i, timeStep, userNum):
         '''Initializes new users on their respective alignments '''
         for vi in self.vehicleInputs:
             futureHeadways = []
             for h in vi.cumulatedHeadways:
                 if i <= h/timeStep < i+1:
-                    self.initUser(vi, i+1, timeStep, h)
+                    self.initUser(userNum, vi, i+1, timeStep, h)
+                    userNum += 1
                 else:
                     futureHeadways.append(h)
             vi.cumulatedHeadways = futureHeadways
+        return userNum
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
        for k in range(len(listOfVehiclesOnMainAlignment)):

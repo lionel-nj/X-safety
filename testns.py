@@ -21,23 +21,12 @@ for vi in world.vehicleInputs:
 for al in world.alignments:
     al.vehicles = []
 
+userNum = 0
 for i in range(int(np.floor(sim.duration/sim.timeStep))):
-    world.initUsers(i, sim.timeStep)
+    print('simulation step {}'.format(i))
+    userNum = world.initUsers(i, sim.timeStep, userNum)
 
-    # pass
     for al in world.alignments:
-        for idx, v in enumerate(al.vehicles):
+        for v in al.vehicles:
+            v.updateCurvilinearPositions("newell", i, sim.timeStep)
 
-            # sinon on met a jour les positions selon la valeur de t par rapport a celle du temps de reaction du conducteur
-            #NS: pourquoi ferait-on comme ça?? on devrait soit le faire dynamiquement à chaque pas de temps, soit le faire une fois à l'initalisation des véhicules
-            if idx == 0:
-                leaderVehicle = None
-            else:
-                leaderVehicle = al.vehicles[idx - 1]
-
-            v.updateCurvilinearPositions(method="newell",
-                                         timeStep=sim.timeStep,
-                                         #leaderVehicle=leaderVehicle,
-                                         nextAlignment_idx=0,
-                                         changeOfAlignment=False,
-                                         instant=i)
