@@ -235,126 +235,14 @@ class World():
         else:
             return False
 
-    def minDistanceChecked(self, vehiclesData, leader_alignment_idx_i, follower_alignment_idx_j, i, j, t, dmin):
-        """ checks if the minimum distance headway between two vehicles is verified
-        in a car following situation : i is the leader vehicle and j is the following vehicle"""
-        if leader_alignment_idx_i == follower_alignment_idx_j:
-            d = cars.VehicleInput.distanceGap(vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0],
-                                              vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0],
-                                              vehiclesData[leader_alignment_idx_i][i].vehicleLength)
-            if (d >= dmin
-                    and 0 < vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0]
-                    and 0 < vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0]):
-                return True, d
-            return False, d
+    def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
+        for k in range(len(listOfVehiclesOnMainAlignment)):
+            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
+                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+            if distanceToCrossingPoint > 0:
+                return k
 
-        else:
-            angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
-            d1 = vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[
-                leader_alignment_idx_i].distance_to_crossing_point
-            d2 = vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[
-                follower_alignment_idx_j].distance_to_crossing_point
-            d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
-            if d >= dmin:
-                return True, d
-            else:
-                return False, d
-
-    def isAnEncounter(self, vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin):
-        """ checks if there is an encounter between two vehicules
-        alignment_idx_i and alignment_idx_j are integers
-        i,j : integers
-        t : time, integer
-        dmin : float  """
-        d = self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[1]
-        if not self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[0]:
-            return True, d
-        else:
-            return False, d
-
-    def count(self, method, vehiclesData, dmin, alignmentIdx=None):
-        """ counts according to the selected method (cross or in line)
-         the number of interactions taking place at a distance smaller than dmin.
-        """
-        if method == "inLine":
-            rows = len(vehiclesData[alignmentIdx])
-
-            interactionTime = []
-            totalNumberOfEncountersSameWay = 0
-
-            for h in range(0, rows - 1):
-                t = 0
-                interactionTime.append([])
-
-                while t < len(vehiclesData[alignmentIdx][0].curvilinearPositions) - 1:
-                    if (self.isAnEncounter(vehiclesData, alignmentIdx, alignmentIdx, h, h + 1, t, dmin)[0]
-                            and 0 < vehiclesData[alignmentIdx][h].velocities[t][0]
-                            and 0 < vehiclesData[alignmentIdx][h + 1].velocities[t][0]):
-                        interactionTime[h].append(t)
-                    t += 1
-
-                if len(interactionTime[h]) < 2:
-                    numberOfEncountersSameWay = len(interactionTime[h])
-
-                else:
-                    numberOfEncountersSameWay = 1
-                    for k in range(len(interactionTime[h]) - 1):
-                        if interactionTime[h][k + 1] != interactionTime[h][k] + 1:
-                            numberOfEncountersSameWay += 1
-
-                totalNumberOfEncountersSameWay += numberOfEncountersSameWay
-
-            return totalNumberOfEncountersSameWay
-
-        elif method == "crossing":
-            rows = len(vehiclesData[0])
-            columns = len(vehiclesData[1])
-            interactionTime = []
-            totalNumberOfCrossingEncounters = 0
-
-            for h in range(rows):
-                interactionTime.append([])
-                for v in range(columns):
-                    interactionTime[h].append([])
-
-                    t = 0
-                    while t < len(vehiclesData[0][0].curvilinearPositions):
-                        if ((self.isAnEncounter(vehiclesData, 0, 1, h, v, t, dmin)[0]
-                             and 0 < vehiclesData[0][h].velocities[t][0]
-                             and 0 < vehiclesData[1][v].velocities[t][0])):
-                            interactionTime[h][v].append(t)
-                        t += 1
-
-                    if len(interactionTime[h][v]) < 2:
-                        numberOfEncounters = len(interactionTime[h][v])
-
-                    else:
-                        numberOfEncounters = 1
-                        for k in range(len(interactionTime[h][v]) - 1):
-                            if interactionTime[h][v][k + 1] != interactionTime[h][v][k] + 1:
-                                numberOfEncounters += 1
-
-                    totalNumberOfCrossingEncounters += numberOfEncounters
-
-        else:
-            return None
-
-    def countAllEncounters(self, vehiclesData, dmin):
-        """counts the encounters in a world
-        vehiclesData : list of list of moving objects
-        dmin : float"""
-
-        totalNumberOfEncounters = []
-
-        for alignment in self.alignments:
-            totalNumberOfEncounters.append(self.count(method="inLine", vehiclesData=vehiclesData,
-                                                      alignmentIdx=alignment.idx, dmin=dmin))
-
-        totalNumberOfEncounters.append(self.count(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
-
-        return totalNumberOfEncounters, sum(totalNumberOfEncounters)
-
-    def initVehicleOnAligment(self, alignmentIdx, intervalOfVehicleExistence):
+    def initVehicleOnAlignment(self, alignmentIdx, intervalOfVehicleExistence):
         """generates a MovingObject """
 
         result = moving.MovingObject()
@@ -391,12 +279,6 @@ class World():
 
         return result
 
-    def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-        for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
-                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0:
-                return k
 
     if __name__ == "__main__":
         import doctest
