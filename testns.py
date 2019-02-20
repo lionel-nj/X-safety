@@ -2,7 +2,9 @@ import objectsofworld
 import toolkit
 import itertools
 import random
+
 import numpy as np
+import matplotlib.pyplot as plt
 
 world = objectsofworld.World.load('simple-net.yml')
 sim = toolkit.load_yaml('config.yml')
@@ -30,3 +32,10 @@ for i in range(int(np.floor(sim.duration/sim.timeStep))):
         for v in al.vehicles:
             v.updateCurvilinearPositions("newell", i, sim.timeStep)
 
+# display
+plt.figure()
+for al in world.alignments:
+    for v in al.vehicles:
+        if v.timeInterval is not None:
+            v.plotCurvilinearPositions()
+plt.show()
