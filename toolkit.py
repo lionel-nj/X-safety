@@ -4,12 +4,16 @@ import csv
 import collections
 import itertools
 from trafficintelligence import utils
-from scipy import stats
 
 
 def load_yaml(filename):
     """ loads a yaml file"""
     return yaml.load(open(filename))
+
+
+def partialLoadFromYaml(fileName, key):
+    result = load_yaml(fileName)
+    return result[key]
 
 
 def save_yaml(filename, data):
@@ -122,33 +126,6 @@ def saveHeadwaysAsIntervals(sample, simDuration):
             result.append([s, simDuration])
         k += 1
     return result
-
-
-def trace(vehicle, y_axis, timeStep):
-    """plots trajectories or speeds"""
-    import matplotlib.pyplot as plt
-    import numpy as np
-
-    x = []
-    # v = []
-
-    for position in vehicle.curvilinearPositions:
-        # v[k].append(trajectoriesFile[k].velocities[time])
-        x.append(position[0])
-
-    if y_axis == 'x':
-        plt.plot([k for k in np.arange(vehicle.timeInterval.first, vehicle.timeInterval.last, timeStep)], x)
-        ylabel = "longitudinal positions"
-        plt.xlabel('t')
-        plt.ylabel('x')
-    # else :
-    #     plt.plot([k*0.1 for k in range (0,len(trajectoriesFile[k].curvilinearPositions))],v[k])
-    #     ylabel = "speeds "
-    #     plt.xlabel('t')
-    #     plt.ylabel('v')
-    #plt.show()
-    #plt.close()
-
 
 
 def prepareIntervals(headways, sampleSize, N_Step):
