@@ -1,4 +1,4 @@
-!!python/object:objectsofworld.World
+!!python/object:network.World
 alignments:
 - !!python/object:objectsofworld.Alignment
   connectedAlignmentIdx: 1
@@ -27,39 +27,39 @@ alignments:
   width: null
 controlDevices: null
 userInputs:
-- !!python/object:cars.UserInput
+- !!python/object:network.UserInput
   alignmentIdx: 0
   volume: 1000
   distributions:
-    dn: !!python/object:cars.Distribution
+    dn: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: norm
       loc: 8.33333333
       scale: 1
       typeOfDistribution: theoric
-    geometry: !!python/object:cars.Distribution
+    geometry: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: norm
       loc: 7
       scale: 1
       typeOfDistribution: theoric
-    headways: !!python/object:cars.Distribution
+    headways: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: expon
       loc: 1.8
       scale: null
       typeOfDistribution: theoric
-    speed: !!python/object:cars.Distribution
+    speed: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: norm
       loc: 14
       scale: 3
       typeOfDistribution: theoric
-    tau: !!python/object:cars.Distribution
+    tau: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: norm

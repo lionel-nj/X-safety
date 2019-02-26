@@ -3,7 +3,6 @@ import numpy as np
 import csv
 import collections
 import itertools
-from trafficintelligence import utils
 
 
 def load_yaml(filename):
@@ -87,19 +86,18 @@ def generateDistribution(data):
     save_yaml('tiv_prob_cum.yml', tivprobcum)
 
 
-def generateSample(duration, seed, distribution, scale=None, tiv=None, tivprobcum=None):
+def generateSample(duration, seed, distribution):
     """generates a sample from a given distribution, or from a theorical distribution
     :rtype: object
     """
-    from scipy.stats import expon
     k = 0
     result = []
     while sum(result) < duration:
         if distribution is not None:
-            result.append(expon.rvs(scale=scale, size=1, random_state=seed + k)[0])
+            result.append(distribution.getDistribution().rvs(size=1, random_state=seed)[0])
 
         else:
-            result.append(utils.EmpiricalContinuousDistribution(tiv, tivprobcum).rvs(size=1, random_state=seed + k)[0])
+            result.append(distribution.getDistribution().rvs(size=1, random_state=seed)[0])
 
         if sum(result) > duration:
             result.pop(-1)
@@ -163,6 +161,15 @@ def find_nearest(a, a0):
     idx = np.abs(a - a0).argmin()
     return a.flat[idx]
 
+
+def countElementInList(elementsList, element):
+    c = 0
+    for idx, el in enumerate(elementsList):
+        if el == element and elementsList[idx+1] != element:
+            c += 1
+    if elementsList[-1] == element:
+        c += 1
+    return c
 
 if __name__ == "__main__":
     import doctest
