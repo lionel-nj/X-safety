@@ -354,48 +354,25 @@ class World():
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
-    def initVehicleOnAligment(self, alignmentIdx, intervalOfVehicleExistence):
-        """generates a MovingObject """
-
-        result = moving.MovingObject()
-        result.curvilinearPositions = moving.CurvilinearTrajectory()
-        result.velocities = moving.CurvilinearTrajectory()
-        result.timeInterval = intervalOfVehicleExistence
-
-        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
-
-        result.desiredSpeed = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[0],
-            self.vehicleInputs[alignmentIdx].desiredSpeedParameters[1])
-
-        result.vehicleLength = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].geometryParam[0],
-            self.vehicleInputs[alignmentIdx].geometryParam[1])
-
-        result.reactionTime = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["tn"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["tn"]["sd"])
-
-        result.tiv_min = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["tiv_min"]["sd"])
-
-        result.criticalGap = self.vehicleInputs[alignmentIdx].driverDistribution.distribution.rvs(
-            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["scale"],
-            self.vehicleInputs[alignmentIdx].driverParam["critGap"]["sd"])
-
-        result.dn = result.desiredSpeed * result.tiv_min
-
-        return result
+    def initUsers(self, i, timeStep, userNum):
+        '''Initializes new users on their respective alignments '''
+        for vi in self.vehicleInputs:
+            futureCumulatedHeadways = []
+            for h in vi.cumulatedHeadways:
+                if i <= h/timeStep < i+1:
+                    vi.initUser(userNum, h)
+                    userNum += 1
+                else:
+                    futureCumulatedHeadways.append(h)
+            vi.cumulatedHeadways = futureCumulatedHeadways
+        return userNum
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-        for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
-                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0:
-                return k
+       for k in range(len(listOfVehiclesOnMainAlignment)):
+           distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
+                                     listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+           if distanceToCrossingPoint > 0:
+               return k
 
     if __name__ == "__main__":
         import doctest
