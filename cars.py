@@ -4,7 +4,7 @@ from trafficintelligence import moving
 
 class UserInput(object):
     def __init__(self, alignmentIdx, desiredSpeedParameters, headwayDistribution, headwayParam,
-                 seed, tSimul, volume, geometryParam, driverDistribution, headways=None,
+                 seed, volume, geometryParam, driverDistribution, headways=None,
                  driverParam={'tn': {'scale': None, 'sd': None}, 'tiv_min': {'scale': None, 'sd': None},
                               'critGap': {'scale': None, 'sd': None}}):
         self.alignmentIdx = alignmentIdx
@@ -13,7 +13,6 @@ class UserInput(object):
         self.headwayDistribution = headwayDistribution
         self.headwayParam = headwayParam
         self.seed = seed
-        self.tSimul = tSimul
         self.volume = volume
         self.geometryParam = geometryParam
         self.driverParam = driverParam

@@ -11,11 +11,6 @@ def load_yaml(filename):
     return yaml.load(open(filename))
 
 
-def partialLoadFromYaml(fileName, key):
-    result = load_yaml(fileName)
-    return result[key]
-
-
 def save_yaml(filename, data):
     """saves data to a yaml file"""
     with open(filename, 'w') as outfile:
@@ -139,9 +134,9 @@ def prepareIntervals(headways, sampleSize, N_Step):
     return intervals
 
 
-def changeVolumeOnVehicleInput(worldFile, newVolume, alignment_idx):
+def changeVolumeOnVehicleInput(worldFile, newVolume, alignmentIdx):
     """changes the volume on a particular alignment"""
-    worldFile.vehicleInputs[alignment_idx].volume = newVolume
+    worldFile.vehicleInputs[alignmentIdx].volume = newVolume
 
 
 def lossOfTime(beta, tnr):
