@@ -1,6 +1,6 @@
 !!python/object:network.World
 alignments:
-- !!python/object:objectsofworld.Alignment
+- !!python/object:network.Alignment
   connectedAlignmentIdx: 1
   controlDeviceIdx: null
   crossingPoint: !!python/object:trafficintelligence.moving.Point

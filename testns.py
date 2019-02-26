@@ -1,4 +1,4 @@
-import objectsofworld
+import network
 import toolkit
 import itertools
 import random
@@ -6,7 +6,7 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-world = objectsofworld.World.load('simple-net.yml')
+world = network.World.load('simple-net.yml')
 sim = toolkit.load_yaml('config.yml')
 
 random.seed(sim.seed)
