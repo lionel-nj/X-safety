@@ -5,7 +5,7 @@ import math
 import cars
 
 
-class Alignment:
+class Alignment():
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
@@ -22,7 +22,7 @@ class Alignment:
          entryPoint and exitPoint : moving.Point
          others : list of intermediate moving.points"""
 
-        if others is None:
+        if others == None:
             self.points = moving.Trajectory.fromPointList([entryPoint, exitPoint])
         else:
             self.points = moving.Trajectory.fromPointList([entryPoint] + others + [exitPoint])
@@ -42,17 +42,17 @@ class Alignment:
 
     def insertPointAt(self, p, i):
         """inserts a moving.Point p at index i """
-        previousPart = moving.Trajectory()
+        avant = moving.Trajectory()
 
         for k in range(0, i):
-            previousPart.addPosition(self.points[k])
+            avant.addPosition(self.points[k])
 
-        previousPart.addPosition(p)
+        avant.addPosition(p)
 
         for k in range(i, len(self.points)):
-            previousPart.addPosition(self.points[k])
+            avant.addPosition(self.points[k])
 
-        self.points = previousPart
+        self.points = avant
 
     @staticmethod
     def isBetween(a, b, c):
@@ -61,24 +61,25 @@ class Alignment:
     def insertCrossingPoint(self):
         """inserts a crossing point : moving.Point in the alignment sequence"""
         if self.crossingPoint == self.points[0]:
-            self.distanceToCrossingPoint = 0
+            self.distance_to_crossing_point = 0
+
 
         elif self.points[-1] == self.crossingPoint:
-            self.distanceToCrossingPoint = self.points.getCumulativeDistance(len(self.points))
+            self.distance_to_crossing_point = self.points.getCumulativeDistance(len(self.points))
 
         else:
             for k in range(len(self.points) - 1):
                 if Alignment.isBetween(self.points[k], self.points[k + 1], self.crossingPoint):
                     Alignment.insertPointAt(self, self.crossingPoint, k + 1)
                     self.points.computeCumulativeDistances()
-                    self.distanceToCrossingPoint = self.points.getCumulativeDistance(k + 1)
+                    self.distance_to_crossing_point = self.points.getCumulativeDistance(k + 1)
                     break
 
     def connectAlignments(self, other):
-        """ adds a connectedAlignmentIdx & a crossingPoint member to the alignment
+        """ adds a connected_alignment_idx & a crossingPoint member to the alignment
          identifie le point x,y de croisement"""
-        self.connectedAlignmentIdx = other.idx  # mise en relation des aligments qui s'entrecroisent
-        other.connectedAlignmentIdx = self.idx  # mise en relation des aligments qui s'entrecroisent
+        self.connected_alignment_idx = other.idx  # mise en relation des aligments qui s"entrecroisent
+        other.connected_alignment_idx = self.idx  # mise en relation des aligments qui s"entrecroisent
         self.crossingPoint = self.points.getIntersections(other.points[0], other.points[-1])[1][0]
         other.crossingPoint = other.points.getIntersections(self.points[0], self.points[-1])[1][0]
 
@@ -87,7 +88,7 @@ class Alignment:
 
     def isConnectedTo(self, other):
         """boolean, detemines if two alignments are connected"""
-        if self.connectedAlignmentIdx == other.idx and other.connectedAlignmentIdx == self.idx:
+        if self.connected_alignment_idx == other.idx and other.connected_alignment_idx == self.idx:
             return True
         else:
             return False
@@ -97,19 +98,19 @@ class Alignment:
         it is assumed that the method connectAlignments has already been applied to the alignlents
         which means that both of the alignments in input have a crossingPoint attribute
         inputs : alignments
-        output : angle (degrees) at the crossing point of the alignments """
+        output : angle (degrees) at the crssoing point of the alignments """
 
         crossingPoint = self.crossingPoint
-        firstIndexOfCrossingPoint = 0
-        secondIndexOfCrossingPoint = 0
+        first_index_of_cp = 0
+        second_index_of_cp = 0
 
-        while self.points[firstIndexOfCrossingPoint] != crossingPoint:
-            firstIndexOfCrossingPoint += 1
-        while other.points[secondIndexOfCrossingPoint] != crossingPoint:
-            secondIndexOfCrossingPoint += 1
+        while self.points[first_index_of_cp] != crossingPoint:
+            first_index_of_cp += 1
+        while other.points[second_index_of_cp] != crossingPoint:
+            second_index_of_cp += 1
 
-        first_point = self.points.__getitem__(firstIndexOfCrossingPoint - 1)
-        second_point = other.points.__getitem__(secondIndexOfCrossingPoint - 1)
+        first_point = self.points.__getitem__(first_index_of_cp - 1)
+        second_point = other.points.__getitem__(second_index_of_cp - 1)
 
         v1 = crossingPoint - first_point
         v2 = crossingPoint - second_point
@@ -117,19 +118,19 @@ class Alignment:
         v = v1 - v2
         angle = moving.Point.angle(v) * 180 / math.pi
 
-        self.angleAtCrossing = angle
-        other.angleAtCrossing = angle
+        self.angle_at_crossing = angle
+        other.angle_at_crossing = angle
 
         return angle
 
     def alignmentHasROW(self):
-        if self.controlDevice is None:
+        if self.controlDevice == None:
             return True
         else:
             return False
 
 
-class ControlDevice:
+class ControlDevice():
     """generic traffic control devices"""
     categories = {0: "stop",
                   1: "yield",
@@ -158,11 +159,11 @@ class ControlDevice:
             return False
 
 
-class World:
+class World():
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
     def __init__(self, vehicles=None, pedestrians=None, alignments=None, controlDevices=None, crossingPoint=None):
-        # self.UserInput = UserInput
+        # self.vehicleInput = vehicleInput
         self.vehicles = vehicles  # dict de veh
         self.pedestrians = pedestrians  # sorted dict de ped
         self.alignments = alignments  # liste d alignements
@@ -188,12 +189,12 @@ class World:
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
 
-    def reset(self, alignments, controlDevices, userInputs):
+    def reset(self, alignments, controlDevices, vehicleInputs):
         """alignments = list of Alignment class objects"""
         alignments[0].connectAlignments(alignments[1])
         self.controlDevices = controlDevices
         self.alignments = alignments
-        self.userInputs = userInputs
+        self.vehicleInputs = vehicleInputs
         self.save("default.yml")
 
     def showAlignments(self):
@@ -225,113 +226,89 @@ class World:
 
         return sorted(result, key=takeEntry)
 
-    def isVehicleBeforeCrossingPointAt(self, alignmentIdx, vehicleIdx, t, vehiclesData):
+    def isVehicleBeforeCrossingPointAt(self, alignment_idx, vehicle_idx, t, vehiclesData):
         """ determines if a vehicle if located ahead of a crossing point in a world representation """
-        d = vehiclesData[alignmentIdx][vehicleIdx].curvilinearPositions[t][0] - self.alignments[
-            alignmentIdx].distanceToCrossingPoint
+        d = vehiclesData[alignment_idx][vehicle_idx].curvilinearPositions[t][0] - self.alignments[
+            alignment_idx].distance_to_crossing_point
         if d < 0:
             return True
         else:
             return False
 
-    def minDistanceChecked(self, leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
+    def minDistanceChecked(self, vehiclesData, leader_alignment_idx_i, follower_alignment_idx_j, i, j, t, dmin):
         """ checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle and j is the following vehicle"""
+        if leader_alignment_idx_i == follower_alignment_idx_j:
+            d = cars.VehicleInput.distanceGap(vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0],
+                                              vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0],
+                                              vehiclesData[leader_alignment_idx_i][i].vehicleLength)
+            if (d >= dmin
+                    and 0 < vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0]
+                    and 0 < vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0]):
+                return True, d
+            return False, d
 
-        first = self.alignments[leaderAlignmentIdx].vehicles[i]
-        second = self.alignments[followerAlignmentIdx].vehicles[j]
-
-        if first.timeInterval.first >= second.timeInterval.first:
-            leader = first
-            follower = second
         else:
-            leader = second
-            follower = first
-
-        if self.alignments[leaderAlignmentIdx].vehicles[i].vehiclesCoexistAt(
-                self.alignments[followerAlignmentIdx].vehicles[j], t):
-            if leaderAlignmentIdx == followerAlignmentIdx:
-                d = cars.UserInput.distanceGap(leader.curvilinearPositions[t][0],
-                                               follower.curvilinearPositions[t][0],
-                                               leader.geometry)
-            else:
-                angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
-                d1 = self.alignments[leaderAlignmentIdx].vehicles[i].curvilinearPositions[t][0] - self.alignments[
-                    leaderAlignmentIdx].distanceToCrossingPoint
-                d2 = self.alignment[followerAlignmentIdx].vehicles[j].curvilinearPositions[t][0] - self.alignments[
-                    followerAlignmentIdx].distanceToCrossingPoint
-                d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
-
+            angle = self.alignments[0].angleAtCrossingPoint(self.alignments[1])
+            d1 = vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0] - self.alignments[
+                leader_alignment_idx_i].distance_to_crossing_point
+            d2 = vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0] - self.alignments[
+                follower_alignment_idx_j].distance_to_crossing_point
+            d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
             if d >= dmin:
-                return True
+                return True, d
             else:
-                return False
-        else:
-            return True
+                return False, d
 
-    def isAnEncounter(self, leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
+    def isAnEncounter(self, vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin):
         """ checks if there is an encounter between two vehicules
-        leaderAlignmentIdx and followerAlignmentIdx are integers
+        alignment_idx_i and alignment_idx_j are integers
         i,j : integers
         t : time, integer
         dmin : float  """
-        if self.minDistanceChecked(leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
-            return False
+        d = self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[1]
+        if not self.minDistanceChecked(vehiclesData, alignment_idx_i, alignment_idx_j, i, j, t, dmin)[0]:
+            return True, d
         else:
-            return True
+            return False, d
 
-    def count(self, method, dmin, alignmentIdx=None):
+    def count(self, method, vehiclesData, dmin, alignmentIdx=None):
         """ counts according to the selected method (cross or in line)
          the number of interactions taking place at a distance smaller than dmin.
         """
-
         if method == "inLine":
-            vehiclesData = self.alignments[alignmentIdx].vehicles
-            listVeh = []
-            for k in vehiclesData:
-                if k.timeInterval is not None:
-                    listVeh.append(k)
+            rows = len(vehiclesData[alignmentIdx])
 
-            rows = len(listVeh)
             interactionTime = []
             totalNumberOfEncountersSameWay = 0
 
             for h in range(0, rows - 1):
+                t = 0
                 interactionTime.append([])
 
-                for t in range(vehiclesData[h+1].timeInterval.first, vehiclesData[h+1].timeInterval.last+1):
-                    if self.isAnEncounter(alignmentIdx, alignmentIdx, h, h + 1, t-vehiclesData[h+1].timeInterval.first, dmin):
-                        interactionTime[h].append(1)
-                    else:
-                        interactionTime[h].append(0)
+                while t < len(vehiclesData[alignmentIdx][0].curvilinearPositions) - 1:
+                    if (self.isAnEncounter(vehiclesData, alignmentIdx, alignmentIdx, h, h + 1, t, dmin)[0]
+                            and 0 < vehiclesData[alignmentIdx][h].velocities[t][0]
+                            and 0 < vehiclesData[alignmentIdx][h + 1].velocities[t][0]):
+                        interactionTime[h].append(t)
+                    t += 1
 
-                if interactionTime[h][-1] == 1:
-                    numberOfEncountersSameWay = 1
+                if len(interactionTime[h]) < 2:
+                    numberOfEncountersSameWay = len(interactionTime[h])
+
                 else:
-                    numberOfEncountersSameWay = 0
-
-                for el in range(len(interactionTime[h])-1):
-                    if interactionTime[h][el] == 1 and interactionTime[h][el+1] == 0:
-                        numberOfEncountersSameWay += 1
+                    numberOfEncountersSameWay = 1
+                    for k in range(len(interactionTime[h]) - 1):
+                        if interactionTime[h][k + 1] != interactionTime[h][k] + 1:
+                            numberOfEncountersSameWay += 1
 
                 totalNumberOfEncountersSameWay += numberOfEncountersSameWay
 
             return totalNumberOfEncountersSameWay
 
         elif method == "crossing":
-            # TODO: verifier cette partie du code pour des interactions croisees
-            vehiclesData = [self.alignments[0].vehicles, self.alignments[1].vehicles]
-            listVeh = [[], []]
-
-            for k in vehiclesData[0]:
-                if k.timeInterval is not None:
-                    listVeh[0].append(k)
-            for k in vehiclesData[1]:
-                if k.timeInterval is not None:
-                    listVeh[1].append(k)
-
-            rows = len(listVeh[0])
-            columns = len(listVeh[1])
+            rows = len(vehiclesData[0])
+            columns = len(vehiclesData[1])
             interactionTime = []
             totalNumberOfCrossingEncounters = 0
 
@@ -340,17 +317,21 @@ class World:
                 for v in range(columns):
                     interactionTime[h].append([])
 
-                    for t in range(vehiclesData[0][h+1].timeInterval.first, vehiclesData[0][h+1].timeInterval.last+1):
-                        if self.isAnEncounter(0, 1, h, v, t - vehiclesData[0][h][h + 1].timeInterval.first, dmin):
+                    t = 0
+                    while t < len(vehiclesData[0][0].curvilinearPositions):
+                        if ((self.isAnEncounter(vehiclesData, 0, 1, h, v, t, dmin)[0]
+                             and 0 < vehiclesData[0][h].velocities[t][0]
+                             and 0 < vehiclesData[1][v].velocities[t][0])):
+                            interactionTime[h][v].append(t)
+                        t += 1
 
-                            interactionTime[h][v].append(1)
-                        else:
-                            interactionTime[h][v].append(0)
+                    if len(interactionTime[h][v]) < 2:
+                        numberOfEncounters = len(interactionTime[h][v])
 
                     else:
                         numberOfEncounters = 1
                         for k in range(len(interactionTime[h][v]) - 1):
-                            if interactionTime[h][v][k] == 1 and interactionTime[h][v][k + 1] == 0:
+                            if interactionTime[h][v][k + 1] != interactionTime[h][v][k] + 1:
                                 numberOfEncounters += 1
 
                     totalNumberOfCrossingEncounters += numberOfEncounters
@@ -358,7 +339,7 @@ class World:
         else:
             return None
 
-    def countAllEncounters(self, dmin):
+    def countAllEncounters(self, vehiclesData, dmin):
         """counts the encounters in a world
         vehiclesData : list of list of moving objects
         dmin : float"""
@@ -366,18 +347,19 @@ class World:
         totalNumberOfEncounters = []
 
         for alignment in self.alignments:
-            totalNumberOfEncounters.append(self.count(method="inLine", alignmentIdx=alignment.idx, dmin=dmin))
+            totalNumberOfEncounters.append(self.count(method="inLine", vehiclesData=vehiclesData,
+                                                      alignmentIdx=alignment.idx, dmin=dmin))
 
-        totalNumberOfEncounters.append(self.count(method="crossing", dmin=dmin))
+        totalNumberOfEncounters.append(self.count(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
     def initUsers(self, i, timeStep, userNum):
-        """Initializes new users on their respective alignments """
-        for vi in self.userInputs:
+        '''Initializes new users on their respective alignments '''
+        for vi in self.vehicleInputs:
             futureCumulatedHeadways = []
             for h in vi.cumulatedHeadways:
-                if i <= h / timeStep < i + 1:
+                if i <= h/timeStep < i+1:
                     vi.initUser(userNum, h)
                     userNum += 1
                 else:
@@ -386,11 +368,11 @@ class World:
         return userNum
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-        for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distanceToCrossingPoint - \
-                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0:
-                return k
+       for k in range(len(listOfVehiclesOnMainAlignment)):
+           distanceToCrossingPoint = self.alignments[mainAlignment].distance_to_crossing_point - \
+                                     listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+           if distanceToCrossingPoint > 0:
+               return k
 
     if __name__ == "__main__":
         import doctest

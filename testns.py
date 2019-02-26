@@ -11,7 +11,7 @@ sim = toolkit.load_yaml('config.yml')
 
 random.seed(sim.seed)
 
-for vi in world.userInputs:
+for vi in world.vehicleInputs:
     # link to alignment
     for al in world.alignments:
         if al.idx == vi.alignmentIdx:
@@ -38,7 +38,4 @@ for al in world.alignments:
     for v in al.vehicles:
         if v.timeInterval is not None:
             v.plotCurvilinearPositions()
-# plt.show()
-#TODO: avior les memes replications pour verifier le resultat de count selon diverses valeurs dmin
-
-print(world.count('inLine', 25, 0))
+plt.show()
