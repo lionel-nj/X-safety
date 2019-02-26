@@ -1,14 +1,12 @@
 !!python/object:objectsofworld.World
-speedLimit: 14
-speedVariations: 5
 alignments:
 - !!python/object:objectsofworld.Alignment
-  connected_alignment_idx: 1
-  controlDevice: null
+  connectedAlignmentIdx: 1
+  controlDeviceIdx: null
   crossingPoint: !!python/object:trafficintelligence.moving.Point
     x: 0.0
     y: 0.0
-  distance_to_crossing_point: 1000.0
+  distanceToCrossingPoint: 1000.0
   idx: 0
   name: 'horizontal.yml'
   points: !!python/object:trafficintelligence.moving.Trajectory
@@ -28,28 +26,10 @@ alignments:
       - 0.0
   width: null
 controlDevices: null
-pedestrians: null
 userInputs:
 - !!python/object:cars.UserInput
   alignmentIdx: 0
-  desiredSpeedParameters:
-  - 14.0
-  - 3.0
-  headwayParam: 1.8
   volume: 1000
-  geometryParam: !!python/tuple
-    - 7
-    - 1
-  driverParam:
-    critGap:
-      loc: 6
-      scale: 1
-    dn:
-      loc: 8.33333333
-      scale: 1
-    tau:
-      loc: 2
-      scale: 0.5
   distributions:
     dn: !!python/object:cars.Distribution
       cdf: null
@@ -86,5 +66,3 @@ userInputs:
       loc: 2
       scale: 0.5
       typeOfDistribution: theoric
-
-vehicles: null

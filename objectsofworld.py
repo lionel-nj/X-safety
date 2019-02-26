@@ -1,7 +1,7 @@
 from trafficintelligence import moving
 import toolkit
 import math
-import cars
+import network
 
 
 class Alignment:
@@ -14,14 +14,13 @@ class Alignment:
         self.width = width
         self.controlDevice = controlDevice
         self.name = name
-        # self.volume = volume
 
     def makeAlignment(self, entryPoint, exitPoint, others=None):
         """builds an alignments from points,
          entryPoint and exitPoint : moving.Point
          others : list of intermediate moving.points"""
 
-        if others == None:
+        if others is None:
             self.points = moving.Trajectory.fromPointList([entryPoint, exitPoint])
         else:
             self.points = moving.Trajectory.fromPointList([entryPoint] + others + [exitPoint])
@@ -61,7 +60,6 @@ class Alignment:
         """inserts a crossing point : moving.Point in the alignment sequence"""
         if self.crossingPoint == self.points[0]:
             self.distanceToCrossingPoint = 0
-
 
         elif self.points[-1] == self.crossingPoint:
             self.distanceToCrossingPoint = self.points.getCumulativeDistance(len(self.points))
@@ -123,13 +121,13 @@ class Alignment:
         return angle
 
     def alignmentHasROW(self):
-        if self.controlDevice == None:
+        if self.controlDevice is None:
             return True
         else:
             return False
 
 
-class ControlDevice():
+class ControlDevice:
     """generic traffic control devices"""
     categories = {0: "stop",
                   1: "yield",
@@ -158,21 +156,17 @@ class ControlDevice():
             return False
 
 
-class World():
+
+class World:
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
-    def __init__(self, vehicles=None, pedestrians=None, alignments=None, controlDevices=None, crossingPoint=None):
-        self.vehicles = vehicles  # dict de veh
-        self.pedestrians = pedestrians  # sorted dict de ped
+    def __init__(self, alignments=None, controlDevices=None, crossingPoint=None):
         self.alignments = alignments  # liste d alignements
         self.controlDevices = controlDevices  # liste de CD
         self.crossingPoint = crossingPoint  # moving.Point
 
     def __repr__(self):
-        return "vehicles: {}, pedestrians: {}, alignments: {}, control devices: {}".format(self.vehicles,
-                                                                                           self.pedestrians,
-                                                                                           self.alignments,
-                                                                                           self.controlDevices)
+        return "alignments: {}, control devices: {}".format(self.alignments, self.controlDevices)
 
     @staticmethod
     def load(filename):
@@ -209,20 +203,20 @@ class World():
         for alignment in self.alignments:
             result.append(alignment)
         return result
-
-    def existingUsers(self, t):
-        """determines all existing users in a word file"""
-
-        result = []
-        for k in range(0, len(self.vehicles)):
-            if moving.Interval.contains(self.vehicles[k].getTimeInterval(), t):
-                result.append(self.vehicles[k])
-
-        for k in range(0, len(self.pedestrians)):
-            if moving.Interval.contains(self.pedestrians[k].getTimeInterval(), t):
-                result.append(self.pedestrians[k])
-
-        return sorted(result, key=takeEntry)
+    #
+    # def existingUsers(self, t):
+    #     """determines all existing users in a word file"""
+    #
+    #     result = []
+    #     for k in range(0, len(self.vehicles)):
+    #         if moving.Interval.contains(self.vehicles[k].getTimeInterval(), t):
+    #             result.append(self.vehicles[k])
+    #
+    #     for k in range(0, len(self.pedestrians)):
+    #         if moving.Interval.contains(self.pedestrians[k].getTimeInterval(), t):
+    #             result.append(self.pedestrians[k])
+    #
+    #     return sorted(result, key=takeEntry)
 
     def isVehicleBeforeCrossingPointAt(self, alignmentIdx, vehicleIdx, t, vehiclesData):
         """ determines if a vehicle if located ahead of a crossing point in a world representation """
@@ -237,9 +231,9 @@ class World():
         """ checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle and j is the following vehicle"""
         if leaderAlignmentIdx == followerAlignmentIdx:
-            d = cars.UserInput.distanceGap(vehiclesData[leaderAlignmentIdx][i].curvilinearPositions[t][0],
-                                              vehiclesData[followerAlignmentIdx][j].curvilinearPositions[t][0],
-                                              vehiclesData[leaderAlignmentIdx][i].vehicleLength)
+            d = network.UserInput.distanceGap(vehiclesData[leaderAlignmentIdx][i].curvilinearPositions[t][0],
+                                           vehiclesData[followerAlignmentIdx][j].curvilinearPositions[t][0],
+                                           vehiclesData[leaderAlignmentIdx][i].vehicleLength)
             if (d >= dmin
                     and 0 < vehiclesData[leaderAlignmentIdx][i].curvilinearPositions[t][0]
                     and 0 < vehiclesData[followerAlignmentIdx][j].curvilinearPositions[t][0]):
@@ -353,11 +347,11 @@ class World():
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
     def initUsers(self, i, timeStep, userNum):
-        '''Initializes new users on their respective alignments '''
+        """Initializes new users on their respective alignments """
         for vi in self.userInputs:
             futureCumulatedHeadways = []
             for h in vi.cumulatedHeadways:
-                if i <= h/timeStep < i+1:
+                if i <= h / timeStep < i + 1:
                     vi.initUser(userNum, h)
                     userNum += 1
                 else:
@@ -366,12 +360,13 @@ class World():
         return userNum
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
-       for k in range(len(listOfVehiclesOnMainAlignment)):
-           distanceToCrossingPoint = self.alignments[mainAlignment].distanceToCrossingPoint - \
-                                     listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-           if distanceToCrossingPoint > 0:
-               return k
+        for k in range(len(listOfVehiclesOnMainAlignment)):
+            distanceToCrossingPoint = self.alignments[mainAlignment].distanceToCrossingPoint - \
+                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
+            if distanceToCrossingPoint > 0:
+                return k
 
-    if __name__ == "__main__":
-        import doctest
-        doctest.testmod()
+
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()

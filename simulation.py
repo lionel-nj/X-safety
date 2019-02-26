@@ -1,9 +1,8 @@
 import toolkit
-import cars
-from trafficintelligence import moving
+
 
 class Simulation(object):
-    '''Stores all simulation and world parameters'''
+    """Stores all simulation and world parameters"""
     units = [
         'sec',
         'sec',

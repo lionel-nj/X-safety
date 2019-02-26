@@ -38,4 +38,6 @@ for al in world.alignments:
     for v in al.vehicles:
         if v.timeInterval is not None:
             v.plotCurvilinearPositions()
+plt.xlabel('time(s/100)')
+plt.ylabel('longitudinal coordinate (m)')
 plt.show()
