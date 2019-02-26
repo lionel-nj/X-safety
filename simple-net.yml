@@ -50,4 +50,41 @@ userInputs:
     tau:
       loc: 2
       scale: 0.5
+  distributions:
+    dn: !!python/object:cars.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 8.33333333
+      scale: 1
+      typeOfDistribution: theoric
+    geometry: !!python/object:cars.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 7
+      scale: 1
+      typeOfDistribution: theoric
+    headways: !!python/object:cars.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: expon
+      loc: 1.8
+      scale: null
+      typeOfDistribution: theoric
+    speed: !!python/object:cars.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 14
+      scale: 3
+      typeOfDistribution: theoric
+    tau: !!python/object:cars.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 2
+      scale: 0.5
+      typeOfDistribution: theoric
+
 vehicles: null

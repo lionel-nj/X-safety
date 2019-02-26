@@ -32,18 +32,19 @@ class UserInput(object):
         """ generates a set a headways"""
         self.headways = toolkit.generateSample(duration=duration,
                                                seed=seed,
-                                               distribution=toolkit.partialLoadFromYaml('distribution.yml', 'headways'),  #self.headwayDistribution.getDistribution(),
+                                               distribution=self.distributions['headways'],  #self.headwayDistribution.getDistribution(),
                                                scale=self.headwayParam,
                                                tiv=tiv,
                                                tivprobcum=tivprobcum)
 
     def initUser(self, userNum, initialCumulatedHeadway):
         """generates a MovingObject on the UserInput alignment"""
-        speedNorm = toolkit.partialLoadFromYaml('distribution.yml', 'speed').getDistribution()
-        tauNorm = toolkit.partialLoadFromYaml('distribution.yml', 'tau').getDistribution()
-        dNorm = toolkit.partialLoadFromYaml('distribution.yml', 'dn').getDistribution()
+        speedNorm = self.distributions['speed'].getDistribution()
+        tauNorm = self.distributions['tau'].getDistribution()
+        dNorm = self.distributions['dn'].getDistribution()
+        geomNorm = self.distributions['geometry'].getDistribution()
 
-        obj = moving.MovingObject(userNum, geometry=toolkit.partialLoadFromYaml('distribution.yml', 'geometry').getDistribution().rvs(),  #self.driverDistribution.distribution.rvs(self.geometryParam[0],# self.geometryParam[1]),
+        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(),  #self.driverDistribution.distribution.rvs(self.geometryParam[0],# self.geometryParam[1]),
                                   initCurvilinear=True)
         obj.addNewellAttributes(speedNorm.rvs(),
                                 tauNorm.rvs(),
