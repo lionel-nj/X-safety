@@ -32,9 +32,3 @@ class Simulation(object):
     @staticmethod
     def load(filename):
         toolkit.load_yaml(filename)
-
-
-if __name__ == "__main__":
-    import doctest
-
-    doctest.testmod()
