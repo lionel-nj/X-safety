@@ -121,7 +121,7 @@ def run(worldFile, configFile):
                             toolkit.find_nearest(np.array(initializedVehicles[k].curvilinearPositions.positions[0]), 600)))
 
                         time = arrivalTimeAtCrossing
-                     
+
                     # determination du prochain vehicule prioritaire a l'instant  d'arrivee a l'intersection
                     rowVehicle = worldFile.findApprocachingVehicleOnMainAlignment(time, 0,
                                                                                   vehiclesInitialization[0])
@@ -152,7 +152,7 @@ def run(worldFile, configFile):
                                                                           timeStep=configFile.timeStep,
                                                                           leaderVehicleCurvilinearPositionAtPrecedentTime=
                                                                           initializedVehicles[k].curvilinearPositions[
-                                                                              int(t-reactionTime)][0],  #t-1 ? 
+                                                                              int(t-reactionTime)][0],  #t-1 ?
                                                                           nextAlignment_idx=initializedVehicles[
                                                                               k].curvilinearPositions.lanes[0],
                                                                           changeOfAlignment=False)
@@ -164,7 +164,8 @@ def run(worldFile, configFile):
                         # tant que t < instant de creation du vehicule courant (k), la position vaut l'espacement dn entre les 2 vehicules
 
                         initializedVehicles[k].curvilinearPositions.addPositionSYL(
-                            initializedVehicles[k].curvilinearPositions[0][0], 0,
+                            initializedVehicles[k].curvilinearPositions[0][0],
+                            0,
                             initializedVehicles[k].curvilinearPositions.lanes[0])
                         initializedVehicles[k].velocities.addPositionSYL(initializedVehicles[k].desiredSpeed, 0, None)
                         t = t + 1
@@ -173,7 +174,7 @@ def run(worldFile, configFile):
                         # une fois que t=>  instant de creation du vehicule on procede a la mise a jour des positions selon newell
                         if t > reactionTime:
                             previousVehicleCurvilinearPositionAtPrecedentTime = \
-                                initializedVehicles[k - 1].curvilinearPositions[t - math.ceil(reactionTime)][0]
+                                initializedVehicles[k - 1].curvilinearPositions[t - math.ceil(reactionTime)-math.ceil(creationTimeOfCurrentVehicle)][0]
                             # t = t + 1
                         else:
                             previousVehicleCurvilinearPositionAtPrecedentTime = \
