@@ -1,7 +1,7 @@
 !!python/object:simulation.Simulation
 averageVehicleLength: 7.0
 averageVehicleWidth: 2.5
-duration: 50.0
+duration: 100.0
 interactionDistance: 25
 minimumTimeHeadway: 2.0
 timeStep: 0.1
