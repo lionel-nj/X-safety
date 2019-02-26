@@ -163,7 +163,6 @@ class World():
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
     def __init__(self, vehicles=None, pedestrians=None, alignments=None, controlDevices=None, crossingPoint=None):
-        # self.vehicleInput = vehicleInput
         self.vehicles = vehicles  # dict de veh
         self.pedestrians = pedestrians  # sorted dict de ped
         self.alignments = alignments  # liste d alignements
@@ -189,12 +188,12 @@ class World():
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
 
-    def reset(self, alignments, controlDevices, vehicleInputs):
+    def reset(self, alignments, controlDevices, userInputs):
         """alignments = list of Alignment class objects"""
         alignments[0].connectAlignments(alignments[1])
         self.controlDevices = controlDevices
         self.alignments = alignments
-        self.vehicleInputs = vehicleInputs
+        self.userInputs = userInputs
         self.save("default.yml")
 
     def showAlignments(self):
@@ -239,7 +238,7 @@ class World():
         """ checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle and j is the following vehicle"""
         if leader_alignment_idx_i == follower_alignment_idx_j:
-            d = cars.VehicleInput.distanceGap(vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0],
+            d = cars.UserInput.distanceGap(vehiclesData[leader_alignment_idx_i][i].curvilinearPositions[t][0],
                                               vehiclesData[follower_alignment_idx_j][j].curvilinearPositions[t][0],
                                               vehiclesData[leader_alignment_idx_i][i].vehicleLength)
             if (d >= dmin
@@ -356,7 +355,7 @@ class World():
 
     def initUsers(self, i, timeStep, userNum):
         '''Initializes new users on their respective alignments '''
-        for vi in self.vehicleInputs:
+        for vi in self.userInputs:
             futureCumulatedHeadways = []
             for h in vi.cumulatedHeadways:
                 if i <= h/timeStep < i+1:

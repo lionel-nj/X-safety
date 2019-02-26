@@ -11,7 +11,7 @@ sim = toolkit.load_yaml('config.yml')
 
 random.seed(sim.seed)
 
-for vi in world.vehicleInputs:
+for vi in world.userInputs:
     # link to alignment
     for al in world.alignments:
         if al.idx == vi.alignmentIdx:
