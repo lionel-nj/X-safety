@@ -67,13 +67,20 @@ class CarGeometry:
 
 
 class Distribution:
-    def __init__(self, typeOfDistribution, distributionName, loc, scale, cdf, constant):
+    def __init__(self, typeOfDistribution, distributionName, loc=None, scale=None, cdf=None, constant=None):
         self.typeOfDistribution = typeOfDistribution
         self.distributionName = distributionName
         self.loc = loc
         self.scale = scale
         self.cdf = cdf
         self.constant = constant
+
+    def save(self, fileName):
+        return toolkit.save_yaml(fileName, self)
+
+    @staticmethod
+    def load(fileName):
+        return toolkit.load_yaml(fileName)
 
     def getDistribution(self):
         from scipy import stats
