@@ -241,7 +241,7 @@ class World:
 
         if leader.vehiclesCoexistAt(follower, t):
             if leaderAlignmentIdx == followerAlignmentIdx:
-                d = UserInput.distanceGap(leader.curvilinearPositions[t-leader.timeInterval.first][0],
+                d = UserInput.distanceGap(leader.curvilinearPositions[t - leader.timeInterval.first][0],
                                           follower.curvilinearPositions[t - follower.timeInterval.first][0],
                                           leader.geometry)
                 if d >= dmin:
@@ -302,36 +302,39 @@ class World:
                 totalNumberOfEncountersSameWay += numberOfEncountersSameWay
 
             return totalNumberOfEncountersSameWay
-        #
-        # elif method == "crossing":
-        #     rows = len(vehiclesData[0])
-        #     columns = len(vehiclesData[1])
-        #     interactionTime = []
-        #     totalNumberOfCrossingEncounters = 0
-        #
-        #     for h in range(rows):
-        #         interactionTime.append([])
-        #         for v in range(columns):
-        #             interactionTime[h].append([])
-        #
-        #             t = 0
-        #             while t < len(vehiclesData[0][0].curvilinearPositions):
-        #                 if ((self.isAnEncounter(vehiclesData, 0, 1, h, v, t, dmin)[0]
-        #                      and 0 < vehiclesData[0][h].velocities[t][0]
-        #                      and 0 < vehiclesData[1][v].velocities[t][0])):
-        #                     interactionTime[h][v].append(t)
-        #                 t += 1
-        #
-        #             if len(interactionTime[h][v]) < 2:
-        #                 numberOfEncounters = len(interactionTime[h][v])
-        #
-        #             else:
-        #                 numberOfEncounters = 1
-        #                 for k in range(len(interactionTime[h][v]) - 1):
-        #                     if interactionTime[h][v][k + 1] != interactionTime[h][v][k] + 1:
-        #                         numberOfEncounters += 1
-        #
-        #             totalNumberOfCrossingEncounters += numberOfEncounters
+
+        elif method == "crossing":
+
+            vehList = [[], []]
+
+            for el in self.alignments[0].vehicles:
+                if el.timeInterval is not None:
+                    vehList[0].append(el)
+
+            for el in self.alignments[1].vehicles:
+                if el.timeInterval is not None:
+                    vehList[1].append(el)
+
+            rows = len(vehList[0])
+            columns = len(vehList[1])
+            interactionTime = []
+            totalNumberOfCrossingEncounters = 0
+
+            for h in range(rows):
+                interactionTime.append([])
+                for v in range(columns):
+                    interactionTime[h].append([])
+                    follower = self.alignments[1].vehicles[v].getLeader(self.alignments[1].vehicles[v])
+
+                    for t in range(follower.timeInterval.first, follower.timeInterval.last + 1):
+                        if self.isAnEncounter(0, 1, h, v, t, dmin):
+                            interactionTime[h][v].append(1)
+                        else:
+                            interactionTime[h][v].append(0)
+
+                    numberOfEncounters = toolkit.countElementInList(interactionTime[h][v], 1)  #
+                    totalNumberOfCrossingEncounters += numberOfEncounters
+            return totalNumberOfCrossingEncounters
 
         else:
             print('error in method name')
