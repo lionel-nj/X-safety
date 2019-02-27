@@ -241,9 +241,9 @@ class World:
 
         if leader.vehiclesCoexistAt(follower, t):
             if leaderAlignmentIdx == followerAlignmentIdx:
-                d = UserInput.distanceGap(leader.curvilinearPositions[t][0],
-                                                  follower.curvilinearPositions[t-follower.timeInterval.first][0],
-                                                  leader.geometry)
+                d = UserInput.distanceGap(leader.curvilinearPositions[t-leader.timeInterval.first][0],
+                                          follower.curvilinearPositions[t - follower.timeInterval.first][0],
+                                          leader.geometry)
                 if d >= dmin:
                     return True
                 return False
@@ -291,7 +291,8 @@ class World:
             for h in range(0, rows - 1):
                 interactionTime.append([])
 
-                for t in range(self.alignments[alignmentIdx].vehicles[h+1].timeInterval.first, self.alignments[alignmentIdx].vehicles[h+1].timeInterval.last + 1):
+                for t in range(self.alignments[alignmentIdx].vehicles[h + 1].timeInterval.first,
+                               self.alignments[alignmentIdx].vehicles[h + 1].timeInterval.last + 1):
                     if self.isAnEncounter(alignmentIdx, alignmentIdx, h, h + 1, t, dmin):
                         interactionTime[h].append(1)
                     else:
@@ -412,7 +413,7 @@ class UserInput:
         obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(), initCurvilinear=True)
         obj.addNewellAttributes(speedNorm.rvs(),
                                 tauNorm.rvs(),
-                                dNorm.rvs(),#kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+                                dNorm.rvs(),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
 
@@ -422,7 +423,7 @@ class UserInput:
         #     self.driverParam["critGap"]["sd"])
 
         if len(self.alignment.vehicles) > 0:
-            obj.leader = self.alignment.vehicles[-1] # TODO verify?
+            obj.leader = self.alignment.vehicles[-1]  # TODO verify?
         self.alignment.vehicles.append(obj)
 
 

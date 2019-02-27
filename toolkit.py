@@ -164,8 +164,8 @@ def find_nearest(a, a0):
 
 def countElementInList(elementsList, element):
     c = 0
-    for idx, el in enumerate(elementsList):
-        if el == element and elementsList[idx+1] != element:
+    for k in range(len(elementsList)-1):
+        if elementsList[k] == element and elementsList[k+1] != element:
             c += 1
     if elementsList[-1] == element:
         c += 1
