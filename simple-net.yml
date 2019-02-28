@@ -25,6 +25,7 @@ alignments:
       - 0.0
       - 0.0
   width: null
+
 controlDevices: null
 userInputs:
 - !!python/object:network.UserInput
@@ -49,8 +50,8 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: expon
-      loc: 1.8
-      scale: null
+      loc: 0.5
+      scale: 1.8
       typeOfDistribution: theoric
     speed: !!python/object:network.Distribution
       cdf: null
@@ -66,3 +67,4 @@ userInputs:
       loc: 2
       scale: 0.5
       typeOfDistribution: theoric
+

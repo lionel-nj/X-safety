@@ -413,18 +413,17 @@ class UserInput:
         speedNorm = self.distributions['speed'].getDistribution()
         tauNorm = self.distributions['tau'].getDistribution()
         dNorm = self.distributions['dn'].getDistribution()
+        # gapNorm = self.distributions['criticalGap'].getDistribution()
 
-        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(), initCurvilinear=True)
-        obj.addNewellAttributes(speedNorm.rvs(),
-                                tauNorm.rvs(),
-                                dNorm.rvs(),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx), initCurvilinear=True)
+        obj.addNewellAttributes(speedNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),
+                                tauNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),
+                                dNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
 
         # # utile?
-        # obj.criticalGap = self.driverDistribution.distribution.rvs(
-        #     self.driverParam["critGap"]["scale"],
-        #     self.driverParam["critGap"]["sd"])
+        # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
         if len(self.alignment.vehicles) > 0:
             obj.leader = self.alignment.vehicles[-1]  # TODO verify?

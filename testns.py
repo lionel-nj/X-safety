@@ -25,7 +25,7 @@ for al in world.alignments:
 userNum = 0
 for i in range(int(np.floor(sim.duration/sim.timeStep))):
     # print('simulation step {}'.format(i))
-    random.seed(sim.seed)
+    # random.seed(sim.seed)
     userNum = world.initUsers(i, sim.timeStep, userNum)
 
     for al in world.alignments:
