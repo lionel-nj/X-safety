@@ -367,9 +367,10 @@ class World:
             vi.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
-    def findApproachingVehicleOnMainAlignment(self, time, mainAlignment, listOfVehiclesOnMainAlignment):
+    def findApproachingVehicleOnMainAlignment(self, time, mainAlignmentIdx):
+        listOfVehiclesOnMainAlignment = self.alignments[mainAlignmentIdx].vehicles
         for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.alignments[mainAlignment].distanceToCrossingPoint - \
+            distanceToCrossingPoint = self.alignments[mainAlignmentIdx].distanceToCrossingPoint - \
                                       listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
             if distanceToCrossingPoint > 0:
                 return k
@@ -458,9 +459,9 @@ class Distribution:
         from trafficintelligence import utils
         if self.typeOfDistribution == 'theoric':
             if self.distributionName == 'norm':
-                return stats.norm(self.loc, self.scale)
+                return stats.norm(loc=self.loc, scale=self.scale)
             elif self.distributionName == 'expon':
-                return stats.expon(self.loc)
+                return stats.expon(loc=self.loc, scale=self.scale)
             else:
                 print('error in distribution name')
         elif self.typeOfDistribution == 'empirical':

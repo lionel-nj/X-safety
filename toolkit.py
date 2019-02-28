@@ -90,14 +90,18 @@ def generateSample(duration, seed, distribution):
     """generates a sample from a given distribution, or from a theorical distribution
     :rtype: object
     """
+    import random
+
     k = 0
     result = []
     while sum(result) < duration:
         if distribution is not None:
-            result.append(distribution.getDistribution().rvs(size=1, random_state=seed)[0])
+            random.seed(seed)
+            result.append(distribution.getDistribution().rvs(size=1, random_state=seed + k)[0])
 
         else:
-            result.append(distribution.getDistribution().rvs(size=1, random_state=seed)[0])
+            print('error : no distribution')
+            return None
 
         if sum(result) > duration:
             result.pop(-1)

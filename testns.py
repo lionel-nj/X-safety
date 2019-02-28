@@ -10,13 +10,12 @@ world = network.World.load('simple-net.yml')
 sim = toolkit.load_yaml('config.yml')
 
 random.seed(sim.seed)
-
 for vi in world.userInputs:
     # link to alignment
     for al in world.alignments:
         if al.idx == vi.alignmentIdx:
             vi.alignment = al
-    vi.generateHeadways(duration=sim.duration, seed=int(10 * random.random()))
+    vi.generateHeadways(duration=sim.duration, seed=int(1000 * random.random()))
     vi.cumulatedHeadways = list(itertools.accumulate(vi.headways))
 
 # suggestion, a voir si c'est le plus pratique
@@ -25,7 +24,8 @@ for al in world.alignments:
 
 userNum = 0
 for i in range(int(np.floor(sim.duration/sim.timeStep))):
-    print('simulation step {}'.format(i))
+    # print('simulation step {}'.format(i))
+    random.seed(sim.seed)
     userNum = world.initUsers(i, sim.timeStep, userNum)
 
     for al in world.alignments:
@@ -41,3 +41,6 @@ for al in world.alignments:
 plt.xlabel('time(s/100)')
 plt.ylabel('longitudinal coordinate (m)')
 plt.show()
+
+# sim.save('configxx.yml')
+# world.save('worldxx.yml')
