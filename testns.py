@@ -41,6 +41,3 @@ for al in world.alignments:
 plt.xlabel('time(s/100)')
 plt.ylabel('longitudinal coordinate (m)')
 plt.show()
-
-# sim.save('configxx.yml')
-# world.save('worldxx.yml')

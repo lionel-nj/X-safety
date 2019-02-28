@@ -50,8 +50,8 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: expon
-      loc: 0.5
-      scale: 1.8
+      loc: 1
+      scale: 2
       typeOfDistribution: theoric
     speed: !!python/object:network.Distribution
       cdf: null
@@ -67,4 +67,5 @@ userInputs:
       loc: 2
       scale: 0.5
       typeOfDistribution: theoric
+
 
