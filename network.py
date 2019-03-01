@@ -377,20 +377,12 @@ class World:
 
 
 class UserInput:
-    def __init__(self, alignmentIdx, desiredSpeedParameters, headwayDistribution, headwayParam,
-                 seed, volume, geometryParam, driverDistribution, headways=None,
-                 driverParam={'tn': {'scale': None, 'sd': None}, 'tiv_min': {'scale': None, 'sd': None},
-                              'critGap': {'scale': None, 'sd': None}}):
+    def __init__(self, alignmentIdx,
+                 seed, volume, distributions):
         self.alignmentIdx = alignmentIdx
-        self.desiredSpeedParameters = desiredSpeedParameters
-        self.headways = headways
-        self.headwayDistribution = headwayDistribution
-        self.headwayParam = headwayParam
         self.seed = seed
         self.volume = volume
-        self.geometryParam = geometryParam
-        self.driverParam = driverParam
-        self.driverDistribution = driverDistribution.distribution
+        self.distributions = distributions
 
     def save(self, filename):
         toolkit.save_yaml(filename, self)
