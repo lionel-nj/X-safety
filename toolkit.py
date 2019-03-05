@@ -5,39 +5,39 @@ import collections
 import itertools
 
 
-def load_yaml(filename):
+def loadYaml(filename):
     """ loads a yaml file"""
     return yaml.load(open(filename))
 
 
-def save_yaml(filename, data):
+def saveYaml(filename, data):
     """saves data to a yaml file"""
     with open(filename, 'w') as outfile:
         yaml.dump(data, outfile, default_flow_style=False)
 
 
-def copy_yaml(filename, newname):
+def copyYaml(filename, newname):
     """copies a yaml file"""
-    data = load_yaml(filename)
-    save_yaml(newname, data)
+    data = loadYaml(filename)
+    saveYaml(newname, data)
 
 
-def update_yaml(filename, element, key):
+def updateYaml(filename, element, key):
     """updates a yaml file"""
-    data = load_yaml(filename)
+    data = loadYaml(filename)
     try:
         data[key] = element
-        save_yaml(filename, data)
+        saveYaml(filename, data)
     except:
         print("the key requested does not exist in the yaml file")
 
 
-def delete_element_from_yaml(filename, key):
+def deleteElementFromYaml(filename, key):
     """deletes a yaml file"""
-    data = load_yaml(filename)
+    data = loadYaml(filename)
     try:
         del data[key]
-        save_yaml(filename, data)
+        saveYaml(filename, data)
     except:
         print("the key requested does not exist in the yaml file")
 
@@ -82,11 +82,11 @@ def generateDistribution(data):
     tivprobcum = list(itertools.accumulate(tivprob))
 
     # generation d'un échantillon
-    save_yaml('tiv.yml', tiv)
-    save_yaml('tiv_prob_cum.yml', tivprobcum)
+    saveYaml('tiv.yml', tiv)
+    saveYaml('tiv_prob_cum.yml', tivprobcum)
 
 
-def generateSample(duration, seed, distribution):
+def generateSample(duration, distribution):
     """generates a sample from a given distribution, or from a theorical distribution
     :rtype: object
     """
@@ -96,8 +96,7 @@ def generateSample(duration, seed, distribution):
     result = []
     while sum(result) < duration:
         if distribution is not None:
-            random.seed(seed)
-            result.append(distribution.getDistribution().rvs(size=1, random_state=seed + k)[0])
+            result.append(distribution.getDistribution().rvs(size=1)[0])
 
         else:
             print('error : no distribution')

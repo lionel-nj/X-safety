@@ -26,11 +26,11 @@ class Simulation(object):
         self.vehicleWidthSD = vehicleWidthSD
 
     def save(self, filename):
-        toolkit.save_yaml(filename, self)
+        toolkit.saveYaml(filename, self)
 
     @staticmethod
     def load(filename):
-        toolkit.load_yaml(filename)
+        toolkit.loadYaml(filename)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,8 @@
-from trafficintelligence import moving
-import toolkit
 import math
+
+from trafficintelligence import moving
+
+import toolkit
 
 
 class Alignment:
@@ -26,10 +28,10 @@ class Alignment:
 
     @staticmethod
     def load(filename):
-        return toolkit.load_yaml(filename)
+        return toolkit.loadYaml(filename)
 
     def save(self, filename):
-        toolkit.save_yaml(filename, self)
+        toolkit.saveYaml(filename, self)
 
     def addPoint(self, x, y):
         self.points.addPositionXY(x, y)
@@ -142,11 +144,11 @@ class ControlDevice:
                                                                self.categories[self.category])
 
     def save(self, filename):
-        toolkit.save_yaml(filename, self)
+        toolkit.saveYaml(filename, self)
 
     @staticmethod
     def load(filename):
-        return toolkit.load_yaml(filename)
+        return toolkit.loadYaml(filename)
 
     def isVehicleAtControlDevice(self, vehicle, time, precision):
         if self.curvilinearPosition >= vehicle.curvilinearPositions[time][0] >= self.curvilinearPosition - precision:
@@ -169,11 +171,11 @@ class World:
     @staticmethod
     def load(filename):
         """loads a yaml file"""
-        return toolkit.load_yaml(filename)
+        return toolkit.loadYaml(filename)
 
     def save(self, filename):
         """saves data to yaml file"""
-        toolkit.save_yaml(filename, self)
+        toolkit.saveYaml(filename, self)
 
     @staticmethod
     def takeEntry(elem):
@@ -356,15 +358,16 @@ class World:
 
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users on their respective alignments """
-        for vi in self.userInputs:
+
+        for ui in self.userInputs:
             futureCumulatedHeadways = []
-            for h in vi.cumulatedHeadways:
+            for h in ui.cumulatedHeadways:
                 if i <= h / timeStep < i + 1:
-                    vi.initUser(userNum, h)
+                    ui.initUser(userNum, h)
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)
-            vi.cumulatedHeadways = futureCumulatedHeadways
+            ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignmentIdx):
@@ -385,7 +388,11 @@ class UserInput:
         self.distributions = distributions
 
     def save(self, filename):
-        toolkit.save_yaml(filename, self)
+        toolkit.saveYaml(filename, self)
+
+    @staticmethod
+    def load(filename):
+        toolkit.saveYaml(filename)
 
     @staticmethod
     def distanceGap(sLeader, sFollowing, lengthLeader):
@@ -393,24 +400,26 @@ class UserInput:
         distance = sLeader - sFollowing - lengthLeader
         return distance
 
-    def generateHeadways(self, duration, seed):
+    def generateHeadways(self, duration):
         """ generates a set a headways"""
         self.headways = toolkit.generateSample(duration=duration,
-                                               seed=seed,
-                                               distribution=self.distributions['headways'])
+                                               distribution=self.distributions['headway'])
+
+    def getUserInputDistribution(self, item):
+        return self.distributions[item].getDistribution()
 
     def initUser(self, userNum, initialCumulatedHeadway):
         """generates a MovingObject on the VehicleInput alignment"""
+
         geomNorm = self.distributions['geometry'].getDistribution()
         speedNorm = self.distributions['speed'].getDistribution()
         tauNorm = self.distributions['tau'].getDistribution()
         dNorm = self.distributions['dn'].getDistribution()
-        # gapNorm = self.distributions['criticalGap'].getDistribution()
 
-        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx), initCurvilinear=True)
-        obj.addNewellAttributes(speedNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),
-                                tauNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),
-                                dNorm.rvs(random_state=10*userNum + 2*self.alignmentIdx),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(), initCurvilinear=True)
+        obj.addNewellAttributes(speedNorm.rvs(),
+                                tauNorm.rvs(),
+                                dNorm.rvs(),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
 
@@ -429,38 +438,66 @@ class CarGeometry:
         self.polygon = polygon
 
 
-class Distribution:
-    def __init__(self, typeOfDistribution, distributionName, loc=None, scale=None, cdf=None, constant=None):
-        self.typeOfDistribution = typeOfDistribution
+class Distribution(object):
+    def __init__(self, distributionType, distributionName=None, loc=None, scale=None, cdf=None, degeneratedConstant=None):
+        self.distributionType = distributionType
         self.distributionName = distributionName
         self.loc = loc
         self.scale = scale
         self.cdf = cdf
-        self.constant = constant
+        self.degeneratedConstant = degeneratedConstant
+
+    # def __new__(cls, distributionType, distributionName=None, loc=None, scale=None, cdf=None, degeneratedConstant=None):
+    #
+    #     from scipy import stats
+    #     from trafficintelligence import utils
+    #
+    #     instance = super(Distribution, cls).__new__(cls)
+    #     instance.distributionType = distributionType
+    #     instance.distributionName = distributionName
+    #     instance.loc = loc
+    #     instance.scale = scale
+    #     instance.cdf = cdf
+    #     instance.degeneratedConstant = degeneratedConstant
+    #
+    #     if instance.distributionType == 'theoric':
+    #         if instance.distributionName == 'norm':
+    #             return stats.norm(loc=instance.loc, scale=instance.scale)
+    #         elif instance.distributionName == 'expon':
+    #             return stats.expon(loc=instance.loc, scale=instance.scale)
+    #         else:
+    #             raise NameError('error in distribution name')
+    #     elif instance.distributionType == 'empirical':
+    #         return utils.EmpiricalContinuousDistribution(instance.cdf[0], instance.cdf[1])
+    #     elif instance.distributionType == 'degenerated':
+    #         return utils.ConstantDistribution(instance.degeneratedConstant)
+    #     else:
+    #         raise NameError('error in distribution type')
 
     def save(self, fileName):
-        return toolkit.save_yaml(fileName, self)
+        return toolkit.saveYaml(fileName, self)
 
     @staticmethod
     def load(fileName):
-        return toolkit.load_yaml(fileName)
+        return toolkit.loadYaml(fileName)
 
     def getDistribution(self):
         from scipy import stats
         from trafficintelligence import utils
-        if self.typeOfDistribution == 'theoric':
+
+        if self.distributionType == 'theoric':
             if self.distributionName == 'norm':
                 return stats.norm(loc=self.loc, scale=self.scale)
             elif self.distributionName == 'expon':
                 return stats.expon(loc=self.loc, scale=self.scale)
             else:
-                print('error in distribution name')
-        elif self.typeOfDistribution == 'empirical':
+                raise NameError('error in distribution name')
+        elif self.distributionType == 'empirical':
             return utils.EmpiricalContinuousDistribution(self.cdf[0], self.cdf[1])
-        elif self.typeOfDistribution == 'degenerated':
-            return self.constant
+        elif self.distributionType == 'degenerated':
+            return utils.ConstantDistribution(self.degeneratedConstant)
         else:
-            print('error in distribution type')
+            raise NameError('error in distribution type')
 
 
 if __name__ == "__main__":
