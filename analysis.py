@@ -38,25 +38,21 @@ for al in world.alignments:
     for idx, ttc in enumerate(TTCs):
         for item in TTCs[ttc]:
             ttcValues[idx].append(item[0])
-            times[idx].append(item[0])
+            times[idx].append(item[1])
+        plt.plot(times[idx], ttcValues[idx])
 
-    for idx, ttc in enumerate(TTCs):
-        for k in range(len(TTCs[ttc])):
-            ttcValues.append([item[0] for item in TTCs[ttc]])
-            times.append([item[1] for item in TTCs[ttc]])
-            plt.plot(ttcValues[idx], times[idx])
-
-    plt.xlabel('time(s)')
+    plt.xlabel('time(s/10)')
     plt.ylabel('TTC (Time To Collision)')
     plt.show()
     plt.close()
+
     # getting minimum values of ttc
     listOfTTCMinValues = []
     for ttc in TTCs:
         if TTCs[ttc]:
             listOfTTCMinValues.append(min(TTCs[ttc]))
-    #
-    # # histogram of min TTC values
-    # plt.hist(listOfTTCMinValues, bins='auto')
-    #
+
+    # histogram of min TTC values
+    plt.hist(listOfTTCMinValues, bins='auto')
+
 
