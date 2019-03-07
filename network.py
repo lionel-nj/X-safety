@@ -378,6 +378,35 @@ class World:
             if distanceToCrossingPoint > 0:
                 return k
 
+    def convertSYtoXY(self):
+        for al in self.alignments:
+            for user in al.vehicles:
+                if user.timeInterval is not None:
+                    user.positions = moving.Trajectory()
+                    user.velocities = moving.Trajectory()
+                    for cp in user.curvilinearPositions:
+                        user.positions.addPosition(
+                            moving.getXYfromSY(s=cp[0],
+                                               y=cp[1],
+                                               alignmentNum=cp[2],
+                                               alignments=[self.alignments[0].points]))
+                    for idx, cv in enumerate(user.curvilinearVelocities):
+                        user.velocities.addPosition(
+                            moving.getXYfromSY(s=cv[0],
+                                               y=cv[1],
+                                               alignmentNum=user.curvilinearPositions[idx][2],
+                                               alignments=[self.alignments[0].points]))
+                else:
+                    pass
+
+    def getNotNoneVehiclesInWorld(self):
+        users = [[]*len(self.alignments)]
+        for al in self.alignments:
+            for user in al.vehicles:
+                if user.timeInterval is not None:
+                    users[al.idx].append(user)
+        return users
+
 
 class UserInput:
     def __init__(self, alignmentIdx,
@@ -429,6 +458,8 @@ class UserInput:
         if len(self.alignment.vehicles) > 0:
             obj.leader = self.alignment.vehicles[-1]  # TODO verify?
         self.alignment.vehicles.append(obj)
+
+
 
 
 class CarGeometry:
@@ -498,6 +529,9 @@ class Distribution(object):
             return utils.ConstantDistribution(self.degeneratedConstant)
         else:
             raise NameError('error in distribution type')
+
+
+        return users
 
 
 if __name__ == "__main__":

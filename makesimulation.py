@@ -31,13 +31,13 @@ for i in range(int(np.floor(sim.duration/sim.timeStep))):
         for v in al.vehicles:
             v.updateCurvilinearPositions("newell", i, sim.timeStep)
 
-
-# display
-plt.figure()
-for al in world.alignments:
-    for v in al.vehicles:
-        if v.timeInterval is not None:
-            v.plotCurvilinearPositions()
-plt.xlabel('time(s/100)')
-plt.ylabel('longitudinal coordinate (m)')
-plt.show()
+#
+# # display
+# plt.figure()
+# for al in world.alignments:
+#     for v in al.vehicles:
+#         if v.timeInterval is not None:
+#             v.plotCurvilinearPositions()
+# plt.xlabel('time(s/100)')
+# plt.ylabel('longitudinal coordinate (m)')
+# plt.show()
