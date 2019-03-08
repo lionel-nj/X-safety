@@ -174,6 +174,15 @@ def countElementInList(elementsList, element):
         c += 1
     return c
 
+
+def makeSubListFromList(itemList):
+    from itertools import groupby
+    result = []
+    return [sum(g) for i, g in groupby(itemList) if i == 1]
+    # for item in items:
+    #     result.append([1] * item)
+    # return result
+
 if __name__ == "__main__":
     import doctest
 

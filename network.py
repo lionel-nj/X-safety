@@ -243,8 +243,8 @@ class World:
 
         if leader.vehiclesCoexistAt(follower, t):
             if leaderAlignmentIdx == followerAlignmentIdx:
-                d = UserInput.distanceGap(leader.curvilinearPositions[t - leader.timeInterval.first][0],
-                                          follower.curvilinearPositions[t - follower.timeInterval.first][0],
+                d = UserInput.distanceGap(leader.getCurvilinearPositionAtInstant(t)[0],
+                                          follower.getCurvilinearPositionAtInstant(t)[0],
                                           leader.geometry)
                 if d >= dmin:
                     return True
@@ -279,31 +279,29 @@ class World:
         """ counts according to the selected method (cross or in line)
          the number of interactions taking place at a distance smaller than dmin.
         """
+
+        # {(26,27):[1,1,1,0,0,0,1,1,1]
+        #  (27,28):[1,1,1,0,0,0,1,1,1]}
+
         if method == "inLine":
             vehList = []
-            for el in self.alignments[alignmentIdx].vehicles:
-                if el.timeInterval is not None:
-                    vehList.append(el)
+            for user in self.alignments[alignmentIdx].vehicles:
+                if user.timeInterval is not None:
+                    vehList.append(user)
 
             rows = len(vehList)
-
-            interactionTime = []
-            totalNumberOfEncountersSameWay = 0
+            result = {}
 
             for h in range(0, rows - 1):
-                interactionTime.append([])
-
-                for t in range(self.alignments[alignmentIdx].vehicles[h + 1].timeInterval.first,
-                               self.alignments[alignmentIdx].vehicles[h + 1].timeInterval.last + 1):
+                commonInterval = self.alignments[alignmentIdx].vehicles[h].commonTimeInterval(self.alignments[alignmentIdx].vehicles[h + 1])
+                result[(h, h+1)] = []
+                for t in commonInterval:
                     if self.isAnEncounter(alignmentIdx, alignmentIdx, h, h + 1, t, dmin):
-                        interactionTime[h].append(1)
+                        result[(h, h + 1)].append(1)
                     else:
-                        interactionTime[h].append(0)
+                        result[(h, h + 1)].append(0)
 
-                numberOfEncountersSameWay = toolkit.countElementInList(interactionTime[h], 1)
-                totalNumberOfEncountersSameWay += numberOfEncountersSameWay
-
-            return totalNumberOfEncountersSameWay
+            return result
 
         elif method == "crossing":
 
@@ -389,7 +387,7 @@ class World:
                             moving.getXYfromSY(s=cp[0],
                                                y=cp[1],
                                                alignmentNum=cp[2],
-                                               alignments=[self.alignments[0].points]))
+                                               alignments=[self.alignments[al.idx].points]))
                     for idx, cv in enumerate(user.curvilinearVelocities):
                         user.velocities.addPosition(
                             moving.getXYfromSY(s=cv[0],
@@ -460,8 +458,6 @@ class UserInput:
         self.alignment.vehicles.append(obj)
 
 
-
-
 class CarGeometry:
     def __init__(self, length=None, width=None, polygon=None):
         self.length = length
@@ -529,9 +525,6 @@ class Distribution(object):
             return utils.ConstantDistribution(self.degeneratedConstant)
         else:
             raise NameError('error in distribution type')
-
-
-        return users
 
 
 if __name__ == "__main__":
