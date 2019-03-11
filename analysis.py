@@ -37,8 +37,21 @@ for al in world.alignments:
             for key, value in enumerate(inter.indicators['Time to Collision']):
                 TTCs[(inter.roadUser1.num, inter.roadUser2.num)].append(value)
                 times[-1].append(key)
-                    # getting insant and value of most severe value of ttc:
 
+    # plotting ttc value for each interactions
+    for timeValues, ttcValues in zip(times, TTCs):
+        plt.plot(timeValues, TTCs[ttcValues])
+
+    # display
+    plt.xlabel('time(s/10)')
+    plt.ylabel('TTC (Time To Collision)')
+    plt.show()
+    plt.close()
+
+    # getting minimum values of ttc
+    minTTCsValues = []
+    for ttcList in TTCs:
+        minTTCsValues.append(min(TTCs[ttcList]))
 
     # # computing ttc values
     # for idx in range(len(listOfVeh[al.idx]) - 1):
@@ -56,26 +69,17 @@ for al in world.alignments:
     #     plt.plot(times[idx], ttcValues[idx])
 
     # getting minimum values of ttc
-
-
     # for ttcList in ttcValues:
     #     if ttcList:
     #         minTTCsValues.append(min(ttcList))
 
-    # minTTCsValues = {}
-    # for el in TTCs:
-    #     TTC[el]
-    #
-    # #display
-    # plt.xlabel('time(s/10)')
-    # plt.ylabel('TTC (Time To Collision)')
-    # plt.show()
-    # plt.close()
+
 
     # histogram of min TTC values
-    # plt.hist(minTTCsValues, bins='auto')
+    plt.hist(minTTCsValues, bins='auto')
 
     # collect for each pair of vehicle the list of times when the inter-vehicle distance is less than the threshold
+    # number of interactions for each pair of vehicles
     interactionTime = world.count('inLine', sim.interactionDistance, al.idx)
 
     # get the duration of each interaction between two vehicles
