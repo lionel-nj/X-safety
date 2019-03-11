@@ -27,20 +27,35 @@ for al in world.alignments:
             collisionDistanceThreshold=25.,
             timeHorizon=300)
 
-    # getting the ttc-time list for each interaction if ttc has been computed
+    # getting the ttc-time list for each interaction if ttc has been computed (2)
     TTCs = {}
     times = []
-    for inter in interactions:
-        if 'Time to Collision' in inter.indicators.keys():
-            TTCs[(inter.roadUser1.num, inter.roadUser2.num)] = []
-            times.append([])
-            for key, value in enumerate(inter.indicators['Time to Collision']):
-                TTCs[(inter.roadUser1.num, inter.roadUser2.num)].append(value)
-                times[-1].append(key)
+    # for inter in interactions:
+    #     if 'Time to Collision' in inter.indicators.keys():
+    #         TTCs[(inter.roadUser1.num, inter.roadUser2.num)] = []
+    #         times.append([])
+    #         for key, value in enumerate(inter.indicators['Time to Collision']):
+    #             TTCs[(inter.roadUser1.num, inter.roadUser2.num)].append(value)
+    #             times[-1].append(key)
 
-    # plotting ttc value for each interactions
-    for timeValues, ttcValues in zip(times, TTCs):
-        plt.plot(timeValues, TTCs[ttcValues])
+    # computing ttc values (1)
+    for idx in range(len(listOfVeh[al.idx]) - 1):
+        TTCs[idx, idx + 1] = listOfVeh[al.idx][idx + 1].computeTTC(sim.timeStep)
+
+    # getting ttc values (1)
+    ttcValues = [[] for _ in range(len(TTCs))]
+    times = [[] for _ in range(len(TTCs))]
+
+    for idx, ttc in enumerate(TTCs):
+        for item in TTCs[ttc]:
+            if item is not None:
+                ttcValues[idx].append(item[0])
+                times[idx].append(item[1])
+        plt.plot(times[idx], ttcValues[idx])
+
+    # # plotting ttc value for each interactions (2)
+    # for timeValues, ttcValues in zip(times, TTCs):
+    #     plt.plot(timeValues, TTCs[ttcValues])
 
     # display
     plt.xlabel('time(s/10)')
@@ -48,35 +63,18 @@ for al in world.alignments:
     plt.show()
     plt.close()
 
-    # getting minimum values of ttc
+    # getting minimum values of ttc (1)
     minTTCsValues = []
-    for ttcList in TTCs:
-        minTTCsValues.append(min(TTCs[ttcList]))
+    for ttcList in ttcValues:
+        if ttcList:
+            minTTCsValues.append(min(ttcList))
 
-    # # computing ttc values
-    # for idx in range(len(listOfVeh[al.idx]) - 1):
-    #     TTCs[idx, idx + 1] = listOfVeh[al.idx][idx + 1].computeTTC(sim.timeStep)
-    #
-    # # getting ttc values
-    # ttcValues = [[] for _ in range(len(TTCs))]
-    # times = [[] for _ in range(len(TTCs))]
-    #
-    # for idx, ttc in enumerate(TTCs):
-    #     for item in TTCs[ttc]:
-    #         if item is not None:
-    #             ttcValues[idx].append(item[0])
-    #             times[idx].append(item[1])
-    #     plt.plot(times[idx], ttcValues[idx])
-
-    # getting minimum values of ttc
-    # for ttcList in ttcValues:
-    #     if ttcList:
-    #         minTTCsValues.append(min(ttcList))
-
-
+    # getting minimum values of ttc (2)
+    # for ttcList in TTCs:
+    #         minTTCsValues.append(min(TTCs[ttcList]))
 
     # histogram of min TTC values
-    plt.hist(minTTCsValues, bins='auto')
+    # plt.hist(minTTCsValues, bins='auto')
 
     # collect for each pair of vehicle the list of times when the inter-vehicle distance is less than the threshold
     # number of interactions for each pair of vehicles
