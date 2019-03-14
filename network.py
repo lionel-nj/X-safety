@@ -454,7 +454,7 @@ class UserInput:
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
         if len(self.alignment.vehicles) > 0:
-            obj.leader = self.alignment.vehicles[-1]  # TODO verify?
+            obj.leader = self.alignment.vehicles[-1]
         self.alignment.vehicles.append(obj)
 
 
