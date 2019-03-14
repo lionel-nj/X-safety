@@ -36,7 +36,7 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: norm
-      loc: 8.33333333
+      loc: 8.333333
       scale: 1
       distributionType: theoric
     geometry: !!python/object:network.Distribution
@@ -50,8 +50,8 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: expon
-      loc: 1
-      scale: 2
+      loc: 1.5
+      scale: 2.1
       distributionType: theoric
     speed: !!python/object:network.Distribution
       cdf: null

@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from trafficintelligence import events, prediction
-import makesimulation
 import numpy as np
 import toolkit
 import os
@@ -25,8 +24,11 @@ for al in world.alignments:
         inter.computeIndicators()
         inter.computeCrossingsCollisions(
             predictionParameters=predictionParams,
-            collisionDistanceThreshold=25.,
-            timeHorizon=300)
+            collisionDistanceThreshold=7,
+            timeHorizon=300,
+            useCurvilinear=True,
+            alignment1=al.points,
+            alignment2=al.points)
 
     # # getting the ttc-time list for each interaction if ttc has been computed (2)
     # TTCs = {}
@@ -78,34 +80,34 @@ for al in world.alignments:
     # plt.hist(minTTCsValues, bins='auto')
 
     # collect for each pair of vehicle the list of times when the inter-vehicle distance is less than the threshold
-    # number of interactions for each pair of vehicles
-    d = [15, 17, 20]
-    for distance in d:
-        interactionTime = world.count('inLine', distance, al.idx)
-
-        # get the duration of each interaction between two vehicles
-        interactionDuration = {}
-        for el in interactionTime:
-            if el:
-                interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el])
-
-        # count for each pair of vehicle the number of interactions and link it to their duration
-        interactionsCharacteristics = {}
-        for item in interactionDuration:
-            interactionsCharacteristics[item] = (len(interactionDuration[item]), interactionDuration[item])
-
-        # total number of interactions
-        totalInteractionsNumber = 0
-        interactionLengthList = []
-        s = 0
-        for elt in interactionsCharacteristics:
-            totalInteractionsNumber += interactionsCharacteristics[elt][0]
-            for times in interactionsCharacteristics[elt][1]:
-                if interactionsCharacteristics[elt][1]:
-                    interactionLengthList.append(times)
-
-        plt.hist(interactionLengthList)
-        print(totalInteractionsNumber, np.mean(interactionLengthList), np.std(interactionLengthList), print(len(listOfVeh[0])))
-        plt.show()
-
-os.system('say "code executed')
+#     # number of interactions for each pair of vehicles
+#     d = [15, 17, 20]
+#     for distance in d:
+#         interactionTime = world.count('inLine', distance, al.idx)
+#
+#         # get the duration of each interaction between two vehicles
+#         interactionDuration = {}
+#         for el in interactionTime:
+#             if el:
+#                 interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el])
+#
+#         # count for each pair of vehicle the number of interactions and link it to their duration
+#         interactionsCharacteristics = {}
+#         for item in interactionDuration:
+#             interactionsCharacteristics[item] = (len(interactionDuration[item]), interactionDuration[item])
+#
+#         # total number of interactions
+#         totalInteractionsNumber = 0
+#         interactionLengthList = []
+#         s = 0
+#         for elt in interactionsCharacteristics:
+#             totalInteractionsNumber += interactionsCharacteristics[elt][0]
+#             for times in interactionsCharacteristics[elt][1]:
+#                 if interactionsCharacteristics[elt][1]:
+#                     interactionLengthList.append(times)
+#
+#         plt.hist(interactionLengthList)
+#         print(totalInteractionsNumber, np.mean(interactionLengthList), np.std(interactionLengthList), print(len(listOfVeh[0])))
+#         plt.show()
+#
+# os.system('say "code executed')
