@@ -85,7 +85,7 @@ def generateDistribution(data):
     saveYaml('tiv.yml', tiv)
     saveYaml('tiv_prob_cum.yml', tivprobcum)
 
-
+# remove the function, too complicated
 def generateSample(duration, distribution):
     """generates a sample from a given distribution, or from a theorical distribution
     :rtype: object

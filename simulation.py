@@ -30,7 +30,7 @@ class Simulation(object):
 
     @staticmethod
     def load(filename):
-        toolkit.loadYaml(filename)
+        return toolkit.loadYaml(filename)
 
 
 if __name__ == "__main__":

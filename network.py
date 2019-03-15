@@ -1,6 +1,6 @@
-import math
+import math, itertools
 
-from trafficintelligence import moving
+from trafficintelligence import moving, utils
 
 import toolkit
 
@@ -293,8 +293,9 @@ class World:
             result = {}
 
             for h in range(0, rows - 1):
-                commonInterval = self.alignments[alignmentIdx].vehicles[h].commonTimeInterval(self.alignments[alignmentIdx].vehicles[h + 1])
-                result[(h, h+1)] = []
+                commonInterval = self.alignments[alignmentIdx].vehicles[h].commonTimeInterval(
+                    self.alignments[alignmentIdx].vehicles[h + 1])
+                result[(h, h + 1)] = []
                 for t in commonInterval:
                     if self.isAnEncounter(alignmentIdx, alignmentIdx, h, h + 1, t, dmin):
                         result[(h, h + 1)].append(1)
@@ -398,7 +399,7 @@ class World:
                     pass
 
     def getNotNoneVehiclesInWorld(self):
-        users = [[]*len(self.alignments)]
+        users = [[] * len(self.alignments)]
         for al in self.alignments:
             for user in al.vehicles:
                 if user.timeInterval is not None:
@@ -419,7 +420,7 @@ class UserInput:
 
     @staticmethod
     def load(filename):
-        toolkit.saveYaml(filename)
+        return toolkit.loadYaml(filename)
 
     @staticmethod
     def distanceGap(sLeader, sFollowing, lengthLeader):
@@ -427,10 +428,17 @@ class UserInput:
         distance = sLeader - sFollowing - lengthLeader
         return distance
 
+    def initDistributions(self):
+        self.headwayDistribution = self.distributions['headway'].getDistribution()
+        self.lengthDistribution = self.distributions['length'].getDistribution()
+        self.speedDistribution = self.distributions['speed'].getDistribution()
+        self.tauDistribution = self.distributions['tau'].getDistribution()
+        self.dDistribution = self.distributions['dn'].getDistribution()
+
     def generateHeadways(self, duration):
         """ generates a set a headways"""
-        self.headways = toolkit.generateSample(duration=duration,
-                                               distribution=self.distributions['headway'])
+        self.headways = utils.maxSumSample(self.headwayDistribution, duration)
+        self.cumulatedHeadways = list(itertools.accumulate(self.headways))
 
     def getUserInputDistribution(self, item):
         return self.distributions[item].getDistribution()
@@ -438,15 +446,11 @@ class UserInput:
     def initUser(self, userNum, initialCumulatedHeadway):
         """generates a MovingObject on the VehicleInput alignment"""
 
-        geomNorm = self.distributions['geometry'].getDistribution()
-        speedNorm = self.distributions['speed'].getDistribution()
-        tauNorm = self.distributions['tau'].getDistribution()
-        dNorm = self.distributions['dn'].getDistribution()
-
-        obj = moving.MovingObject(userNum, geometry=geomNorm.rvs(), initCurvilinear=True)
-        obj.addNewellAttributes(speedNorm.rvs(),
-                                tauNorm.rvs(),
-                                dNorm.rvs(),  # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+        obj = moving.MovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
+        obj.addNewellAttributes(self.speedDistribution.rvs(),
+                                self.tauDistribution.rvs(),
+                                self.dDistribution.rvs(),
+                                # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
 
@@ -454,7 +458,7 @@ class UserInput:
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
         if len(self.alignment.vehicles) > 0:
-            obj.leader = self.alignment.vehicles[-1]
+            obj.leader = self.alignment.vehicles[-1]  # TODO verify?
         self.alignment.vehicles.append(obj)
 
 
@@ -466,7 +470,8 @@ class CarGeometry:
 
 
 class Distribution(object):
-    def __init__(self, distributionType, distributionName=None, loc=None, scale=None, cdf=None, degeneratedConstant=None):
+    def __init__(self, distributionType, distributionName=None, loc=None, scale=None, cdf=None,
+                 degeneratedConstant=None):
         self.distributionType = distributionType
         self.distributionName = distributionName
         self.loc = loc
