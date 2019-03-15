@@ -13,7 +13,7 @@ duration = input()
 enterNextValue = True
 headwaysToModify = [[], []]
 while enterNextValue:
-    print('On which userInput would you liek to change the headways ?')
+    print('On which userInput would you like to change the headways ?')
     ui = input()
     print('Enter headway values to try')
     h = input()
