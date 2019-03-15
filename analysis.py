@@ -2,9 +2,8 @@ import matplotlib.pyplot as plt
 from trafficintelligence import events, prediction
 import numpy as np
 import toolkit
-import os
-#
-world = toolkit.loadYaml('world.yml')
+
+world = toolkit.loadYaml('worldFile.yml')
 sim = toolkit.loadYaml('config.yml')
 
 # converting curvilinear trajectories/velocities to cartesian trajectories/velocities
