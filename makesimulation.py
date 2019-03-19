@@ -1,6 +1,6 @@
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import numpy as np
-
+from trafficintelligence import moving
 import network, simulation
 
 world = network.World.load('simple-net.yml')
@@ -13,6 +13,7 @@ def run(worldFile, configFile):
     for ui in worldFile.userInputs:
         # link to alignment
         for al in worldFile.alignments:
+            al.points.computeCumulativeDistances()
             if al.idx == ui.alignmentIdx:
                 ui.alignment = al
         ui.initDistributions()
@@ -31,6 +32,8 @@ def run(worldFile, configFile):
             for v in al.vehicles:
                 v.updateCurvilinearPositions("newell", i, configFile.timeStep)
 
+    outOfWorldVehicles = worldFile.getUsersOutOfWorld()
+
     # display
     # plt.figure()
     # for al in worldFile.alignments:
@@ -42,3 +45,6 @@ def run(worldFile, configFile):
     # plt.show()
 
     worldFile.save('world.yml')
+
+
+run(world, sim)

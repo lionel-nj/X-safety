@@ -240,8 +240,7 @@ class World:
         else:
             leader = tempLeader
             follower = tempFollower
-
-        if leader.vehiclesCoexistAt(follower, t):
+        if leader.timeInterval.intersection(follower.timeInterval) is not None and leader.timeInterval.contains(t):
             if leaderAlignmentIdx == followerAlignmentIdx:
                 d = UserInput.distanceGap(leader.getCurvilinearPositionAtInstant(t)[0],
                                           follower.getCurvilinearPositionAtInstant(t)[0],
@@ -406,6 +405,15 @@ class World:
                     users[al.idx].append(user)
         return users
 
+    def getUsersOutOfWorld(self):
+        outOfWorldUsers = []
+        for idx, al in enumerate(self.alignments):
+            outOfWorldUsers.append([])
+            for user in al.vehicles:
+                if not user.onAlignment:
+                    outOfWorldUsers[idx].append(user.num)
+        return outOfWorldUsers
+
 
 class UserInput:
     def __init__(self, alignmentIdx,
@@ -450,11 +458,11 @@ class UserInput:
         obj.addNewellAttributes(self.speedDistribution.rvs(),
                                 self.tauDistribution.rvs(),
                                 self.dDistribution.rvs(),
-                                # kj=120 veh/km TODO get from distribution #obj.desiredSpeed * obj.tiv_min
+                                # kj=120 veh/km TODO get from distribution
                                 initialCumulatedHeadway,
-                                self.alignmentIdx)
-
-        # # utile?
+                                self.alignmentIdx,
+                                sum(self.alignment.points.distances))
+        # utile?
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
         if len(self.alignment.vehicles) > 0:

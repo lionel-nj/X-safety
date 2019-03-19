@@ -6,21 +6,19 @@ alignments:
   crossingPoint: !!python/object:trafficintelligence.moving.Point
     x: 0.0
     y: 0.0
-  distanceToCrossingPoint: 10000.0
   idx: 0
-  name: 'horizontal.yml'
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
-    - 10000.0
-    - 20000.0
+    - 100.0
+    - 200.0
     distances:
-    - 10000.0
-    - 10000.0
+    - 100.0
+    - 100.0
     positions:
-    - - -10000.0
+    - - -100.0
       - 0.0
-      - 10000.0
+      - 100.0
     - - 0.0
       - 0.0
       - 0.0
@@ -67,3 +65,7 @@ userInputs:
       loc: 2
       scale: 0.5
       distributionType: theoric
+  movementProportions:
+    straight: 60
+    left: 30
+    right: 10
