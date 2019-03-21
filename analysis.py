@@ -47,7 +47,7 @@ def run(worldFile, simulationParameters, analysisParameters):
 
                 vehiclesGenerated = len(listOfVeh[al.idx])
                 volume = 3600/headwayValue
-                volumeTrue = 3600 * len(listOfVeh) / simulationParameters.duration
+                volumeTrue = 3600 * len(listOfVeh[al.idx]) / simulationParameters.duration
                 headwayTrue = 3600/volumeTrue
 
                 data = [simulationParameters.seed, simulationParameters.duration, headwayValue, volume, vehiclesGenerated, volumeTrue, headwayTrue, minInteractionDistancesValue, totalInteractionsNumber]

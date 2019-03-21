@@ -7,43 +7,45 @@ world = network.World.load('simple-net.yml')
 sim = simulation.Simulation.load('config.yml')
 
 
-def run(worldFile, configFile):
+def run(world, simulationParameters):
 
-    np.random.seed(configFile.seed)
-    for ui in worldFile.userInputs:
+    np.random.seed(simulationParameters.seed)
+    # world.connectAlignments()
+    for ui in world.userInputs:
         # link to alignment
-        for al in worldFile.alignments:
+        for al in world.alignments:
             al.points.computeCumulativeDistances()
             if al.idx == ui.alignmentIdx:
                 ui.alignment = al
         ui.initDistributions()
-        ui.generateHeadways(configFile.duration)
+        ui.generateHeadways(simulationParameters.duration)
 
     # suggestion, a voir si c'est le plus pratique
-    for al in worldFile.alignments:
+    for al in world.alignments:
         al.vehicles = []
 
     userNum = 0
-    for i in range(int(np.floor(configFile.duration/configFile.timeStep))):
+    for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
-        userNum = worldFile.initUsers(i, configFile.timeStep, userNum)
+        userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
-        for al in worldFile.alignments:
+        for al in world.alignments:
             for v in al.vehicles:
-                v.updateCurvilinearPositions("newell", i, configFile.timeStep)
+                v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
 
-    return worldFile
+    return world
 
-    outOfWorldVehicles = worldFile.getUsersOutOfWorld()
+    outOfWorldVehicles = world.getUsersOutOfWorld() ## membre de world
 
     # display
     # plt.figure()
-    # for al in worldFile.alignments:
+    # for al in world.alignments:
     #     for v in al.vehicles:
     #         if v.timeInterval is not None:
     #             v.plotCurvilinearPositions()
     # plt.xlabel('time(s/100)')
     # plt.ylabel('longitudinal coordinate (m)')
     # plt.show()
+
 
 run(world, sim)

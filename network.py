@@ -135,6 +135,24 @@ class Alignment:
             else:
                 self.nextAlignments[(point.x, point.y)] = self.idx
 
+    def getFirstPoint(self):
+        return self.points[0]
+
+    def getLastPoint(self):
+        return self.points[-1]
+
+    def isStartOf(self, point):
+        if self.points[0].x == point.x and self.points[0].y == point.y:
+            return True
+        else:
+            return False
+
+    def isEndOf(self, point):
+        if self.points[-1].x == point.x and self.points[-1].y == point.y:
+            return True
+        else:
+            return False
+
 
 class ControlDevice:
     """generic traffic control devices"""
@@ -174,7 +192,7 @@ class World:
         self.crossingPoint = crossingPoint  # moving.Point
 
     def __repr__(self):
-        return "alignments: {}, control devices: {}".format(self.alignments, self.controlDevices)
+        return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices, self.userInputs)
 
     @staticmethod
     def load(filename):
@@ -413,18 +431,20 @@ class World:
                     users[al.idx].append(user)
         return users
 
-    def getUsersOutOfWorld(self):
-        outOfWorldUsers = []
+    def getSimulatedUsers(self):
+        self.simulatedUsers = []
         for idx, al in enumerate(self.alignments):
-            outOfWorldUsers.append([])
+            self.simulatedUsers.append([])
             for user in al.vehicles:
-                if not user.onAlignment:
-                    outOfWorldUsers[idx].append(user.num)
-        return outOfWorldUsers
+                if user.getCurvilinearPositionAt(-1)[0] > sum(self.alignments[al.idx].points.distances):
+                    self.simulatedUsers[idx].append([user.num, None])
+                    for instant, cp in enumerate(user.curvilinearPositions):
+                        if cp[0] > sum(self.alignments[al.idx].points.distances):
+                            self.simulatedUsers[-1][-1][-1] = instant
+                            break
 
     def getUserNextAlignmentsAt(self, alignmentIdx, userNum, i):
         user = self.alignments[alignmentIdx].vehicles[userNum]
-        nextAlignments = []
         p = user.getCurvilinearPositionAtInstant(i)[0]
         currentAlignment = self.alignments[alignmentIdx]
         if p <= sum(currentAlignment.points.distances):
@@ -465,6 +485,19 @@ class World:
 
         readFile.close()
         writeFile.close()
+
+    def connectAlignments(self):
+        import copy
+        for idx, al in enumerate(self.alignments):
+            _alignments = copy.deepcopy(self.alignments)
+            _alignments.pop(idx)
+            al.nextAlignments = []
+            if _alignments == []:
+                print('your world only has 1 alignment')
+                break
+            for other in _alignments:
+                if other.isStartOf(al.getLastPoint()):
+                    al.nextAlignments.append(other.idx)
 
 
 class UserInput:
@@ -512,8 +545,7 @@ class UserInput:
                                 self.dDistribution.rvs(),
                                 # kj=120 veh/km TODO get from distribution
                                 initialCumulatedHeadway,
-                                self.alignmentIdx,
-                                sum(self.alignment.points.distances))
+                                self.alignmentIdx)
         # utile?
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
