@@ -127,6 +127,14 @@ class Alignment:
         else:
             return False
 
+    def makeNextAlignments(self):
+        self.nextAlignments = {}
+        for point in self.points:
+            if point.x == self.crossingPoint.x and point.y == self.crossingPoint.y:
+                self.nextAlignments[(point.x, point.y)] = self.connectedAlignmentIdx
+            else:
+                self.nextAlignments[(point.x, point.y)] = self.idx
+
 
 class ControlDevice:
     """generic traffic control devices"""
@@ -240,7 +248,7 @@ class World:
         else:
             leader = tempLeader
             follower = tempFollower
-        if leader.timeInterval.intersection(follower.timeInterval) is not None and leader.timeInterval.contains(t):
+        if moving.Interval.intersection(leader.timeInterval, follower.timeInterval) is not None and leader.timeInterval.contains(t):
             if leaderAlignmentIdx == followerAlignmentIdx:
                 d = UserInput.distanceGap(leader.getCurvilinearPositionAtInstant(t)[0],
                                           follower.getCurvilinearPositionAtInstant(t)[0],
@@ -413,6 +421,50 @@ class World:
                 if not user.onAlignment:
                     outOfWorldUsers[idx].append(user.num)
         return outOfWorldUsers
+
+    def getUserNextAlignmentsAt(self, alignmentIdx, userNum, i):
+        user = self.alignments[alignmentIdx].vehicles[userNum]
+        nextAlignments = []
+        p = user.getCurvilinearPositionAtInstant(i)[0]
+        currentAlignment = self.alignments[alignmentIdx]
+        if p <= sum(currentAlignment.points.distances):
+            nextAlignments = [currentAlignment.idx]
+            if p <= currentAlignment.distanceToCrossingPoint:
+                nextAlignments.append(currentAlignment.connectedAlignmentIdx)
+        else:
+            nextAlignments = None
+        return nextAlignments
+
+    def createCSV(self, fileName):
+        import csv
+        if len(self.alignments) == 1:
+            with open(fileName, mode='w') as file:
+                fileWriter = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+                fileWriter.writerow(
+                    ['seed', 'duration', 'h0', 'volume', '# of generated vehicle', 'volume (true)', 'headway(true)', 'distance threshold', 'interaction number'])
+
+        elif len(self.alignnments) == 2:
+            with open(fileName, mode='w') as file:
+                fileWriter = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+                fileWriter.writerow(
+                    ['seed', 'duration', 'h0', 'h1', 'volume', '# of generated vehicle', 'volume (true)', 'headway(true)', 'distance threshold', 'interaction number'])
+
+    @staticmethod
+    def addElementToAnalysisFile(fileName, data):
+        import csv
+        with open(fileName, 'r') as readFile:
+            reader = csv.reader(readFile)
+            lines = list(reader)
+            lines.append(data)
+
+        with open(fileName, 'w') as writeFile:
+            writer = csv.writer(writeFile)
+            writer.writerows(lines)
+
+        readFile.close()
+        writeFile.close()
 
 
 class UserInput:

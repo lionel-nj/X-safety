@@ -32,6 +32,8 @@ def run(worldFile, configFile):
             for v in al.vehicles:
                 v.updateCurvilinearPositions("newell", i, configFile.timeStep)
 
+    return worldFile
+
     outOfWorldVehicles = worldFile.getUsersOutOfWorld()
 
     # display
@@ -43,8 +45,5 @@ def run(worldFile, configFile):
     # plt.xlabel('time(s/100)')
     # plt.ylabel('longitudinal coordinate (m)')
     # plt.show()
-
-    worldFile.save('world.yml')
-
 
 run(world, sim)
