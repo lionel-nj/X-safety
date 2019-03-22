@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 from trafficintelligence import events, prediction, moving
 import numpy as np
+import network
 import toolkit
+import simulation
 import makesimulation
 
-world = toolkit.loadYaml('simple-net.yml')
-simulationParameters = toolkit.loadYaml('config.yml')
+world = network.World.load('simple-net.yml')
+sim = simulation.Simulation.load('config.yml')
 analysisParameters = toolkit.loadYaml('analysis-parameters.yml')
 
 

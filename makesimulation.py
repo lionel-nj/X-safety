@@ -35,8 +35,6 @@ def run(world, simulationParameters):
 
     return world
 
-    outOfWorldVehicles = world.getUsersOutOfWorld() ## membre de world
-
     # display
     # plt.figure()
     # for al in world.alignments:
@@ -46,6 +44,3 @@ def run(world, simulationParameters):
     # plt.xlabel('time(s/100)')
     # plt.ylabel('longitudinal coordinate (m)')
     # plt.show()
-
-
-run(world, sim)

@@ -16,7 +16,7 @@ class Alignment:
         self.controlDevice = controlDevice
         self.name = name
 
-    def makeAlignment(self, entryPoint, exitPoint, others=None):
+    def build(self, entryPoint, exitPoint, others=None):
         """builds an alignments from points,
          entryPoint and exitPoint : moving.Point
          others : list of intermediate moving.points"""
@@ -73,11 +73,11 @@ class Alignment:
                     self.distanceToCrossingPoint = self.points.getCumulativeDistance(k + 1)
                     break
 
-    def connectAlignments(self, other):
+    def buildIntersection(self, other):
         """ adds a connected_alignment_idx & a crossingPoint member to the alignment
          identifie le point x,y de croisement"""
-        self.connected_alignment_idx = other.idx  # mise en relation des aligments qui s"entrecroisent
-        other.connected_alignment_idx = self.idx  # mise en relation des aligments qui s"entrecroisent
+        self.connectedAlignmentIdx = other.idx  # mise en relation des aligments qui s"entrecroisent
+        other.connectedAlignmentIdx = self.idx  # mise en relation des aligments qui s"entrecroisent
         self.crossingPoint = self.points.getIntersections(other.points[0], other.points[-1])[1][0]
         other.crossingPoint = other.points.getIntersections(self.points[0], self.points[-1])[1][0]
 
@@ -93,7 +93,7 @@ class Alignment:
 
     def angleAtCrossingPoint(self, other):
         """determinates the angle between two alignments at the crossing point
-        it is assumed that the method connectAlignments has already been applied to the alignlents
+        it is assumed that the method connectAlignments has already been applied to the alignments
         which means that both of the alignments in input have a crossingPoint attribute
         inputs : alignments
         output : angle (degrees) at the crssoing point of the alignments """
@@ -116,24 +116,12 @@ class Alignment:
         v = v1 - v2
         angle = moving.Point.angle(v) * 180 / math.pi
 
-        self.angle_at_crossing = angle
-        other.angle_at_crossing = angle
+        self.angleAtCrossingPoint = angle
+        other.angleAtCrossingPoint = angle
 
-        return angle
-
-    def alignmentHasROW(self):
-        if self.controlDevice is None:
-            return True
-        else:
-            return False
-
-    def makeNextAlignments(self):
-        self.nextAlignments = {}
-        for point in self.points:
-            if point.x == self.crossingPoint.x and point.y == self.crossingPoint.y:
-                self.nextAlignments[(point.x, point.y)] = self.connectedAlignmentIdx
-            else:
-                self.nextAlignments[(point.x, point.y)] = self.idx
+    def getAngleAtCrossing(self):
+        if hasattr(self, 'angleAtCrossing'):
+            return self.angleAtCrossingPoint
 
     def getFirstPoint(self):
         return self.points[0]
@@ -229,21 +217,6 @@ class World:
         for alignment in self.alignments:
             result.append(alignment)
         return result
-
-    #
-    # def existingUsers(self, t):
-    #     """determines all existing users in a word file"""
-    #
-    #     result = []
-    #     for k in range(0, len(self.vehicles)):
-    #         if moving.Interval.contains(self.vehicles[k].getTimeInterval(), t):
-    #             result.append(self.vehicles[k])
-    #
-    #     for k in range(0, len(self.pedestrians)):
-    #         if moving.Interval.contains(self.pedestrians[k].getTimeInterval(), t):
-    #             result.append(self.pedestrians[k])
-    #
-    #     return sorted(result, key=takeEntry)
 
     def isVehicleBeforeCrossingPointAt(self, alignmentIdx, vehicleIdx, t, vehiclesData):
         """ determines if a vehicle if located ahead of a crossing point in a world representation """
@@ -442,18 +415,6 @@ class World:
                         if cp[0] > sum(self.alignments[al.idx].points.distances):
                             self.simulatedUsers[-1][-1][-1] = instant
                             break
-
-    def getUserNextAlignmentsAt(self, alignmentIdx, userNum, i):
-        user = self.alignments[alignmentIdx].vehicles[userNum]
-        p = user.getCurvilinearPositionAtInstant(i)[0]
-        currentAlignment = self.alignments[alignmentIdx]
-        if p <= sum(currentAlignment.points.distances):
-            nextAlignments = [currentAlignment.idx]
-            if p <= currentAlignment.distanceToCrossingPoint:
-                nextAlignments.append(currentAlignment.connectedAlignmentIdx)
-        else:
-            nextAlignments = None
-        return nextAlignments
 
     def createCSV(self, fileName):
         import csv
