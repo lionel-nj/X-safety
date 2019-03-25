@@ -136,6 +136,12 @@ class Alignment:
         else:
             return False
 
+    def addUserToAlignment(self, user):
+        if self.vehicles:
+            self.vehicles.append(user)
+        else:
+            self.vehicles = [user]
+
 
 class ControlDevice:
     """generic traffic control devices"""
@@ -481,6 +487,12 @@ class World:
             visitedAlignmentsCumulativeDistance += self.alignments[alignmentIdx].points.cumulativeDistances[-1]
 
         return visitedAlignmentsCumulativeDistance
+
+    def moveUserToAlignment(self, user):
+        laneChange, laneChangeInstants, changesList = user.changedLane()
+        if laneChange:
+            for change, inter in zip(changesList, laneChangeInstants):
+                self.alignments[change[-1]].addUserToAlignment(user.getObjectInTimeInterval(inter))
 
 class UserInput:
     def __init__(self, alignmentIdx,

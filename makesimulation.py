@@ -33,6 +33,10 @@ def run(world, simulationParameters):
             for v in al.vehicles:
                 v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
 
+    for al in world.alignments:
+        for v in al.vehicles:
+            world.moveUserToAlignment(v)
+
     return world
 
     # display
