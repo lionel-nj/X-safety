@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
 import numpy as np
-from trafficintelligence import moving
-import network, simulation
 
-world = network.World.load('simple-net.yml')
+import network
+import simulation
+
+world = network.World.load('world.yml')
 sim = simulation.Simulation.load('config.yml')
 
 

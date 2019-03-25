@@ -1,4 +1,5 @@
-import math, itertools
+import itertools
+import math
 
 from trafficintelligence import moving, utils
 
@@ -74,7 +75,7 @@ class Alignment:
                     break
 
     def buildIntersection(self, other):
-        """ adds a connected_alignment_idx & a crossingPoint member to the alignment
+        """ adds a connectedAlignmentIdx & a crossingPoint member to the alignment
          identifie le point x,y de croisement"""
         self.connectedAlignmentIdx = other.idx  # mise en relation des aligments qui s"entrecroisent
         other.connectedAlignmentIdx = self.idx  # mise en relation des aligments qui s"entrecroisent
@@ -86,35 +87,26 @@ class Alignment:
 
     def isConnectedTo(self, other):
         """boolean, detemines if two alignments are connected"""
-        if self.connected_alignment_idx == other.idx and other.connected_alignment_idx == self.idx:
+        if self.connectedAlignmentIdx == other.idx and other.connectedAlignmentIdx == self.idx:
             return True
         else:
             return False
 
     def angleAtCrossingPoint(self, other):
-        """determinates the angle between two alignments at the crossing point
+        """determines the angle between two alignments at the crossing point
         it is assumed that the method connectAlignments has already been applied to the alignments
         which means that both of the alignments in input have a crossingPoint attribute
         inputs : alignments
-        output : angle (degrees) at the crssoing point of the alignments """
+        output : angle (degrees) at the crossing point of the alignments """
 
-        crossingPoint = self.crossingPoint
-        first_index_of_cp = 0
-        second_index_of_cp = 0
+        firstPoint = self.getFirstPoint()
+        secondPoint = other.getFirstPoint()
 
-        while self.points[first_index_of_cp] != crossingPoint:
-            first_index_of_cp += 1
-        while other.points[second_index_of_cp] != crossingPoint:
-            second_index_of_cp += 1
+        p1 = self.crossingPoint - firstPoint
+        p2 = self.crossingPoint - secondPoint
 
-        first_point = self.points.__getitem__(first_index_of_cp - 1)
-        second_point = other.points.__getitem__(second_index_of_cp - 1)
-
-        v1 = crossingPoint - first_point
-        v2 = crossingPoint - second_point
-
-        v = v1 - v2
-        angle = moving.Point.angle(v) * 180 / math.pi
+        p = p1 - p2
+        angle = moving.Point.angle(p) * 180 / math.pi
 
         self.angleAtCrossingPoint = angle
         other.angleAtCrossingPoint = angle
@@ -122,6 +114,9 @@ class Alignment:
     def getAngleAtCrossing(self):
         if hasattr(self, 'angleAtCrossing'):
             return self.angleAtCrossingPoint
+
+    def getPoint(self, i):
+        return self.points[i]
 
     def getFirstPoint(self):
         return self.points[0]
@@ -453,13 +448,39 @@ class World:
             _alignments = copy.deepcopy(self.alignments)
             _alignments.pop(idx)
             al.nextAlignments = []
-            if _alignments == []:
+            if not _alignments:
                 print('your world only has 1 alignment')
                 break
             for other in _alignments:
                 if other.isStartOf(al.getLastPoint()):
                     al.nextAlignments.append(other.idx)
 
+    def nextAlignment(self, user, instant, timeStep):
+        occupiedAlignmentAtBy = user.curvilinearPositions.getLanes(instant - user.getFirstInstant())
+        reachableAlignments = self.alignments[occupiedAlignmentAtBy].nextAlignments
+        nextPosition = user.updateCurvilinearPositions('newell', instant, timeStep) # TODO a revoir, la fonction modifie les coordonnees sur place, elle ne renvoie rien
+        if self.getVisitedAlignmentsCumulatedDistanceAtInstant(user) < nextPosition[0]:
+            if reachableAlignments:
+                nextAlignment = reachableAlignments[0]
+            else:
+                nextAlignment = None
+        else:
+            nextAlignment = occupiedAlignmentAtBy
+
+        return nextAlignment
+
+    def getVisitedAlignmentsCumulatedDistance(self, user):
+        visitedAlignmentsIndices = []
+        for cp in user.curvilinearPositions:
+            if cp[2] in visitedAlignmentsIndices:
+                pass
+        else:
+            visitedAlignmentsIndices.append(cp[2])
+            visitedAlignmentsCumulativeDistance = 0
+        for alignmentIdx in visitedAlignmentsIndices:
+            visitedAlignmentsCumulativeDistance += self.alignments[alignmentIdx].points.cumulativeDistances[-1]
+
+        return visitedAlignmentsCumulativeDistance
 
 class UserInput:
     def __init__(self, alignmentIdx,
@@ -513,6 +534,8 @@ class UserInput:
         if len(self.alignment.vehicles) > 0:
             obj.leader = self.alignment.vehicles[-1]  # TODO verify?
         self.alignment.vehicles.append(obj)
+
+
 
 
 class CarGeometry:

@@ -1,10 +1,7 @@
-import matplotlib.pyplot as plt
-from trafficintelligence import events, prediction, moving
-import numpy as np
-import network
-import toolkit
-import simulation
 import makesimulation
+import network
+import simulation
+import toolkit
 
 world = network.World.load('simple-net.yml')
 sim = simulation.Simulation.load('config.yml')
@@ -63,7 +60,7 @@ def run(worldFile, simulationParameters, analysisParameters):
         #     interactions = []
         #     for userIdx in range(len(listOfVeh[al.idx]) - 1):
         #         interactions.append(events.Interaction(useCurvilinear=True, roadUser1=listOfVeh[al.idx][userIdx], roadUser2=listOfVeh[al.idx][userIdx + 1]))
-        #
+
         #     # computing interactions
         #     for inter in interactions:
         #         inter.computeIndicators(alignment1=al, alignment2=al)
@@ -74,7 +71,7 @@ def run(worldFile, simulationParameters, analysisParameters):
         #             useCurvilinear=True,
         #             alignment1=al,
         #             alignment2=al)
-        #
+        # #
         #     # getting the ttc-time list for each interaction if ttc has been computed (2)
         #     TTCs = {}
         #     times = []
