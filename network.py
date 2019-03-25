@@ -137,6 +137,8 @@ class Alignment:
             return False
 
     def addUserToAlignment(self, user):
+        # TODO : verifier fonctionnement
+
         if self.vehicles:
             self.vehicles.append(user)
         else:
@@ -476,6 +478,8 @@ class World:
         return nextAlignment
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
+        # TODO : verifier fonctionnement
+
         visitedAlignmentsIndices = []
         for cp in user.curvilinearPositions:
             if cp[2] in visitedAlignmentsIndices:
@@ -489,10 +493,12 @@ class World:
         return visitedAlignmentsCumulativeDistance
 
     def moveUserToAlignment(self, user):
+        # TODO : verifier fonctionnement
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
-            for change, inter in zip(changesList, laneChangeInstants):
-                self.alignments[change[-1]].addUserToAlignment(user.getObjectInTimeInterval(inter))
+            for alignmentChange, inter in zip(changesList, laneChangeInstants):
+                self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(inter))
+
 
 class UserInput:
     def __init__(self, alignmentIdx,
@@ -546,8 +552,6 @@ class UserInput:
         if len(self.alignment.vehicles) > 0:
             obj.leader = self.alignment.vehicles[-1]  # TODO verify?
         self.alignment.vehicles.append(obj)
-
-
 
 
 class CarGeometry:
