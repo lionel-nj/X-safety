@@ -3,7 +3,7 @@ import numpy as np
 import network
 import simulation
 
-world = network.World.load('world.yml')
+world = network.World.load('simple-net.yml')
 sim = simulation.Simulation.load('config.yml')
 
 
@@ -33,18 +33,18 @@ def run(world, simulationParameters):
             for v in al.vehicles:
                 v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
 
-    for al in world.alignments:
-        for v in al.vehicles:
-            world.moveUserToAlignment(v)
+    # for al in world.alignments:
+    #     for v in al.vehicles:
+    #         world.moveUserToAlignment(v)
 
     return world
 
-    # display
-    # plt.figure()
-    # for al in world.alignments:
-    #     for v in al.vehicles:
-    #         if v.timeInterval is not None:
-    #             v.plotCurvilinearPositions()
-    # plt.xlabel('time(s/100)')
-    # plt.ylabel('longitudinal coordinate (m)')
-    # plt.show()
+    display
+    plt.figure()
+    for al in world.alignments:
+        for v in al.vehicles:
+            if v.timeInterval is not None:
+                v.plotCurvilinearPositions()
+    plt.xlabel('time(s/100)')
+    plt.ylabel('longitudinal coordinate (m)')
+    plt.show()

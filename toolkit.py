@@ -1,8 +1,9 @@
-import yaml
-import numpy as np
-import csv
 import collections
+import csv
 import itertools
+
+import numpy as np
+import yaml
 
 
 def loadYaml(filename):
@@ -182,6 +183,7 @@ def makeSubListFromList(itemList):
     # for item in items:
     #     result.append([1] * item)
     # return result
+
 
 if __name__ == "__main__":
     import doctest

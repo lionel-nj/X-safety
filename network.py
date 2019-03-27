@@ -137,12 +137,15 @@ class Alignment:
             return False
 
     def addUserToAlignment(self, user):
-        # TODO : verifier fonctionnement
-
         if self.vehicles:
             self.vehicles.append(user)
         else:
             self.vehicles = [user]
+
+    def getUserByNum(self, num):
+        for v in self.vehicles:
+            if v.num == num:
+                return v
 
 
 class ControlDevice:
@@ -478,26 +481,50 @@ class World:
         return nextAlignment
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
-        # TODO : verifier fonctionnement
-
         visitedAlignmentsIndices = []
         for cp in user.curvilinearPositions:
             if cp[2] in visitedAlignmentsIndices:
                 pass
-        else:
-            visitedAlignmentsIndices.append(cp[2])
-            visitedAlignmentsCumulativeDistance = 0
+            else:
+                visitedAlignmentsIndices.append(cp[2])
+        visitedAlignmentsCumulativeDistance = 0
         for alignmentIdx in visitedAlignmentsIndices:
             visitedAlignmentsCumulativeDistance += self.alignments[alignmentIdx].points.cumulativeDistances[-1]
 
         return visitedAlignmentsCumulativeDistance
 
     def moveUserToAlignment(self, user):
-        # TODO : verifier fonctionnement
+        # TODO : ajouter suppression partielle du vehicule automatiquement
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
                 self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(inter))
+            # self.removePartiallyUserFromAlignment(user, laneChangeInstants[0][0])
+
+    @staticmethod
+    def removePartiallyUserFromAlignment(user, i):
+        length = len(user.curvilinearPositions)
+        del user.curvilinearPositions.positions[0][i - 1:length]
+        del user.curvilinearPositions.positions[1][i - 1:length]
+        del user.curvilinearPositions.lanes[i:length]
+        del user.curvilinearVelocities.positions[0][i - 1:length]
+        del user.curvilinearVelocities.positions[1][i - 1:length]
+        del user.curvilinearVelocities.lanes[i:length]
+
+    def rebuildUserTrajectory(self, user):
+        import copy
+        obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry, userType=user.userType, nObjects=user.nObjects)
+        obj.curvilinearPositions = user.curvilinearPositions
+        obj.curvilinearVelocities = user.curvilinearVelocities
+        for al in self.alignments:
+            if al.idx != user.curvilinearPositions[0][2]:
+                tempUser = copy.deepcopy(al.getUserByNum(user.num))
+                order = obj.curvilinearPositions.sort(tempUser.curvilinearPositions)
+                if order:
+                    obj.curvilinearVelocities.append(tempUser.curvilinearVelocities)
+                else:
+                    obj.curvilinearVelocities = tempUser.curvilinearVelocities.append(obj.curvilinearVelocities)
+        return obj
 
 
 class UserInput:
@@ -550,8 +577,13 @@ class UserInput:
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
         if len(self.alignment.vehicles) > 0:
-            obj.leader = self.alignment.vehicles[-1]  # TODO verify?
+            obj.leader = self.alignment.vehicles[-1]
         self.alignment.vehicles.append(obj)
+
+    def getUserByNum(self, num):
+        for user in self.alignment.vehicles:
+            if user.num == num:
+                return user
 
 
 class CarGeometry:
