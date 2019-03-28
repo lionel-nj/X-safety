@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
 import makesimulation
 import network
 import simulation
@@ -13,10 +16,13 @@ def run(worldFile, simulationParameters, analysisParameters):
     # converting curvilinear trajectories/velocities to cartesian trajectories/velocities
     # worldFile.convertSYtoXY()
     # predictionParams = prediction.CVExactPredictionParameters(useCurvilinear=True)
+    df = pd.DataFrame(columns = ['seed', 'duration', 'h0', 'volume', '# of generated vehicle', 'volume (true)', 'headway(true)', 'distance threshold', 'interaction number', '%interactions'])
 
-    worldFile.createCSV('analysisFile.csv')
+
+    # worldFile.createCSV('analysisFile.csv')
 
     for al in worldFile.alignments:
+        i = 0
         for headwayValue in analysisParameters['headwayValues'][al.idx]:
             worldFile.userInputs[al.idx].distributions['headway'].scale = headwayValue
             worldFile = makesimulation.run(worldFile, simulationParameters)
@@ -44,13 +50,33 @@ def run(worldFile, simulationParameters, analysisParameters):
                 for elt in interactionsCharacteristics:
                     totalInteractionsNumber += interactionsCharacteristics[elt][0]
 
-                vehiclesGenerated = len(listOfVeh[al.idx])
+                vehiclesGenerated = len(listOfVeh[al.idx])-4
                 volume = 3600/headwayValue
                 volumeTrue = 3600 * len(listOfVeh[al.idx]) / simulationParameters.duration
                 headwayTrue = 3600/volumeTrue
 
-                data = [simulationParameters.seed, simulationParameters.duration, headwayValue, volume, vehiclesGenerated, volumeTrue, headwayTrue, minInteractionDistancesValue, totalInteractionsNumber]
-                worldFile.addElementToAnalysisFile('analysisFile.csv', data)
+                data = [simulationParameters.seed, simulationParameters.duration, headwayValue, volume, vehiclesGenerated, volumeTrue, headwayTrue, minInteractionDistancesValue, totalInteractionsNumber, 100*totalInteractionsNumber/vehiclesGenerated]
+                df.loc[i] = data
+                i += 1
+        # displaying interactions # = f(headway)
+        # for each min distance
+        h = tempDf['h0'].values
+        for values in analysisParameters['minInteractionDistancesValues'][al.idx]:
+            filter = df['distance threshold'] == values
+            tempDf = df.where(filter, inplace=False)
+            tempDf.dropna(axis=0, how='all', inplace=True)
+
+            n = tempDf['%interactions'].values
+            plt.plot(h, n)
+    plt.legend(['d={}'.format(values) for values in analysisParameters['minInteractionDistancesValues'][al.idx]])
+    plt.show()
+    plt.close()
+
+
+
+    # return df
+
+                # worldFile.addElementToAnalysisFile('analysisFile.csv', data)
 
 
         #

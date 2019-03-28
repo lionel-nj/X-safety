@@ -296,7 +296,7 @@ class World:
             rows = len(vehList)
             result = {}
 
-            for h in range(0, rows - 1):
+            for h in range(4, rows - 1):
                 commonInterval = self.alignments[alignmentIdx].vehicles[h].commonTimeInterval(
                     self.alignments[alignmentIdx].vehicles[h + 1])
                 result[(h, h + 1)] = []
@@ -424,37 +424,6 @@ class World:
                                 self.simulatedUsers[-1][-1][-1] = instant
                                 break
 
-    def createCSV(self, fileName):
-        import csv
-        if len(self.alignments) == 1:
-            with open(fileName, mode='w') as file:
-                fileWriter = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-                fileWriter.writerow(
-                    ['seed', 'duration', 'h0', 'volume', '# of generated vehicle', 'volume (true)', 'headway(true)', 'distance threshold', 'interaction number'])
-
-        elif len(self.alignnments) == 2:
-            with open(fileName, mode='w') as file:
-                fileWriter = csv.writer(file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-                fileWriter.writerow(
-                    ['seed', 'duration', 'h0', 'h1', 'volume', '# of generated vehicle', 'volume (true)', 'headway(true)', 'distance threshold', 'interaction number'])
-
-    @staticmethod
-    def addElementToAnalysisFile(fileName, data):
-        import csv
-        with open(fileName, 'r') as readFile:
-            reader = csv.reader(readFile)
-            lines = list(reader)
-            lines.append(data)
-
-        with open(fileName, 'w') as writeFile:
-            writer = csv.writer(writeFile)
-            writer.writerows(lines)
-
-        readFile.close()
-        writeFile.close()
-
     def connectAlignments(self):
         import copy
         for idx, al in enumerate(self.alignments):
@@ -497,12 +466,10 @@ class World:
         return visitedAlignmentsCumulativeDistance
 
     def moveUserToAlignment(self, user):
-        # TODO : ajouter suppression partielle du vehicule automatiquement
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
                 self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(moving.TimeInterval(inter.first+user.getFirstInstant(),inter.last+user.getFirstInstant())))
-            # self.removePartiallyUserFromAlignment(user, laneChangeInstants[0][0])
 
     @staticmethod
     def removePartiallyUserFromAlignment(user, i):
@@ -515,7 +482,6 @@ class World:
         del user.curvilinearVelocities.lanes[i:length]
 
     def rebuildUserTrajectory(self, user):
-        # TODO : tester
         import copy
         obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry, userType=user.userType, nObjects=user.nObjects)
         obj.curvilinearPositions = user.curvilinearPositions
@@ -574,7 +540,7 @@ class UserInput:
         obj.addNewellAttributes(self.speedDistribution.rvs(),
                                 self.tauDistribution.rvs(),
                                 self.dDistribution.rvs(),
-                                # kj=120 veh/km TODO get from distribution
+                                # kj=120 veh/km
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
         # utile?

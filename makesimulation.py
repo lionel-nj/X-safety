@@ -39,7 +39,7 @@ def run(world, simulationParameters):
 
     return world
 
-    display
+    # display
     plt.figure()
     for al in world.alignments:
         for v in al.vehicles:
