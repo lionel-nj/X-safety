@@ -411,16 +411,18 @@ class World:
         return users
 
     def getSimulatedUsers(self):
+        #TODO a verifier pour plusieurs alignments comportant des vehicules
         self.simulatedUsers = []
         for idx, al in enumerate(self.alignments):
             self.simulatedUsers.append([])
             for user in al.vehicles:
-                if user.getCurvilinearPositionAt(-1)[0] > sum(self.alignments[al.idx].points.distances):
-                    self.simulatedUsers[idx].append([user.num, None])
-                    for instant, cp in enumerate(user.curvilinearPositions):
-                        if cp[0] > sum(self.alignments[al.idx].points.distances):
-                            self.simulatedUsers[-1][-1][-1] = instant
-                            break
+                if user is not None and user.timeInterval is not None:
+                    if user.getCurvilinearPositionAt(-1)[0] > self.getVisitedAlignmentsCumulatedDistance(user): # sum(self.alignments[al.idx].points.distances):
+                        self.simulatedUsers[idx].append([user.num, None])
+                        for instant, cp in enumerate(user.curvilinearPositions):
+                            if cp[0] > sum(self.alignments[al.idx].points.distances):
+                                self.simulatedUsers[-1][-1][-1] = instant
+                                break
 
     def createCSV(self, fileName):
         import csv
@@ -469,7 +471,7 @@ class World:
     def nextAlignment(self, user, instant, timeStep):
         occupiedAlignmentAtBy = user.curvilinearPositions.getLanes(instant - user.getFirstInstant())
         reachableAlignments = self.alignments[occupiedAlignmentAtBy].nextAlignments
-        nextPosition = user.updateCurvilinearPositions('newell', instant, timeStep) # TODO a revoir, la fonction modifie les coordonnees sur place, elle ne renvoie rien
+        nextPosition = user.updateCurvilinearPositions('newell', instant, timeStep) # TODO a revoir, la methode updateCurvilinearPositions modifie les coordonnees sur place, elle ne renvoie rien
         if self.getVisitedAlignmentsCumulatedDistanceAtInstant(user) < nextPosition[0]:
             if reachableAlignments:
                 nextAlignment = reachableAlignments[0]
@@ -482,7 +484,8 @@ class World:
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
         visitedAlignmentsIndices = []
-        for cp in user.curvilinearPositions:
+        tempUser = self.rebuildUserTrajectory(user)
+        for cp in tempUser.curvilinearPositions:
             if cp[2] in visitedAlignmentsIndices:
                 pass
             else:
@@ -498,7 +501,7 @@ class World:
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
-                self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(inter))
+                self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(moving.TimeInterval(inter.first+user.getFirstInstant(),inter.last+user.getFirstInstant())))
             # self.removePartiallyUserFromAlignment(user, laneChangeInstants[0][0])
 
     @staticmethod
@@ -512,6 +515,7 @@ class World:
         del user.curvilinearVelocities.lanes[i:length]
 
     def rebuildUserTrajectory(self, user):
+        # TODO : tester
         import copy
         obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry, userType=user.userType, nObjects=user.nObjects)
         obj.curvilinearPositions = user.curvilinearPositions

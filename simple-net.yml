@@ -24,30 +24,6 @@ alignments:
       - 0.0
       - 0.0
   width: null
-- !!python/object:network.Alignment
-  connectedAlignmentIdx: 1
-  controlDeviceIdx: null
-  crossingPoint: !!python/object:trafficintelligence.moving.Point
-    x: 0.0
-    y: 0.0
-  idx: 1
-  distanceToCrossingPoint: 100
-  points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 100.0
-    - 200.0
-    distances:
-    - 100.0
-    - 100.0
-    positions:
-    - - 100.0
-      - 200.0
-      - 300.0
-    - - 0.0
-      - 0.0
-      - 0.0
-  width: null
 
 controlDevices: null
 userInputs:
