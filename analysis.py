@@ -60,17 +60,14 @@ def run(worldFile, simulationParameters, analysisParameters):
                 i += 1
         # displaying interactions # = f(headway)
         # for each min distance
-        h = tempDf['h0'].values
         for values in analysisParameters['minInteractionDistancesValues'][al.idx]:
             filter = df['distance threshold'] == values
             tempDf = df.where(filter, inplace=False)
             tempDf.dropna(axis=0, how='all', inplace=True)
-
-            n = tempDf['%interactions'].values
-            plt.plot(h, n)
-    plt.legend(['d={}'.format(values) for values in analysisParameters['minInteractionDistancesValues'][al.idx]])
-    plt.show()
-    plt.close()
+            plt.plot(tempDf['h0'].values, tempDf['%interactions'].values)
+        plt.legend(['d={}'.format(values) for values in analysisParameters['minInteractionDistancesValues'][al.idx]])
+        plt.savefig('graphique-seed={}-duration={}.png'.format(simulationParameters.seed, simulationParameters.duration))
+        df.to_csv('analysisFile-seed={}-duration={}.csv'.format(simulationParameters.seed, simulationParameters.duration), index=False)
 
 
 

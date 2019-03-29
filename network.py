@@ -147,6 +147,17 @@ class Alignment:
             if v.num == num:
                 return v
 
+    def defineMovementProportions(self, proportions):
+        if len(proportions) == len(self.nextAlignments):
+            if sum(proportions) == 1:
+                self.movementProportions = {}
+                for idx, reachableAlignment in enumerate(self.nextAlignments):
+                    self.movementProportions[reachableAlignment] = proportions[idx]
+            else:
+                print('sum of proportion is not equal to 100%')
+        else:
+            print('proportion list and reachable alignment list have different size, cannot define movement proportions')
+
 
 class ControlDevice:
     """generic traffic control devices"""
