@@ -3,4 +3,4 @@ duration: 500
 interactionDistance: 25
 minimumTimeHeadway: 1.5
 timeStep: 0.1
-seed: 45
+seed: 55

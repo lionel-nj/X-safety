@@ -31,20 +31,24 @@ def run(world, simulationParameters):
 
         for al in world.alignments:
             for v in al.vehicles:
-                v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
+                # if v is not None :
+                    # if v.timeInterval is not None:
+                # v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
+                v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep, world.getNextAlignment(v, i, simulationParameters.timeStep), world.occupiedAlignmentLength(v))
 
     # for al in world.alignments:
     #     for v in al.vehicles:
     #         world.moveUserToAlignment(v)
 
-    return world
 
     # display
-    plt.figure()
-    for al in world.alignments:
-        for v in al.vehicles:
-            if v.timeInterval is not None:
-                v.plotCurvilinearPositions()
-    plt.xlabel('time(s/100)')
-    plt.ylabel('longitudinal coordinate (m)')
-    plt.show()
+    # plt.figure()
+    # for al in world.alignments:
+    #     for v in al.vehicles:
+    #         if v.timeInterval is not None:
+    #             v.plotCurvilinearPositions()
+    # plt.xlabel('time(s/100)')
+    # plt.ylabel('longitudinal coordinate (m)')
+    # plt.show()
+
+    return world

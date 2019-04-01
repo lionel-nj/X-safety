@@ -156,7 +156,8 @@ class Alignment:
             else:
                 print('sum of proportion is not equal to 100%')
         else:
-            print('proportion list and reachable alignment list have different size, cannot define movement proportions')
+            print(
+                'proportion list and reachable alignment list have different size, cannot define movement proportions')
 
 
 class ControlDevice:
@@ -197,7 +198,8 @@ class World:
         self.crossingPoint = crossingPoint  # moving.Point
 
     def __repr__(self):
-        return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices, self.userInputs)
+        return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices,
+                                                                             self.userInputs)
 
     @staticmethod
     def load(filename):
@@ -256,7 +258,8 @@ class World:
         else:
             leader = tempLeader
             follower = tempFollower
-        if moving.Interval.intersection(leader.timeInterval, follower.timeInterval) is not None and leader.timeInterval.contains(t):
+        if moving.Interval.intersection(leader.timeInterval,
+                                        follower.timeInterval) is not None and leader.timeInterval.contains(t):
             if leaderAlignmentIdx == followerAlignmentIdx:
                 d = UserInput.distanceGap(leader.getCurvilinearPositionAtInstant(t)[0],
                                           follower.getCurvilinearPositionAtInstant(t)[0],
@@ -422,13 +425,14 @@ class World:
         return users
 
     def getSimulatedUsers(self):
-        #TODO a verifier pour plusieurs alignments comportant des vehicules
+        # TODO a verifier pour plusieurs alignments comportant des vehicules
         self.simulatedUsers = []
         for idx, al in enumerate(self.alignments):
             self.simulatedUsers.append([])
             for user in al.vehicles:
                 if user is not None and user.timeInterval is not None:
-                    if user.getCurvilinearPositionAt(-1)[0] > self.getVisitedAlignmentsCumulatedDistance(user): # sum(self.alignments[al.idx].points.distances):
+                    if user.getCurvilinearPositionAt(-1)[0] > self.getVisitedAlignmentsCumulatedDistance(
+                            user):  # sum(self.alignments[al.idx].points.distances):
                         self.simulatedUsers[idx].append([user.num, None])
                         for instant, cp in enumerate(user.curvilinearPositions):
                             if cp[0] > sum(self.alignments[al.idx].points.distances):
@@ -448,11 +452,11 @@ class World:
                 if other.isStartOf(al.getLastPoint()):
                     al.nextAlignments.append(other.idx)
 
-    def nextAlignment(self, user, instant, timeStep):
+    def getNextAlignment(self, user, instant, timeStep):
         occupiedAlignmentAtBy = user.curvilinearPositions.getLanes(instant - user.getFirstInstant())
         reachableAlignments = self.alignments[occupiedAlignmentAtBy].nextAlignments
-        nextPosition = user.updateCurvilinearPositions('newell', instant, timeStep) # TODO a revoir, la methode updateCurvilinearPositions modifie les coordonnees sur place, elle ne renvoie rien
-        if self.getVisitedAlignmentsCumulatedDistanceAtInstant(user) < nextPosition[0]:
+        nextPosition = user.computeNextCurvilinearPositions('newell', instant, timeStep)
+        if self.alignments[occupiedAlignmentAtBy].points.cumulativeDistances[-1] < nextPosition[0]:
             if reachableAlignments:
                 nextAlignment = reachableAlignments[0]
             else:
@@ -480,7 +484,9 @@ class World:
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
-                self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(moving.TimeInterval(inter.first+user.getFirstInstant(),inter.last+user.getFirstInstant())))
+                self.alignments[alignmentChange[-1]].addUserToAlignment(user.getObjectInTimeInterval(
+                    moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
+            return True
 
     @staticmethod
     def removePartiallyUserFromAlignment(user, i):
@@ -494,7 +500,8 @@ class World:
 
     def rebuildUserTrajectory(self, user):
         import copy
-        obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry, userType=user.userType, nObjects=user.nObjects)
+        obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry,
+                                  userType=user.userType, nObjects=user.nObjects)
         obj.curvilinearPositions = user.curvilinearPositions
         obj.curvilinearVelocities = user.curvilinearVelocities
         for al in self.alignments:
@@ -506,6 +513,26 @@ class World:
                 else:
                     obj.curvilinearVelocities = tempUser.curvilinearVelocities.append(obj.curvilinearVelocities)
         return obj
+
+    def getLeader(self, user, i, timeStep):
+        nextAlignment = self.nextAlignment(user, i, timeStep)
+        user.leader = self.getClosestUser(user, nextAlignment, i)
+
+    def occupiedAlignmentLength(self, user):
+        # TODO: verifier
+        alignmentIdx = user.curvilinearPositions.getLaneAt(-1 - user.getFirstInstant())
+        return self.alignments[alignmentIdx].points.cumulativeDistances()
+
+    def defineLeader(self, user, t, timeStep):
+        # TODO : verifier
+        # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
+        nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
+        _users = []
+
+        for users in self.alignments[nextAlignmentIdx].vehicles:
+            if users.timeInterval.contains(t):
+                _users.append((users.num, user.getCurvilinearPositionsAtInstant(t)))
+        return min(_users, key=lambda x: x[1])[0]
 
 
 class UserInput:
