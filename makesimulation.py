@@ -24,17 +24,24 @@ def run(world, simulationParameters):
     for al in world.alignments:
         al.vehicles = []
 
+    world.connectAlignments()
+
     userNum = 0
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for al in world.alignments:
-            for v in al.vehicles:
+            if al.vehicles is not None:
+                for v in al.vehicles:
                 # if v is not None :
                     # if v.timeInterval is not None:
                 # v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
-                v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep, world.getNextAlignment(v, i, simulationParameters.timeStep), world.occupiedAlignmentLength(v))
+                    v.updateCurvilinearPositions(method="newell",
+                                                 instant=i,
+                                                 timeStep=simulationParameters.timeStep,
+                                                 _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
+                                                 occupiedAlignmentLength=world.occupiedAlignmentLength(v))
 
     # for al in world.alignments:
     #     for v in al.vehicles:
