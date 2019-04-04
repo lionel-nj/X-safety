@@ -6,7 +6,7 @@ import network
 import simulation
 import toolkit
 
-world = network.World.load('simple-net.yml')
+world = network.World.load('world.yml')
 sim = simulation.Simulation.load('config.yml')
 analysisParameters = toolkit.loadYaml('analysis-parameters.yml')
 

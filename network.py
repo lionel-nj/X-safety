@@ -453,22 +453,33 @@ class World:
                     al.reachableAlignments.append(other.idx)
 
     def getNextAlignment(self, user, instant, timeStep):
-        # TODO : nextAlignment = None ou occupiedAlignmentAtBy ??
-        if user.existsAt(instant):
-            occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(instant - user.getFirstInstant())
-            reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
-            nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
-            if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
-                if reachableAlignments:
-                    nextAlignment = reachableAlignments[0]
-                else:
-                    nextAlignment = None
-            else:
-                nextAlignment = None # Ou None a voir
+        # todo : corriger, probleme a lexecution
+        if user.existsAt(instant) :#timeInterval is not None:
+            if user.timeInterval is not None :
+                if user.timeInterval.first <= instant:
+                    # print('bonne nouvelle')
+                    occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(instant + user.getFirstInstant())
+                    reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
+                    nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
+                    if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
+                        # print('youhou')
+                        if reachableAlignments:
+                            # print('wassup')
+                            nextAlignment = reachableAlignments[0]
+                        else:
+                            # print('hmm')
+                            nextAlignment = None
+                    else:
+                        # print('on verra')
+                        nextAlignment = None
 
-            return nextAlignment
-        else:
-            return None
+                    return nextAlignment
+                else:
+                    # print('olala')
+                    return None
+            else:
+                return None
+        return None
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
         visitedAlignmentsIndices = []
@@ -620,33 +631,6 @@ class Distribution(object):
         self.scale = scale
         self.cdf = cdf
         self.degeneratedConstant = degeneratedConstant
-
-    # def __new__(cls, distributionType, distributionName=None, loc=None, scale=None, cdf=None, degeneratedConstant=None):
-    #
-    #     from scipy import stats
-    #     from trafficintelligence import utils
-    #
-    #     instance = super(Distribution, cls).__new__(cls)
-    #     instance.distributionType = distributionType
-    #     instance.distributionName = distributionName
-    #     instance.loc = loc
-    #     instance.scale = scale
-    #     instance.cdf = cdf
-    #     instance.degeneratedConstant = degeneratedConstant
-    #
-    #     if instance.distributionType == 'theoric':
-    #         if instance.distributionName == 'norm':
-    #             return stats.norm(loc=instance.loc, scale=instance.scale)
-    #         elif instance.distributionName == 'expon':
-    #             return stats.expon(loc=instance.loc, scale=instance.scale)
-    #         else:
-    #             raise NameError('error in distribution name')
-    #     elif instance.distributionType == 'empirical':
-    #         return utils.EmpiricalContinuousDistribution(instance.cdf[0], instance.cdf[1])
-    #     elif instance.distributionType == 'degenerated':
-    #         return utils.ConstantDistribution(instance.degeneratedConstant)
-    #     else:
-    #         raise NameError('error in distribution type')
 
     def save(self, fileName):
         return toolkit.saveYaml(fileName, self)
