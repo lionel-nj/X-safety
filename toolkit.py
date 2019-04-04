@@ -140,7 +140,7 @@ def changeVolumeOnVehicleInput(worldFile, newVolume, alignmentIdx):
     """changes the volume on a particular alignment"""
     worldFile.vehicleInputs[alignmentIdx].volume = newVolume
 
-
+### set of function to be implmented/insipired of in order to perform crossing behaviours ###
 def lossOfTime(beta, tnr):
     import math
     return beta * (math.exp(tnr / beta) - (1 + tnr / beta))
@@ -158,7 +158,7 @@ def timeGap(worldFile, rowVehicle, rowVehicleAlignmentId, time):
     gap = (-rowVehicle.curvilinearPositions[time][0] + worldFile.alignments[
         rowVehicleAlignmentId].distance_to_crossing_point) / rowVehicle.velocities[time][0]
     return gap
-
+##########################################################################################
 
 def find_nearest(a, a0):
     """"Element in nd array `a` closest to the scalar value `a0`"""
@@ -167,6 +167,7 @@ def find_nearest(a, a0):
 
 
 def countElementInList(elementsList, element):
+    """counts all occurences of element in list"""
     c = 0
     for k in range(len(elementsList)-1):
         if elementsList[k] == element and elementsList[k+1] != element:
@@ -177,6 +178,7 @@ def countElementInList(elementsList, element):
 
 
 def makeSubListFromList(itemList):
+    """makes small groups of 1, each time a group is found in the list"""
     from itertools import groupby
     result = []
     return [sum(g) for i, g in groupby(itemList) if i == 1]

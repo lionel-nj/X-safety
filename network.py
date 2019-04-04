@@ -112,42 +112,52 @@ class Alignment:
         other.angleAtCrossingPoint = angle
 
     def getAngleAtCrossing(self):
+        """ method returns the angle formed by the the crossing alignments"""
         if hasattr(self, 'angleAtCrossing'):
             return self.angleAtCrossingPoint
 
     def getPoint(self, i):
+        """returns i-th point of an alignment"""
         return self.points[i]
 
     def getFirstPoint(self):
+        "returns the first point of an alignment"
         return self.points[0]
 
     def getLastPoint(self):
+        "returns the last point of an alignment"
         return self.points[-1]
 
     def isStartOf(self, point):
+        "boolean : True if a moving.Point is the first point of an alignment"
         if self.points[0].x == point.x and self.points[0].y == point.y:
             return True
         else:
             return False
 
     def isEndOf(self, point):
+        "boolean : True if a moving.Point is the last point of an alignment"
+
         if self.points[-1].x == point.x and self.points[-1].y == point.y:
             return True
         else:
             return False
 
     def addUserToAlignment(self, user):
+        """adds an user to self.vehicles or self.user """
         if self.vehicles:
             self.vehicles.append(user)
         else:
             self.vehicles = [user]
 
     def getUserByNum(self, num):
+        """returns a specific user by its id=num"""
         for v in self.vehicles:
             if v.num == num:
                 return v
 
     def defineMovementProportions(self, proportions):
+        """method to defice the proportions of movements"""
         if len(proportions) == len(self.reachableAlignments):
             if sum(proportions) == 1:
                 self.movementProportions = {}
@@ -396,6 +406,7 @@ class World:
                 return k
 
     def convertSYtoXY(self):
+        """converts SY to XY for a set of vehicles in self"""
         for al in self.alignments:
             for user in al.vehicles:
                 if user.timeInterval is not None:
@@ -417,6 +428,7 @@ class World:
                     pass
 
     def getNotNoneVehiclesInWorld(self):
+        """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
         users = [[] * len(self.alignments)]
         for al in self.alignments:
             for user in al.vehicles:
@@ -425,6 +437,8 @@ class World:
         return users
 
     def getSimulatedUsers(self):
+        """returns all vehicles that could not be computed, kind of the reciprocate of the method
+        getNotNoneVehicleInWorld"""
         # TODO a verifier pour plusieurs alignments comportant des vehicules
         self.simulatedUsers = []
         for idx, al in enumerate(self.alignments):
@@ -440,6 +454,8 @@ class World:
                                 break
 
     def connectAlignments(self):
+        """method to link the alignments: for a given alignment, it associates all the other alignments
+         that can be reached from it"""
         import copy
         for idx, al in enumerate(self.alignments):
             _alignments = copy.deepcopy(self.alignments)
@@ -453,12 +469,13 @@ class World:
                     al.reachableAlignments.append(other.idx)
 
     def getNextAlignment(self, user, instant, timeStep):
+        """returns the next alignment an user will be assigned to, according to the instant"""
         # todo : corriger, probleme a lexecution
         if user.existsAt(instant) :#timeInterval is not None:
             if user.timeInterval is not None :
                 if user.timeInterval.first <= instant:
                     # print('bonne nouvelle')
-                    occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(instant + user.getFirstInstant())
+                    occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(instant )
                     reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
                     nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
                     if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
@@ -482,6 +499,7 @@ class World:
         return None
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
+        """rebuilds the trajectory of user, then calculates total length of the alignment the user had been assigned to """
         visitedAlignmentsIndices = []
         tempUser = self.rebuildUserTrajectory(user)
         for cp in tempUser.curvilinearPositions:
@@ -496,6 +514,8 @@ class World:
         return visitedAlignmentsCumulativeDistance
 
     def moveUserToAlignment(self, user):
+        """ replaces every chunk of user.curvilinearPosition in the right alignment.vehicles
+        returns Boolean = True, if the user's trajectory has been chunked"""
         laneChange, laneChangeInstants, changesList = user.changedLane()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
@@ -505,7 +525,9 @@ class World:
 
     @staticmethod
     def removePartiallyUserFromAlignment(user):
+        """for now : removes the first parts of curvilinearPosition that doesn't belong to the correct alignment """
         # TODO : a verifier
+        # TODO : adapter pour plusieurs changements d'alignment
         laneChange = user.changedLane()
         if laneChange[0]:
             i = laneChange[1][0]
@@ -518,6 +540,7 @@ class World:
             del user.curvilinearVelocities.lanes[i:length]
 
     def rebuildUserTrajectory(self, user):
+        """rebuilds the trajectpry of an user, loop on each alignment"""
         import copy
         obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry,
                                   userType=user.userType, nObjects=user.nObjects)
@@ -534,6 +557,7 @@ class World:
         return obj
 
     def occupiedAlignmentLength(self, user):
+        """return the total length of the alignment occupied by an user = its last position"""
         if user.curvilinearPositions is not None:
             alignmentIdx = user.curvilinearPositions.getLaneAt(-1)
             return self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
@@ -541,6 +565,7 @@ class World:
             return user.initialAlignmentIdx
 
     def defineLeader(self, user, t, timeStep):
+        """method to search the leader of an user at a givent instant t"""
         # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
         nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
         _users = []
@@ -551,6 +576,7 @@ class World:
         return min(_users, key=lambda x: x[1])[0]
 
     def getAlignmentById(self, idx):
+        """get an lignment given its id"""
         for al in self.alignments:
             if al.idx == idx:
                 return al
@@ -590,6 +616,7 @@ class UserInput:
         self.cumulatedHeadways = list(itertools.accumulate(self.headways))
 
     def getUserInputDistribution(self, item):
+        """returns the distribution parameters for an item : type, name, parameters"""
         return self.distributions[item].getDistribution()
 
     def initUser(self, userNum, initialCumulatedHeadway):
@@ -610,6 +637,7 @@ class UserInput:
         self.alignment.vehicles.append(obj)
 
     def getUserByNum(self, num):
+        """gets an user by its id"""
         for user in self.alignment.vehicles:
             if user.num == num:
                 return user
