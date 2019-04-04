@@ -242,10 +242,7 @@ class World:
         plt.close()
 
     def getAlignments(self):
-        result = []
-        for alignment in self.alignments:
-            result.append(alignment)
-        return result
+        return self.alignments
 
     def isVehicleBeforeCrossingPointAt(self, alignmentIdx, vehicleIdx, t, vehiclesData):
         """ determines if a vehicle if located ahead of a crossing point in a world representation """
@@ -385,7 +382,6 @@ class World:
 
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users on their respective alignments """
-
         for ui in self.userInputs:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
@@ -397,7 +393,10 @@ class World:
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
+
     def findApproachingVehicleOnMainAlignment(self, time, mainAlignmentIdx):
+        """returns the next approchig vehicles on the main alignment"""
+        # TODO : a revoir
         listOfVehiclesOnMainAlignment = self.getAlignmentById(mainAlignmentIdx).vehicles
         for k in range(len(listOfVehiclesOnMainAlignment)):
             distanceToCrossingPoint = self.getAlignmentById(mainAlignmentIdx).distanceToCrossingPoint - \
@@ -471,32 +470,22 @@ class World:
     def getNextAlignment(self, user, instant, timeStep):
         """returns the next alignment an user will be assigned to, according to the instant"""
         # todo : corriger, probleme a lexecution
-        if user.existsAt(instant) :#timeInterval is not None:
-            if user.timeInterval is not None :
-                if user.timeInterval.first <= instant:
-                    # print('bonne nouvelle')
-                    occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(instant )
-                    reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
-                    nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
-                    if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
-                        # print('youhou')
-                        if reachableAlignments:
-                            # print('wassup')
-                            nextAlignment = reachableAlignments[0]
-                        else:
-                            # print('hmm')
-                            nextAlignment = None
+        if user.timeInterval is not None :
+            if user.timeInterval.first <= instant:
+                occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
+                reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
+                nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
+                if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
+                    if reachableAlignments:
+                        nextAlignment = reachableAlignments[0]
                     else:
-                        # print('on verra')
                         nextAlignment = None
-
-                    return nextAlignment
                 else:
-                    # print('olala')
-                    return None
-            else:
-                return None
-        return None
+                    nextAlignment = None
+
+                return nextAlignment
+        else:
+            return None
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
         """rebuilds the trajectory of user, then calculates total length of the alignment the user had been assigned to """
@@ -569,7 +558,6 @@ class World:
         # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
         nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
         _users = []
-
         for users in self.getAlignmentById(nextAlignmentIdx).vehicles:
             if users != user and users.timeInterval.contains(t) and users.createdBefore(user):
                 _users.append((users.num, users.getCurvilinearPositionAtInstant(t)[0]))
@@ -668,6 +656,7 @@ class Distribution(object):
         return toolkit.loadYaml(fileName)
 
     def getDistribution(self):
+        """returns the scipy.stats objects that corresponds to the parameters in Distribution object"""
         from scipy import stats
         from trafficintelligence import utils
 
