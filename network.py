@@ -469,7 +469,6 @@ class World:
 
     def getNextAlignment(self, user, instant, timeStep):
         """returns the next alignment an user will be assigned to, according to the instant"""
-        # todo : corriger, probleme a lexecution
         if user.timeInterval is not None :
             if user.timeInterval.first <= instant:
                 occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
@@ -513,20 +512,17 @@ class World:
             return True
 
     @staticmethod
-    def removePartiallyUserFromAlignment(user):
+    def replaceUSerOnTravelledAlignments(self, user):
         """for now : removes the first parts of curvilinearPosition that doesn't belong to the correct alignment """
-        # TODO : a verifier
-        # TODO : adapter pour plusieurs changements d'alignment
+        # TODO : a verifier et adapter pour plusieurs changements d'alignment
+
         laneChange = user.changedLane()
+        alignmentIds = [x[-1] for x in laneChange[-1]]
         if laneChange[0]:
-            i = laneChange[1][0]
-            length = len(user.curvilinearPositions)
-            del user.curvilinearPositions.positions[0][i - 1:length]
-            del user.curvilinearPositions.positions[1][i - 1:length]
-            del user.curvilinearPositions.lanes[i:length]
-            del user.curvilinearVelocities.positions[0][i - 1:length]
-            del user.curvilinearVelocities.positions[1][i - 1:length]
-            del user.curvilinearVelocities.lanes[i:length]
+            for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
+                self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
+            instant = laneChange[1][0].first
+            user.removeAttributesFromInstant(instant)
 
     def rebuildUserTrajectory(self, user):
         """rebuilds the trajectpry of an user, loop on each alignment"""
