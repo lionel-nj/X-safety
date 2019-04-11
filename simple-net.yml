@@ -9,6 +9,7 @@ alignments:
   idx: 0
   distanceToCrossingPoint: 100
   cumulativeDistances: 500
+  origins: null
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
@@ -35,6 +36,8 @@ alignments:
   idx: 1
   distanceToCrossingPoint: 100
   cumulativeDistances: 400
+  origins:
+    - 0
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
@@ -61,6 +64,8 @@ alignments:
   idx: 2
   distanceToCrossingPoint: 100
   cumulativeDistances: 500
+  origins:
+    - 1
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
@@ -78,10 +83,103 @@ alignments:
       - 0.0
   width: null
 
+
+- !!python/object:network.Alignment
+  connectedAlignmentIdx: 0
+  controlDeviceIdx: null
+  crossingPoint: !!python/object:trafficintelligence.moving.Point
+    x: 0.0
+    y: 0.0
+  idx: 3
+  cumulativeDistances: 400
+  origins : null
+  points: !!python/object:trafficintelligence.moving.Trajectory
+    cumulativeDistances:
+    - 0.0
+    - 200.0
+    - 200.0
+    distances:
+    - 100.0
+    - 300.0
+    positions:
+    - - 800.0
+      - 800.0
+      - 800.0
+    - - -400.0
+      - -200.0
+      - 0.0
+  width: null
+
+- !!python/object:network.Alignment
+  connectedAlignmentIdx: 0
+  controlDeviceIdx: null
+  crossingPoint: !!python/object:trafficintelligence.moving.Point
+    x: 0.0
+    y: 0.0
+  idx: 4
+  cumulativeDistances: 400
+  origins:
+    - 3
+  points: !!python/object:trafficintelligence.moving.Trajectory
+    cumulativeDistances:
+    - 0.0
+    - 200.0
+    - 200.0
+    distances:
+    - 200.0
+    - 200.0
+    positions:
+    - - 800.0
+      - 800.0
+      - 800.0
+    - - 0
+      - 200.0
+      - 400.0
+  width: null
+
 controlDevices: null
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0
+  distributions:
+    dn: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 8.333333
+      scale: 1
+      distributionType: theoric
+    length: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 7
+      scale: 1
+      distributionType: theoric
+    headway: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: expon
+      loc: 1.5
+      scale: 2.1
+      distributionType: theoric
+    speed: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 14
+      scale: 3
+      distributionType: theoric
+    tau: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      loc: 2
+      scale: 0.5
+      distributionType: theoric
+
+- !!python/object:network.UserInput
+  alignmentIdx: 3
   distributions:
     dn: !!python/object:network.Distribution
       cdf: null

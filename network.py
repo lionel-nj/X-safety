@@ -169,6 +169,12 @@ class Alignment:
             print(
                 'proportion list and reachable alignment list have different size, cannot define movement proportions')
 
+    def isReachableFrom(self, other):
+        if self.origins is not None:
+            return other.idx in self.origins
+        else:
+            return False
+
 
 class ControlDevice:
     """generic traffic control devices"""
@@ -452,12 +458,12 @@ class World:
                                 self.simulatedUsers[-1][-1][-1] = instant
                                 break
 
-    def connectAlignments(self):
+    def connectAlignments(world):
         """method to link the alignments: for a given alignment, it associates all the other alignments
          that can be reached from it"""
         import copy
-        for idx, al in enumerate(self.alignments):
-            _alignments = copy.deepcopy(self.alignments)
+        for idx, al in enumerate(world.alignments):
+            _alignments = copy.deepcopy(world.alignments)
             _alignments.pop(idx)
             al.reachableAlignments = []
             if not _alignments:
@@ -465,7 +471,8 @@ class World:
                 break
             for other in _alignments:
                 if other.isStartOf(al.getLastPoint()):
-                    al.reachableAlignments.append(other.idx)
+                    if other.isReachableFrom(al):
+                        al.reachableAlignments.append(other.idx)
 
     def getNextAlignment(self, user, instant, timeStep):
         """returns the next alignment an user will be assigned to, according to the instant"""
@@ -488,7 +495,7 @@ class World:
             return None
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
-        """rebuilds the trajectory of user, then calculates total length of the alignment the user had been assigned to """
+        """returns total length of the alignment the user had been assigned to """
         visitedAlignmentsIndices = list(set(user.curvilinearPositions.lanes))
         # tempUser = self.rebuildUserTrajectory(user)
         visitedAlignmentsCumulativeDistance = 0
@@ -519,22 +526,16 @@ class World:
             instant = laneChange[1][0].first
             user.removeAttributesFromInstant(instant)
 
-    def rebuildUserTrajectory(self, user):
-        """rebuilds the trajectpry of an user, loop on each alignment"""
-        import copy
-        obj = moving.MovingObject(num=user.num, timeInterval=user.timeInterval, geometry=user.geometry,
-                                  userType=user.userType, nObjects=user.nObjects)
-        obj.curvilinearPositions = user.curvilinearPositions
-        obj.curvilinearVelocities = user.curvilinearVelocities
-        for al in self.alignments:
-            if al.idx != user.curvilinearPositions[0][2]:
-                tempUser = copy.deepcopy(al.getUserByNum(user.num))
-                order = obj.curvilinearPositions.sort(tempUser.curvilinearPositions)
-                if order:
-                    obj.curvilinearVelocities.append(tempUser.curvilinearVelocities)
-                else:
-                    obj.curvilinearVelocities = tempUser.curvilinearVelocities.append(obj.curvilinearVelocities)
-        return obj
+    def getTravelledDistanceOnAlignment(self, user, t):
+        #todo: a verifier
+        """returns the travelled distance of an user on its current alignment"""
+        visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
+        visitedAlignments.remove(user.curvilinearPositions.lanes[t])
+        s = 0
+        for indices in visitedAlignments:
+            s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+        userCurvilinearPositionAt = user.curvilinearPositions[t]
+        return userCurvilinearPositionAt - self.getVisitedAlignmentsCumulatedDistance(user)
 
     def occupiedAlignmentLength(self, user):
         """return the total length of the alignment occupied by an user = its last position"""
@@ -562,6 +563,9 @@ class World:
 
     def getUserByAlignmentIdAndUserId(self, alignmentIdx, userNum):
         return self.getAlignmentById(alignmentIdx).vehicles[userNum]
+
+    def hasUserBeenOnAlignment(self, user, alignmentIdx):
+        return alignmentIdx in user.curvilinearPositions.lanes
 
 
 class UserInput:
