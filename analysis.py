@@ -38,7 +38,7 @@ def run(worldFile, simulationParameters, analysisParameters):
                 interactionDuration = {}
                 for el in interactionTime:
                     if el:
-                        interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el])
+                        interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el], 1)
 
                 # count for each pair of vehicle the number of interactions and link it to their duration
                 interactionsCharacteristics = {}
@@ -155,7 +155,7 @@ def run(worldFile, simulationParameters, analysisParameters):
         #         interactionDuration = {}
         #         for el in interactionTime:
         #             if el:
-        #                 interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el])
+        #                 interactionDuration[el] = toolkit.makeSubListFromList(interactionTime[el], 1)
         #
         #         # count for each pair of vehicle the number of interactions and link it to their duration
         #         interactionsCharacteristics = {}

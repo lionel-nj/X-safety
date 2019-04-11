@@ -1,4 +1,5 @@
 import numpy as np
+from progress.bar import Bar
 
 import network
 import simulation
@@ -27,6 +28,9 @@ def run(world, simulationParameters):
     world.connectAlignments()
 
     userNum = 0
+
+    bar = Bar('Processing')
+
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
@@ -42,6 +46,7 @@ def run(world, simulationParameters):
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v))
+            bar.next()
 
     # for al in world.alignments:
     #     for v in al.vehicles:

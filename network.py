@@ -474,7 +474,8 @@ class World:
                 occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
                 reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
                 nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
-                if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] < nextPositionIfNoAlignmentChange:
+                if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] - self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] \
+                        < nextPositionIfNoAlignmentChange - self.getVisitedAlignmentsCumulatedDistance(user):
                     if reachableAlignments:
                         nextAlignment = reachableAlignments[0]
                     else:
@@ -488,13 +489,8 @@ class World:
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
         """rebuilds the trajectory of user, then calculates total length of the alignment the user had been assigned to """
-        visitedAlignmentsIndices = []
-        tempUser = self.rebuildUserTrajectory(user)
-        for cp in tempUser.curvilinearPositions:
-            if cp[2] in visitedAlignmentsIndices:
-                pass
-            else:
-                visitedAlignmentsIndices.append(cp[2])
+        visitedAlignmentsIndices = list(set(user.curvilinearPositions.lanes))
+        # tempUser = self.rebuildUserTrajectory(user)
         visitedAlignmentsCumulativeDistance = 0
         for alignmentIdx in visitedAlignmentsIndices:
             visitedAlignmentsCumulativeDistance += self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
@@ -515,7 +511,6 @@ class World:
     def replaceUSerOnTravelledAlignments(self, user):
         """for now : removes the first parts of curvilinearPosition that doesn't belong to the correct alignment """
         # TODO : a verifier et adapter pour plusieurs changements d'alignment
-
         laneChange = user.changedLane()
         alignmentIds = [x[-1] for x in laneChange[-1]]
         if laneChange[0]:
@@ -564,6 +559,9 @@ class World:
         for al in self.alignments:
             if al.idx == idx:
                 return al
+
+    def getUserByAlignmentIdAndUserId(self, alignmentIdx, userNum):
+        return self.getAlignmentById(alignmentIdx).vehicles[userNum]
 
 
 class UserInput:
@@ -625,6 +623,7 @@ class UserInput:
         for user in self.alignment.vehicles:
             if user.num == num:
                 return user
+
 
 
 class CarGeometry:

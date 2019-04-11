@@ -8,7 +8,7 @@ alignments:
     y: 0.0
   idx: 0
   distanceToCrossingPoint: 100
-  cumulativeDistances: 200
+  cumulativeDistances: 500
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
@@ -34,7 +34,7 @@ alignments:
     y: 0.0
   idx: 1
   distanceToCrossingPoint: 100
-  cumulativeDistances: 200
+  cumulativeDistances: 400
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
@@ -47,6 +47,32 @@ alignments:
     - - 400.0
       - 500.0
       - 800.0
+    - - 0.0
+      - 0.0
+      - 0.0
+  width: null
+
+- !!python/object:network.Alignment
+  connectedAlignmentIdx: 0
+  controlDeviceIdx: null
+  crossingPoint: !!python/object:trafficintelligence.moving.Point
+    x: 0.0
+    y: 0.0
+  idx: 2
+  distanceToCrossingPoint: 100
+  cumulativeDistances: 500
+  points: !!python/object:trafficintelligence.moving.Trajectory
+    cumulativeDistances:
+    - 0.0
+    - 200.0
+    - 500.0
+    distances:
+    - 200.0
+    - 300.0
+    positions:
+    - - 800.0
+      - 1000.0
+      - 1300.0
     - - 0.0
       - 0.0
       - 0.0
