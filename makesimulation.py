@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from progress.bar import Bar
 
@@ -30,7 +31,6 @@ def run(world, simulationParameters):
     userNum = 0
 
     bar = Bar('Processing')
-
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
@@ -47,20 +47,20 @@ def run(world, simulationParameters):
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v))
             bar.next()
-
-    # for al in world.alignments:
+    #
+    # for al in [world.getAlignmentById(0)]:
     #     for v in al.vehicles:
     #         world.moveUserToAlignment(v)
 
 
     # display
-    # plt.figure()
-    # for al in world.alignments:
-    #     for v in al.vehicles:
-    #         if v.timeInterval is not None:
-    #             v.plotCurvilinearPositions()
-    # plt.xlabel('time(s/100)')
-    # plt.ylabel('longitudinal coordinate (m)')
-    # plt.show()
+    plt.figure()
+    for al in [world.getAlignmentById(0)]:
+        for v in al.vehicles:
+            if v.timeInterval is not None:
+                v.plotCurvilinearPositions()
+    plt.xlabel('time(s/100)')
+    plt.ylabel('longitudinal coordinate (m)')
+    plt.show()
 
     return world

@@ -157,7 +157,7 @@ class Alignment:
                 return v
 
     def defineMovementProportions(self, proportions):
-        """method to defice the proportions of movements"""
+        """method to define the proportions of movements"""
         if len(proportions) == len(self.reachableAlignments):
             if sum(proportions) == 1:
                 self.movementProportions = {}
@@ -170,6 +170,7 @@ class Alignment:
                 'proportion list and reachable alignment list have different size, cannot define movement proportions')
 
     def isReachableFrom(self, other):
+        """returns boolean, True if an alignment is reachable from another one"""
         if self.origins is not None:
             return other.idx in self.origins
         else:
