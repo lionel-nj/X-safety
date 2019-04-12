@@ -7,14 +7,16 @@ import yaml
 
 
 def loadYaml(filename):
+    from yaml import CLoader as Loader
     """ loads a yaml file"""
-    return yaml.load(open(filename))
+    return yaml.load(open(filename), Loader=Loader)
 
 
 def saveYaml(filename, data):
     """saves data to a yaml file"""
+    from yaml import CDumper as Dumper
     with open(filename, 'w') as outfile:
-        yaml.dump(data, outfile, default_flow_style=False)
+        yaml.dump(data, outfile, default_flow_style=False, Dumper=Dumper)
 
 
 def copyYaml(filename, newname):
@@ -85,30 +87,6 @@ def generateDistribution(data):
     # generation d'un échantillon
     saveYaml('tiv.yml', tiv)
     saveYaml('tiv_prob_cum.yml', tivprobcum)
-
-# remove the function, too complicated
-def generateSample(duration, distribution):
-    """generates a sample from a given distribution, or from a theorical distribution
-    :rtype: object
-    """
-    import random
-
-    k = 0
-    result = []
-    while sum(result) < duration:
-        if distribution is not None:
-            result.append(distribution.getDistribution().rvs(size=1)[0])
-
-        else:
-            print('error : no distribution')
-            return None
-
-        if sum(result) > duration:
-            result.pop(-1)
-            return result
-        k = k+1
-
-    return list(result)
 
 
 def saveHeadwaysAsIntervals(sample, simDuration):
