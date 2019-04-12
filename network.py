@@ -558,15 +558,36 @@ class World:
 
     def getAlignmentById(self, idx):
         """get an lignment given its id"""
-        for al in self.alignments:
-            if al.idx == idx:
-                return al
+        try:
+            for al in self.alignments:
+                if al.idx == idx:
+                    return al
+        except:
+            print('alignment idx does not match any existing alignment')
+            return None
+
 
     def getUserByAlignmentIdAndUserId(self, alignmentIdx, userNum):
-        return self.getAlignmentById(alignmentIdx).vehicles[userNum]
+        try:
+            return self.getAlignmentById(alignmentIdx).vehicles[userNum]
+        except:
+            print('combinaison alignment-vehicle does not match any existing user')
+            return None
 
     def hasUserBeenOnAlignment(self, user, alignmentIdx):
         return alignmentIdx in user.curvilinearPositions.lanes
+
+    def getPreviouslyOccupiedAlignmentsLength(self, user):
+        #todo : verifier
+        if user.curvilinearPositions is not None:
+            alignmentIndices = list(set(user.curvilinearPositions.lanes))
+            s = 0
+            for indices in alignmentIndices:
+                s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+            # s -= self.getAlignmentById(user.curvilinearPositions.lanes[-1]).points.cumulativeDistances[-1]
+            return s
+        else:
+            return 0
 
 
 class UserInput:

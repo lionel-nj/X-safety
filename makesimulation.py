@@ -45,7 +45,8 @@ def run(world, simulationParameters):
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
-                                                 occupiedAlignmentLength=world.occupiedAlignmentLength(v))
+                                                 occupiedAlignmentLength=world.occupiedAlignmentLength(v),
+                                                 previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
             bar.next()
     #
     # for al in [world.getAlignmentById(0)]:
