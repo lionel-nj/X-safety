@@ -602,6 +602,7 @@ class World:
             return None
 
     def getUserByNum(self, userNum):
+        """returns an user given its num"""
         _user = []
         for al in self.alignments:
             _user.append((al.idx, self.getUserByAlignmentIdAndNum(al.idx, userNum).curvilinearPositions[-1][0]))
@@ -609,14 +610,17 @@ class World:
         return self.getUserByAlignmentIdAndNum(user[0], user[1])
 
     def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
+        """returns an user given its num and alignment"""
         for user in self.getAlignmentById(alignmentIdx).vehicles:
             if user.num == num:
                 return user
 
     def hasUserBeenOnAlignment(self, user, alignmentIdx):
+        """determines if a vehicles has circulated on an alignment"""
         return alignmentIdx in user.curvilinearPositions.lanes
 
     def getPreviouslyOccupiedAlignmentsLength(self, user):
+        """returns the length of the alignments a vehicle has previously travelled on """
         if user.curvilinearPositions is not None:
             alignmentIndices = list(set(user.curvilinearPositions.lanes))
             s = 0
@@ -628,7 +632,7 @@ class World:
             return 0
 
     def isFirstGeneratedUser(self, user):
-        #todo : verifier
+        """determines if an user is the first one that has been computed"""
         for userInput in self.userInputs:
             if not userInput.isFirstGeneratedUser(user):
                 pass
