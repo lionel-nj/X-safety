@@ -38,9 +38,6 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
-                # if v is not None :
-                    # if v.timeInterval is not None:
-                # v.updateCurvilinearPositions("newell", i, simulationParameters.timeStep)
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,

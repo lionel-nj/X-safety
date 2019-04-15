@@ -556,6 +556,34 @@ class World:
                 _users.append((users.num, users.getCurvilinearPositionAtInstant(t)[0]))
         return min(_users, key=lambda x: x[1])[0]
 
+    def defineLeader2(self, user, t, timeStep):
+        import copy
+        # todo : verifier
+        # si le vehicule est le leader, leader = None
+        if self.isFirstGeneratedUser(user):
+            return None
+        else:
+            # definition du prochain alignement occupe
+            nextAlignment = self.getNextAlignment(user, t, timeStep)
+            if nextAlignment is None:
+                nextAlignment = user.curvlinearPositions.lanes[-1]
+
+            # recuperer les vehicles de l'alignement que notre usager va emprunter
+            potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
+
+            # recupérer les vehicles qui sont dans le meme espace temps que notre usager
+            sameTemporalSpacePotentialLeaders = copy.deepcopy(potentialLeaders)
+            for userIdx, vehicle in enumerate(potentialLeaders):
+                if vehicle.timeInterval.intersection(user.timeInterval) is None:
+                    sameTemporalSpacePotentialLeaders.pop(userIdx)
+
+            #recupérer le leader : vehicle dont la distance a notre usager est minimale
+            distances = []
+            for userIdx, vehicle in enumerate(sameTemporalSpacePotentialLeaders):
+                distances.append((vehicle.num, vehicle.distanceOnAlignments[-1][0]))
+
+            return self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
+
     def getAlignmentById(self, idx):
         """get an lignment given its id"""
         try:
@@ -566,19 +594,22 @@ class World:
             print('alignment idx does not match any existing alignment')
             return None
 
+    def getUserByNum(self, userNum):
+        _user = []
+        for al in self.alignments:
+            _user.append((al.idx, self.getUserByAlignmentIdAndNum(al.idx, userNum).curvilinearPositions[-1][0]))
+        user = max(_user, key=lambda x: x[1])
+        return self.getUserByAlignmentIdAndNum(user[0], user[1])
 
-    def getUserByAlignmentIdAndUserId(self, alignmentIdx, userNum):
-        try:
-            return self.getAlignmentById(alignmentIdx).vehicles[userNum]
-        except:
-            print('combinaison alignment-vehicle does not match any existing user')
-            return None
+    def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
+        for user in self.getAlignmentById(alignmentIdx):
+            if user.num == num:
+                return user
 
     def hasUserBeenOnAlignment(self, user, alignmentIdx):
         return alignmentIdx in user.curvilinearPositions.lanes
 
     def getPreviouslyOccupiedAlignmentsLength(self, user):
-        #todo : verifier
         if user.curvilinearPositions is not None:
             alignmentIndices = list(set(user.curvilinearPositions.lanes))
             s = 0
@@ -588,6 +619,14 @@ class World:
             return s
         else:
             return 0
+
+    def isFirstGeneratedUser(self, user):
+        #todo : verifier
+        for userInput in self.userInputs:
+            if not userInput.isFirstGeneratedUser(user):
+                pass
+            else:
+                return True
 
 
 class UserInput:
@@ -650,6 +689,8 @@ class UserInput:
             if user.num == num:
                 return user
 
+    def isFirstGeneratedUser(self, user):
+        return self.alignment.vehicles[0].num == user.num
 
 
 class CarGeometry:
