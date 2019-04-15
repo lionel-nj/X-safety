@@ -7,6 +7,7 @@ alignments:
     x: 0.0
     y: 0.0
   idx: 0
+  distanceToCrossingPoint: 100
   cumulativeDistances: 500
   origins: null
   points: !!python/object:trafficintelligence.moving.Trajectory

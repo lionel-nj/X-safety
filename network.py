@@ -546,50 +546,59 @@ class World:
         else:
             return user.initialAlignmentIdx
 
-    def defineLeader(self, user, t, timeStep):
-        """method to search the leader of an user at a givent instant t"""
-        # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
-        nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
-        _users = []
-        for users in self.getAlignmentById(nextAlignmentIdx).vehicles:
-            if users != user and users.timeInterval.contains(t) and users.createdBefore(user):
-                _users.append((users.num, users.getCurvilinearPositionAtInstant(t)[0]))
-        return min(_users, key=lambda x: x[1])[0]
+    # def defineLeader(self, user, t, timeStep):
+    #     """method to search the leader of an user at a givent instant t"""
+    #     # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
+    #     nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
+    #     _users = []
+    #     for users in self.getAlignmentById(nextAlignmentIdx).vehicles:
+    #         if users != user and users.timeInterval.contains(t) and users.createdBefore(user):
+    #             _users.append((users.num, users.getCurvilinearPositionAtInstant(t)[0]))
+    #     return min(_users, key=lambda x: x[1])[0]
 
-    def defineLeader2(self, user, t, timeStep):
+    def defineLeader(self, user, t, timeStep):
         import copy
         # todo : verifier
         # si le vehicule est le leader, leader = None
         if self.isFirstGeneratedUser(user):
-            return None
+            user.leader = None
         else:
             # definition du prochain alignement occupe
             nextAlignment = self.getNextAlignment(user, t, timeStep)
             if nextAlignment is None:
-                nextAlignment = user.curvlinearPositions.lanes[-1]
+                if user.curvilinearPositions :# is not None:
+                    nextAlignment = user.curvilinearPositions.lanes[-1]
+                else:
+                    nextAlignment = user.initialAlignmentIdx
 
-            # recuperer les vehicles de l'alignement que notre usager va emprunter
+            # récupérer les vehicles de l'alignement que notre usager va emprunter
             potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
 
-            # recupérer les vehicles qui sont dans le meme espace temps que notre usager
+            # récupérer les vehicles qui sont dans le meme espace temps que notre usager
             sameTemporalSpacePotentialLeaders = copy.deepcopy(potentialLeaders)
+            count = 0
             for userIdx, vehicle in enumerate(potentialLeaders):
-                if vehicle.timeInterval.intersection(user.timeInterval) is None:
-                    sameTemporalSpacePotentialLeaders.pop(userIdx)
-
-            #recupérer le leader : vehicle dont la distance a notre usager est minimale
+                if moving.Interval.intersection(user.timeInterval, vehicle.timeInterval) is None:
+                    sameTemporalSpacePotentialLeaders.pop(userIdx - count)
+                    count += 1
+            # récupérer le leader : vehicle dont la distance a notre usager est minimale
             distances = []
             for userIdx, vehicle in enumerate(sameTemporalSpacePotentialLeaders):
-                distances.append((vehicle.num, vehicle.distanceOnAlignments[-1][0]))
+                distances.append((vehicle.num, vehicle.distanceOnAlignments[-1]))
+            print(user.num)
 
-            return self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
+            user.leader = self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
 
     def getAlignmentById(self, idx):
         """get an lignment given its id"""
         try:
-            for al in self.alignments:
-                if al.idx == idx:
-                    return al
+            idList = [el.idx for el in self.alignments]
+            if idx not in idList:
+                print('wrong index number')
+            else:
+                for al in self.alignments:
+                    if al.idx == idx:
+                        return al
         except:
             print('alignment idx does not match any existing alignment')
             return None
@@ -602,7 +611,7 @@ class World:
         return self.getUserByAlignmentIdAndNum(user[0], user[1])
 
     def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
-        for user in self.getAlignmentById(alignmentIdx):
+        for user in self.getAlignmentById(alignmentIdx).vehicles:
             if user.num == num:
                 return user
 
@@ -627,6 +636,7 @@ class World:
                 pass
             else:
                 return True
+        return False
 
 
 class UserInput:
@@ -690,7 +700,10 @@ class UserInput:
                 return user
 
     def isFirstGeneratedUser(self, user):
-        return self.alignment.vehicles[0].num == user.num
+        if self.alignment.vehicles == []:
+            return True
+        else:
+            return self.alignment.vehicles[0].num == user.num
 
 
 class CarGeometry:
