@@ -38,8 +38,7 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
-                    world.defineLeader(v, i, sim.timeStep) # todo : verifier si on inclut le vehicule meneur ou pas,
-                    #                                         # si oui alors supprimer la definition du leader dans inituser sinon la laisser
+                    # world.defineLeader(v, i, sim.timeStep) # ligne a decommenter si l'on veut effectuer les calculs avec la fonction de recherche de leader
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,

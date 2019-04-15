@@ -585,8 +585,6 @@ class World:
             distances = []
             for userIdx, vehicle in enumerate(sameTemporalSpacePotentialLeaders):
                 distances.append((vehicle.num, vehicle.distanceOnAlignments[-1]))
-            print(user.num)
-
             user.leader = self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
 
     def getAlignmentById(self, idx):
