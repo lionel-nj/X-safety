@@ -702,7 +702,8 @@ class UserInput:
                 return user
 
     def isFirstGeneratedUser(self, user):
-        if self.alignment.vehicles == []:
+        """determines if an user is the first that has been computed"""
+        if self.alignment.vehicles:
             return True
         else:
             return self.alignment.vehicles[0].num == user.num
