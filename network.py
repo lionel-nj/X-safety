@@ -568,7 +568,9 @@ class World:
             print(nextAlignment)
             potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
             try:
-                potentialLeaders.index(user)
+                #un vehicule ne peut pas etre son propre leader, on le supprimer donc de la liste des leaders potentiels
+                id = potentialLeaders.index(user)
+                potentialLeaders.pop(id)
             except:
                 None
             print(potentialLeaders)
