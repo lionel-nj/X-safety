@@ -45,6 +45,7 @@ def run(world, simulationParameters):
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
+                    # network.World.replaceUSerOnTravelledAlignments(world, v)
             bar.next()
     #
     # for al in [world.getAlignmentById(0)]:

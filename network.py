@@ -520,12 +520,14 @@ class World:
         """for now : removes the first parts of curvilinearPosition that doesn't belong to the correct alignment """
         # TODO : a verifier et adapter pour plusieurs changements d'alignment
         laneChange = user.changedLane()
-        alignmentIds = [x[-1] for x in laneChange[-1]]
         if laneChange[0]:
-            for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
-                self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
-            instant = laneChange[1][0].first
-            user.removeAttributesFromInstant(instant)
+            alignmentIds = [x[-1] for x in laneChange[-1]]
+            if laneChange[0]:
+                for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
+                    self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
+                instant = laneChange[1][0].first
+                user.removeAttributesFromInstant(instant)
+
 
     def getTravelledDistanceOnAlignment(self, user, t):
         #todo: a verifier
@@ -546,17 +548,9 @@ class World:
         else:
             return user.initialAlignmentIdx
 
-    # def defineLeader(self, user, t, timeStep):
-    #     """method to search the leader of an user at a givent instant t"""
-    #     # TODO : adapter pour le cas ou on n'aurait pas une suite d'alignment
-    #     nextAlignmentIdx = self.getNextAlignment(user, t, timeStep)
-    #     _users = []
-    #     for users in self.getAlignmentById(nextAlignmentIdx).vehicles:
-    #         if users != user and users.timeInterval.contains(t) and users.createdBefore(user):
-    #             _users.append((users.num, users.getCurvilinearPositionAtInstant(t)[0]))
-    #     return min(_users, key=lambda x: x[1])[0]
-
     def defineLeader(self, user, t, timeStep):
+        """returns a moving obejct as the leader of a user, if the user has a leader
+        otherwise returns None"""
         import copy
         # todo : verifier
         # si le vehicule est le leader, leader = None
@@ -570,10 +564,14 @@ class World:
                     nextAlignment = user.curvilinearPositions.lanes[-1]
                 else:
                     nextAlignment = user.initialAlignmentIdx
-
             # récupérer les vehicles de l'alignement que notre usager va emprunter
+            print(nextAlignment)
             potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
-
+            try:
+                potentialLeaders.index(user)
+            except:
+                None
+            print(potentialLeaders)
             # récupérer les vehicles qui sont dans le meme espace temps que notre usager
             sameTemporalSpacePotentialLeaders = copy.deepcopy(potentialLeaders)
             count = 0
@@ -588,7 +586,7 @@ class World:
             user.leader = self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
 
     def getAlignmentById(self, idx):
-        """get an lignment given its id"""
+        """get an alignment given its id"""
         try:
             idList = [el.idx for el in self.alignments]
             if idx not in idList:
