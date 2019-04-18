@@ -504,8 +504,7 @@ class World:
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
             return True
 
-    @staticmethod
-    def replaceUserOnTravelledAlignments(user):
+    def replaceUserOnTravelledAlignments(self, user):
         """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
         # TODO : TESTER
         laneChange = user.changedAlignment()
@@ -521,7 +520,7 @@ class World:
             # pour chaque alignement ou le vehicule passe, ajouter le vehicule
 
             for inter, alignmentIdx in zip(laneChange[1], alignmentIndices):
-                world.getAlignmentById(alignmentIdx).vehicles.append(user.subTrajectoryInInterval(
+                self.getAlignmentById(alignmentIdx).vehicles.append(user.subTrajectoryInInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
 
             #supprimer depuis le premier moment ou le cvehicule d=change d'alignement
