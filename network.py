@@ -58,36 +58,25 @@ class Alignment:
     def isBetween(a, b, c):
         return moving.Point.distanceNorm2(a, c) + moving.Point.distanceNorm2(c, b) == moving.Point.distanceNorm2(a, b)
 
-    def insertCrossingPoint(self):
-        """inserts a crossing point : moving.Point in the alignment sequence"""
-        if self.crossingPoint == self.points[0]:
-            self.distanceToCrossingPoint = 0
-
-        elif self.points[-1] == self.crossingPoint:
-            self.distanceToCrossingPoint = self.points.getCumulativeDistance(len(self.points))
-
-        else:
-            for k in range(len(self.points) - 1):
-                if Alignment.isBetween(self.points[k], self.points[k + 1], self.crossingPoint):
-                    Alignment.insertPointAt(self, self.crossingPoint, k + 1)
-                    self.points.computeCumulativeDistances()
-                    self.distanceToCrossingPoint = self.points.getCumulativeDistance(k + 1)
-                    break
-
-    def buildIntersection(self, other):
-        """ adds a connectedAlignmentIdx & a crossingPoint member to the alignment
-         identifie le point x,y de croisement"""
-        self.connectedAlignmentIdx = other.idx  # mise en relation des aligments qui s"entrecroisent
-        other.connectedAlignmentIdx = self.idx  # mise en relation des aligments qui s"entrecroisent
-        self.crossingPoint = self.points.getIntersections(other.points[0], other.points[-1])[1][0]
-        other.crossingPoint = other.points.getIntersections(self.points[0], self.points[-1])[1][0]
-
-        self.insertCrossingPoint()
-        other.insertCrossingPoint()
+    # def insertCrossingPoint(self):
+    #     """inserts a crossing point : moving.Point in the alignment sequence"""
+    #     if self.crossingPoint == self.points[0]:
+    #         self.distanceToCrossingPoint = 0
+    #
+    #     elif self.points[-1] == self.crossingPoint:
+    #         self.distanceToCrossingPoint = self.points.getCumulativeDistance(len(self.points))
+    #
+    #     else:
+    #         for k in range(len(self.points) - 1):
+    #             if Alignment.isBetween(self.points[k], self.points[k + 1], self.crossingPoint):
+    #                 Alignment.insertPointAt(self, self.crossingPoint, k + 1)
+    #                 self.points.computeCumulativeDistances()
+    #                 self.distanceToCrossingPoint = self.points.getCumulativeDistance(k + 1)
+    #                 break
 
     def isConnectedTo(self, other):
         """boolean, detemines if two alignments are connected"""
-        if self.connectedAlignmentIdx == other.idx and other.connectedAlignmentIdx == self.idx:
+        if other.idx in self.connectedAlignmentIndices or self.idx in other.connectedAlignmentIndices:
             return True
         else:
             return False
@@ -156,25 +145,18 @@ class Alignment:
             if v.num == num:
                 return v
 
-    def defineMovementProportions(self, proportions):
-        """method to define the proportions of movements"""
-        if len(proportions) == len(self.reachableAlignments):
-            if sum(proportions) == 1:
-                self.movementProportions = {}
-                for idx, reachableAlignment in enumerate(self.reachableAlignments):
-                    self.movementProportions[reachableAlignment] = proportions[idx]
-            else:
-                print('sum of proportion is not equal to 100%')
-        else:
-            print(
-                'proportion list and reachable alignment list have different size, cannot define movement proportions')
-
     def isReachableFrom(self, other):
         """returns boolean, True if an alignment is reachable from another one"""
-        if self.origins is not None:
-            return other.idx in self.origins
+        if other.connectedAlignmentIndices is not None:
+            return self.idx in other.connectedAlignmentIndices
         else:
             return False
+
+    def getUsersNum(self):
+        usersNum = []
+        for user in self.alignments:
+            usersNum.append(user.num)
+        return usersNum
 
 
 class ControlDevice:
@@ -206,13 +188,18 @@ class ControlDevice:
             return False
 
 
+class Intersection:
+    def __init__(self, alignmentIndices):
+        self.alignmentIndices = alignmentIndices
+
+
 class World:
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
-    def __init__(self, alignments=None, controlDevices=None, crossingPoint=None):
+    def __init__(self, alignments=None, controlDevices=None, intersections=None):
         self.alignments = alignments  # liste d alignements
         self.controlDevices = controlDevices  # liste de CD
-        self.crossingPoint = crossingPoint  # moving.Point
+        self.intersections = intersections  # lsite des intersections (objets)
 
     def __repr__(self):
         return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices,
@@ -238,6 +225,12 @@ class World:
         self.alignments = alignments
         self.userInputs = userInputs
         self.save("default.yml")
+
+    def plot(self, options='', **kwargs):
+        import matplotlib.pyplot as plt
+        for a in self.alignments:
+            a.points.plot(options, kwargs)
+        plt.plot()
 
     def showAlignments(self):
         """plots alignments in a word representation file"""
@@ -283,7 +276,8 @@ class World:
                 return False
 
             else:
-                angle = self.getAlignmentById(leaderAlignmentIdx).angleAtCrossingPoint(self.getAlignmentById(followerAlignmentIdx))
+                angle = self.getAlignmentById(leaderAlignmentIdx).angleAtCrossingPoint(
+                    self.getAlignmentById(followerAlignmentIdx))
                 d1 = leader.curvilinearPositions[t][0] - self.getAlignmentById(
                     leaderAlignmentIdx).distanceToCrossingPoint
                 d2 = follower.curvilinearPositions[t][0] - self.getAlignmentById(
@@ -400,17 +394,6 @@ class World:
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
-
-    def findApproachingVehicleOnMainAlignment(self, time, mainAlignmentIdx):
-        """returns the next approchig vehicles on the main alignment"""
-        # TODO : a revoir
-        listOfVehiclesOnMainAlignment = self.getAlignmentById(mainAlignmentIdx).vehicles
-        for k in range(len(listOfVehiclesOnMainAlignment)):
-            distanceToCrossingPoint = self.getAlignmentById(mainAlignmentIdx).distanceToCrossingPoint - \
-                                      listOfVehiclesOnMainAlignment[k].curvilinearPositions[time][0]
-            if distanceToCrossingPoint > 0:
-                return k
-
     def convertSYtoXY(self):
         """converts SY to XY for a set of vehicles in self"""
         for al in self.alignments:
@@ -459,12 +442,12 @@ class World:
                                 self.simulatedUsers[-1][-1][-1] = instant
                                 break
 
-    def connectAlignments(world):
+    def connectAlignments(self):
         """method to link the alignments: for a given alignment, it associates all the other alignments
          that can be reached from it"""
         import copy
-        for idx, al in enumerate(world.alignments):
-            _alignments = copy.deepcopy(world.alignments)
+        for idx, al in enumerate(self.alignments):
+            _alignments = copy.deepcopy(self.alignments)
             _alignments.pop(idx)
             al.reachableAlignments = []
             if not _alignments:
@@ -477,13 +460,19 @@ class World:
 
     def getNextAlignment(self, user, instant, timeStep):
         """returns the next alignment an user will be assigned to, according to the instant"""
-        if user.timeInterval is not None :
-            if user.timeInterval.first <= instant:
+        if user.timeInterval is not None:
+            if user.timeInterval.first <= instant + user.getFirstInstant():
                 occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
+                print(occupiedAlignmentAtBy)
                 reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
-                nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell', instant, timeStep)
-                if self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] - self.getAlignmentById(occupiedAlignmentAtBy).points.cumulativeDistances[-1] \
-                        < nextPositionIfNoAlignmentChange - self.getVisitedAlignmentsCumulatedDistance(user):
+                print(reachableAlignments)
+                nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell',
+                                                                                       instant,
+                                                                                       # + user.getFirstInstant() + 1,
+                                                                                       timeStep)
+                print(nextPositionIfNoAlignmentChange)
+                if self.getVisitedAlignmentsCumulatedDistance(user) \
+                        < nextPositionIfNoAlignmentChange:
                     if reachableAlignments:
                         nextAlignment = reachableAlignments[0]
                     else:
@@ -508,29 +497,68 @@ class World:
     def moveUserToAlignment(self, user):
         """ replaces every chunk of user.curvilinearPosition in the right alignment.vehicles
         returns Boolean = True, if the user's trajectory has been chunked"""
-        laneChange, laneChangeInstants, changesList = user.changedLane()
+        laneChange, laneChangeInstants, changesList = user.changedAlignment()
         if laneChange:
             for alignmentChange, inter in zip(changesList, laneChangeInstants):
                 self.getAlignmentById(alignmentChange[-1]).addUserToAlignment(user.getObjectInTimeInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
             return True
+    #
+    # def replaceUserOnTravelledAlignments(self, user):
+    #     """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
+    #     # TODO : TESTER
+    #     laneChange = user.changedAlignment()
+    #     if laneChange[0]:
+    #         # recuperer les alignments qui sont empruntés : alignmentIndices
+    #         alignmentIndices = []
+    #         for el in laneChange[-1]:
+    #             alignmentIndices.extend(el)
+    #             alignmentIndices = list(set(alignmentIndices))
+    #         alignmentIndices.pop(alignmentIndices.index(user.initialAlignmentIdx))
+    #
+    #         # recupérer la liste des vehicules appartenant a ces alignements : [[veh sur al], [veh sur al2],...,[veh sur aln]]
+    #         userOnAlignments = []
+    #         for alIdx in alignmentIndices:
+    #             if self.getAlignmentById(alIdx).vehicles is not None:
+    #                 userOnAlignments.append(self.getAlignmentById(alIdx).vehicles)
+    #             else:
+    #                 userOnAlignments.append([])
+    #
+    #         # faire une liste des numeros des vehicules pour chaque alignement
+    #         userNumOnAlignments = []
+    #         for vehList in userOnAlignments:
+    #             if vehList != []:
+    #                 userNumOnAlignments.append([])
+    #                 for veh in vehList:
+    #                     userNumOnAlignments.append(veh.num)
+    #             else:
+    #                 userNumOnAlignments.append([])
+    #
+    #         # pour chaque alignement ou le vehicule passe, ajouter le vehicule sinon le créer
+    #         for idx, alIdx in enumerate(alignmentIndices):
+    #             if user.num in userNumOnAlignments[idx]:
+    #                 # compléter les CP du vehicule en question et mettre a jour son interval d'existence dans l'alignement
+    #                 pass
+    #             else:
+    #                 inter = user.changedAlignment()[1][user.changedAlignment()[-1].index((_, alIdx))]
+    #                 self.getAlignmentById(alIdx).vehicles.append(user.getObjectInTimeInterval(
+    #                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
+    #
+    #         # suppresion des données du vehicule situé sur l'alignment initial a partir de l'instant ou le changement d'alignement a débuté
+    #         instant = laneChange[1][0].first
+    #         user.removeAttributesFromInstant(instant)
+    #
+    #         for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
+    #             self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(
+    #                 moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
 
-    @staticmethod
-    def replaceUSerOnTravelledAlignments(self, user):
-        """for now : removes the first parts of curvilinearPosition that doesn't belong to the correct alignment """
-        # TODO : a verifier et adapter pour plusieurs changements d'alignment
-        laneChange = user.changedLane()
-        if laneChange[0]:
-            alignmentIds = [x[-1] for x in laneChange[-1]]
-            if laneChange[0]:
-                for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
-                    self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
-                instant = laneChange[1][0].first
-                user.removeAttributesFromInstant(instant)
-
+    # def replaceUsers(self):
+    #     for userInput in self.userInputs:
+    #         for user in userInput.alignment.vehicles:
+    #             self.replaceUserOnTravelledAlignments(user)
 
     def getTravelledDistanceOnAlignment(self, user, t):
-        #todo: a verifier
+        # todo: a verifier
         """returns the travelled distance of an user on its current alignment"""
         visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
         visitedAlignments.remove(user.curvilinearPositions.lanes[t])
@@ -548,44 +576,48 @@ class World:
         else:
             return user.initialAlignmentIdx
 
-    def defineLeader(self, user, t, timeStep):
-        """returns a moving obejct as the leader of a user, if the user has a leader
-        otherwise returns None"""
-        import copy
-        # todo : verifier
-        # si le vehicule est le leader, leader = None
-        if self.isFirstGeneratedUser(user):
-            user.leader = None
-        else:
-            # definition du prochain alignement occupe
-            nextAlignment = self.getNextAlignment(user, t, timeStep)
-            if nextAlignment is None:
-                if user.curvilinearPositions :# is not None:
-                    nextAlignment = user.curvilinearPositions.lanes[-1]
-                else:
-                    nextAlignment = user.initialAlignmentIdx
-            # récupérer les vehicles de l'alignement que notre usager va emprunter
-            print(nextAlignment)
-            potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
-            try:
-                #un vehicule ne peut pas etre son propre leader, on le supprimer donc de la liste des leaders potentiels
-                _user = potentialLeaders.index(user)
-                potentialLeaders.pop(_user)
-            except:
-                None
-            print(potentialLeaders)
-            # récupérer les vehicles qui sont dans le meme espace temps que notre usager
-            sameTemporalSpacePotentialLeaders = copy.deepcopy(potentialLeaders)
-            count = 0
-            for userIdx, vehicle in enumerate(potentialLeaders):
-                if moving.Interval.intersection(user.timeInterval, vehicle.timeInterval) is None:
-                    sameTemporalSpacePotentialLeaders.pop(userIdx - count)
-                    count += 1
-            # récupérer le leader : vehicle dont la distance a notre usager est minimale
-            distances = []
-            for userIdx, vehicle in enumerate(sameTemporalSpacePotentialLeaders):
-                distances.append((vehicle.num, vehicle.distanceOnAlignments[-1]))
-            user.leader = self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
+    # def defineLeader(self, user, t, timeStep):
+    #     # todo : verifier
+    #     """returns a moving obejct as the leader of a user, if the user has a leader
+    #     otherwise returns None"""
+    #
+    #     import copy
+    #     # si le vehicule est le leader, leader = None
+    #     if self.isFirstGeneratedUser(user):
+    #         user.leader = None
+    #     else:
+    #         # definition du prochain alignement occupe
+    #         nextAlignment = world.getNextAlignment(user, t, timeStep)
+    #         if nextAlignment is None:
+    #             if user.curvilinearPositions:  # si les positions curvilineaires existent : on prend l'alignemnet précédent
+    #                 nextAlignment = user.curvilinearPositions.lanes[-1]
+    #             else:  # sinon on considère l'alignment inital = alignment sur lequel est situé l'userInput qui a généré notre usager
+    #                 nextAlignment = user.initialAlignmentIdx
+    #
+    #         # placer les vehicules sur l'alignement correspondant
+    #
+    #         # récupérer les vehicles de l'alignement que notre usager va emprunter
+    #         # TODO : mettre les vehicules sur leurs alignements respectifs afin de continuer le debogage, pour l'instant optentialLeader s = []
+    #         #  methode replace users
+    #         potentialLeaders = self.getAlignmentById(nextAlignment).vehicles
+    #         try:
+    #             # un vehicule ne peut pas etre son propre leader, on le supprime donc de la liste des leaders potentiels
+    #             userIdInPotentialLeaderList = potentialLeaders.index(user)
+    #             potentialLeaders.pop(userIdInPotentialLeaderList)
+    #         except:
+    #             None
+    #         # récupérer les vehicles qui sont dans le meme espace temps que notre usager
+    #         sameTemporalSpacePotentialLeaders = copy.deepcopy(potentialLeaders)
+    #         count = 0
+    #         for userIdx, vehicle in enumerate(potentialLeaders):
+    #             if moving.Interval.intersection(user.timeInterval, vehicle.timeInterval) is None:
+    #                 sameTemporalSpacePotentialLeaders.pop(userIdx - count)
+    #                 count += 1
+    #         # récupérer le leader : vehicle dont la distance a notre usager est minimale
+    #         distances = []
+    #         for userIdx, vehicle in enumerate(sameTemporalSpacePotentialLeaders):
+    #             distances.append((vehicle.num, vehicle.distanceOnAlignments[-1]))
+    #         user.leader = self.getUserByAlignmentIdAndNum(nextAlignment, min(distances, key=lambda x: x[1])[0])
 
     def getAlignmentById(self, idx):
         """get an alignment given its id"""
@@ -615,21 +647,19 @@ class World:
             if user.num == num:
                 return user
 
-    def hasUserBeenOnAlignment(self, user, alignmentIdx):
+    @staticmethod
+    def hasBeenOnAlignment(user, alignmentIdx):
         """determines if a vehicles has circulated on an alignment"""
         return alignmentIdx in user.curvilinearPositions.lanes
 
     def getPreviouslyOccupiedAlignmentsLength(self, user):
         """returns the length of the alignments a vehicle has previously travelled on """
+        s = 0
         if user.curvilinearPositions is not None:
             alignmentIndices = list(set(user.curvilinearPositions.lanes))
-            s = 0
             for indices in alignmentIndices:
                 s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
-            # s -= self.getAlignmentById(user.curvilinearPositions.lanes[-1]).points.cumulativeDistances[-1]
-            return s
-        else:
-            return 0
+        return s
 
     def isFirstGeneratedUser(self, user):
         """determines if an user is the first one that has been computed"""
@@ -639,6 +669,55 @@ class World:
             else:
                 return True
         return False
+
+    def distance(self, user1, user2, instant):
+        """"computes the distance between 2 users"""
+        import networkx as nx
+        if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
+            user1CP = user1.getCurvilinearPositionAtInstant(instant)
+            user2CP = user2.getCurvilinearPositionAtInstant(instant)
+
+            user1DistanceAmont = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
+            user1DistanceAval = \
+                self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                    -1] - user1DistanceAmont
+            user2DistanceAmont = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
+            user2DistanceAval = \
+                self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                    -1] - user2DistanceAmont
+
+            G = self.graph
+
+            G.add_node('user1')
+            G.add_node('user2')
+
+            user1Origin = self.getAlignmentById(user1CP[2]).graphCorrespondance[0]
+            user1Target = self.getAlignmentById(user1CP[2]).graphCorrespondance[1]
+            user2Origin = self.getAlignmentById(user2CP[2]).graphCorrespondance[0]
+            user2Target = self.getAlignmentById(user2CP[2]).graphCorrespondance[1]
+
+            G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceAmont)])
+            G.add_weighted_edges_from([('user1', user1Target, user1DistanceAval)])
+
+            G.add_weighted_edges_from([(user2Origin, 'user2', user2DistanceAmont)])
+            G.add_weighted_edges_from([('user2', user2Target, user2DistanceAval)])
+
+            distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
+            return distance
+        else:
+            print('user do not coexist, therefore can not compute distance')
+
+
+    def getLinkedAlignments(self, alignmentIdx):
+        """return the list of all alignments that are un-directly linked to an alignment"""
+        al = self.getAlignmentById(alignmentIdx)
+        linkedAlignments = []
+        if al.connectedAlignmentIndices:
+            for el in al.connectedAlignmentIndices:
+                linkedAlignments.append(el)
+                if self.getAlignmentById(el).connectedAlignmentIndices:
+                    linkedAlignments = linkedAlignments + self.getAlignmentById(el).connectedAlignmentIndices
+        return linkedAlignments
 
 
 class UserInput:

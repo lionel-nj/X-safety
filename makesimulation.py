@@ -38,6 +38,7 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
+                    # world.replaceUsers()
                     # world.defineLeader(v, i, sim.timeStep) # ligne a decommenter si l'on veut effectuer les calculs avec la fonction de recherche de leader
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
@@ -45,7 +46,6 @@ def run(world, simulationParameters):
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
-                    # network.World.replaceUSerOnTravelledAlignments(world, v)
             bar.next()
     #
     # for al in [world.getAlignmentById(0)]:
