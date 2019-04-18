@@ -140,45 +140,6 @@ alignments:
   width: null
 controlDevices: null
 
-graph :
-  !!python/object:networkx.classes.graph.Graph
-  _adj:
-    0:
-      1: &id001
-        weight: 500
-    1:
-      0: *id001
-      2: &id002
-        weight: 400
-    2:
-      1: *id002
-      3: &id003
-        weight: 500
-      4: &id004
-        weight: 400
-      5: &id005
-        weight: 400
-    3:
-      2: *id003
-    4:
-      2: *id004
-    5:
-      2: *id005
-  _node: &id007
-    0: {}
-    1: {}
-    2: {}
-    3: {}
-    4: {}
-    5: {}
-  adjlist_inner_dict_factory: &id006 !!python/name:builtins.dict
-  adjlist_outer_dict_factory: *id006
-  edge_attr_dict_factory: *id006
-  graph: {}
-  node_dict_factory: *id006
-  nodes: !!python/object:networkx.classes.reportviews.NodeView
-    _nodes: *id007
-
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0

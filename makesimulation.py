@@ -27,7 +27,7 @@ def run(world, simulationParameters):
         al.vehicles = []
 
     world.connectAlignments()
-
+    world.getGraph()
     userNum = 0
 
     bar = Bar('Processing')
@@ -47,6 +47,8 @@ def run(world, simulationParameters):
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
             bar.next()
+
+    world.replaceUsers()
     #
     # for al in [world.getAlignmentById(0)]:
     #     for v in al.vehicles:

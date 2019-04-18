@@ -503,59 +503,35 @@ class World:
                 self.getAlignmentById(alignmentChange[-1]).addUserToAlignment(user.getObjectInTimeInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
             return True
-    #
-    # def replaceUserOnTravelledAlignments(self, user):
-    #     """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
-    #     # TODO : TESTER
-    #     laneChange = user.changedAlignment()
-    #     if laneChange[0]:
-    #         # recuperer les alignments qui sont empruntés : alignmentIndices
-    #         alignmentIndices = []
-    #         for el in laneChange[-1]:
-    #             alignmentIndices.extend(el)
-    #             alignmentIndices = list(set(alignmentIndices))
-    #         alignmentIndices.pop(alignmentIndices.index(user.initialAlignmentIdx))
-    #
-    #         # recupérer la liste des vehicules appartenant a ces alignements : [[veh sur al], [veh sur al2],...,[veh sur aln]]
-    #         userOnAlignments = []
-    #         for alIdx in alignmentIndices:
-    #             if self.getAlignmentById(alIdx).vehicles is not None:
-    #                 userOnAlignments.append(self.getAlignmentById(alIdx).vehicles)
-    #             else:
-    #                 userOnAlignments.append([])
-    #
-    #         # faire une liste des numeros des vehicules pour chaque alignement
-    #         userNumOnAlignments = []
-    #         for vehList in userOnAlignments:
-    #             if vehList != []:
-    #                 userNumOnAlignments.append([])
-    #                 for veh in vehList:
-    #                     userNumOnAlignments.append(veh.num)
-    #             else:
-    #                 userNumOnAlignments.append([])
-    #
-    #         # pour chaque alignement ou le vehicule passe, ajouter le vehicule sinon le créer
-    #         for idx, alIdx in enumerate(alignmentIndices):
-    #             if user.num in userNumOnAlignments[idx]:
-    #                 # compléter les CP du vehicule en question et mettre a jour son interval d'existence dans l'alignement
-    #                 pass
-    #             else:
-    #                 inter = user.changedAlignment()[1][user.changedAlignment()[-1].index((_, alIdx))]
-    #                 self.getAlignmentById(alIdx).vehicles.append(user.getObjectInTimeInterval(
-    #                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
-    #
-    #         # suppresion des données du vehicule situé sur l'alignment initial a partir de l'instant ou le changement d'alignement a débuté
-    #         instant = laneChange[1][0].first
-    #         user.removeAttributesFromInstant(instant)
-    #
-    #         for inter, alignmentIdx in zip(laneChange[1], alignmentIds):
-    #             self.getAlignmentById(alignmentIdx).vehicles.append(user.getObjectInTimeInterval(
-    #                 moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
 
-    # def replaceUsers(self):
-    #     for userInput in self.userInputs:
-    #         for user in userInput.alignment.vehicles:
-    #             self.replaceUserOnTravelledAlignments(user)
+    @staticmethod
+    def replaceUserOnTravelledAlignments(user):
+        """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
+        # TODO : TESTER
+        laneChange = user.changedAlignment()
+        if laneChange[0]:
+
+            # recuperer les alignments qui sont empruntés : alignmentIndices
+            alignmentIndices = []
+            for el in laneChange[-1]:
+                alignmentIndices.extend(el)
+                alignmentIndices = list(set(alignmentIndices))
+            alignmentIndices.pop(alignmentIndices.index(user.initialAlignmentIdx))
+
+            # pour chaque alignement ou le vehicule passe, ajouter le vehicule
+
+            for inter, alignmentIdx in zip(laneChange[1], alignmentIndices):
+                world.getAlignmentById(alignmentIdx).vehicles.append(user.subTrajectoryInInterval(
+                    moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
+
+            #supprimer depuis le premier moment ou le cvehicule d=change d'alignement
+            instant = laneChange[1][0].first
+            user.removeAttributesFromInstant(instant)
+
+    def replaceUsers(self):
+        for userInput in self.userInputs:
+            for user in userInput.alignment.vehicles:
+                self.replaceUserOnTravelledAlignments(user)
 
     def getTravelledDistanceOnAlignment(self, user, t):
         # todo: a verifier
@@ -670,43 +646,56 @@ class World:
                 return True
         return False
 
+    def getGraph(self):
+        """adds graph attribute to self"""
+        import networkx as nx
+        G = nx.Graph()
+        for k in range(len(self.alignments)+1):
+            G.add_node(k)
+        edgesProperties = []
+        for al in self.alignments:
+            edgesProperties.append((al.graphCorrespondance[0], al.graphCorrespondance[1], al.points.cumulativeDistances[-1]))
+        G.add_weighted_edges_from(edgesProperties)
+        self.graph = G
+
     def distance(self, user1, user2, instant):
         """"computes the distance between 2 users"""
         import networkx as nx
         if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
-            user1CP = user1.getCurvilinearPositionAtInstant(instant)
-            user2CP = user2.getCurvilinearPositionAtInstant(instant)
+            user1CP = user1.getCurvilinearPositionAtInstant(instant)[2]
+            user2CP = user2.getCurvilinearPositionAtInstant(instant)[2]
 
-            user1DistanceAmont = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
-            user1DistanceAval = \
+            user1DistanceUpstream = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
+            user1DistanceDownstream = \
                 self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                    -1] - user1DistanceAmont
-            user2DistanceAmont = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
-            user2DistanceAval = \
+                    -1] - user1DistanceUpstream
+            user2DistanceUpstream = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
+            user2DistanceDownstream = \
                 self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                    -1] - user2DistanceAmont
+                    -1] - user2DistanceUpstream
 
             G = self.graph
 
             G.add_node('user1')
             G.add_node('user2')
 
-            user1Origin = self.getAlignmentById(user1CP[2]).graphCorrespondance[0]
-            user1Target = self.getAlignmentById(user1CP[2]).graphCorrespondance[1]
-            user2Origin = self.getAlignmentById(user2CP[2]).graphCorrespondance[0]
-            user2Target = self.getAlignmentById(user2CP[2]).graphCorrespondance[1]
+            user1Origin = self.getAlignmentById(user1CP).graphCorrespondance[0]
+            user1Target = self.getAlignmentById(user1CP).graphCorrespondance[1]
+            user2Origin = self.getAlignmentById(user2CP).graphCorrespondance[0]
+            user2Target = self.getAlignmentById(user2CP).graphCorrespondance[1]
 
-            G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceAmont)])
-            G.add_weighted_edges_from([('user1', user1Target, user1DistanceAval)])
+            G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceUpstream)])
+            G.add_weighted_edges_from([('user1', user1Target, user1DistanceDownstream)])
 
-            G.add_weighted_edges_from([(user2Origin, 'user2', user2DistanceAmont)])
-            G.add_weighted_edges_from([('user2', user2Target, user2DistanceAval)])
+            G.add_weighted_edges_from([(user2Origin, 'user2', user2DistanceUpstream)])
+            G.add_weighted_edges_from([('user2', user2Target, user2DistanceDownstream)])
 
             distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
+            G.remove_node('user1')
+            G.remove_node('user2')
             return distance
         else:
             print('user do not coexist, therefore can not compute distance')
-
 
     def getLinkedAlignments(self, alignmentIdx):
         """return the list of all alignments that are un-directly linked to an alignment"""
