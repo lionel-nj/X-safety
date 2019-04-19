@@ -748,6 +748,7 @@ class World:
 
     def checkComingThroughTraffic(self, user, t, threshold):
         # todo : tester
+        # todo : mettre a jour updateCurvilinearPositions avec le comportement aux abords d'un controlDevice
         al = self.getAlignmentById(user.getCurvilinearPositionAtInstant(t)[2])
         if len(al.connectedAlignmentIndices) > 1:
             for connectedAlIdx in al.al.connectedAlignmentIndices:
@@ -755,10 +756,13 @@ class World:
                     # determiner le vehicule le plus proche :
                     distances = []
                     for comingThroughUser in enumerate(self.getAlignmentById(connectedAlIdx).vehicles):
-                        distances.append((self.distance(user, comingThroughUser, t)), comingThroughUser.num)
+                        distances.append((self.distance(user, comingThroughUser, t), comingThroughUser.num))
                         closestVehicleToUser = self.getUserByNum(min(distances, key=lambda x: x[1])[1])
-                        if min(distances, key=lambda x: x[1])[0] < threshold and closestVehicleToUser.state == 'forward':
-                            user.state = 'stop'
+                        if min(distances, key=lambda x: x[1])[0] < threshold:
+                            if closestVehicleToUser.state == 'forward':
+                                user.state = 'stop'
+                            else:
+                                user.state = 'forward'
                         else:
                             user.state = 'forward'
 
