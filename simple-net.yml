@@ -4,7 +4,8 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
   - 1
-  controlDeviceIndices: null
+  controlDeviceIndices:
+  - 0
   cumulativeDistances: 500
   graphCorrespondance:
     - 0

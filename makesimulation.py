@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from progress.bar import Bar
 
@@ -38,8 +37,8 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
-                    # world.replaceUsers()
-                    # world.defineLeader(v, i, sim.timeStep) # ligne a decommenter si l'on veut effectuer les calculs avec la fonction de recherche de leader
+                    world.checkControlDevices(v, i)
+                    world.checkComingThroughTraffic(v, i)
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
@@ -55,14 +54,14 @@ def run(world, simulationParameters):
     #         world.moveUserToAlignment(v)
 
 
-    # display
-    plt.figure()
-    for al in [world.getAlignmentById(0)]:
-        for v in al.vehicles:
-            if v.timeInterval is not None:
-                v.plotCurvilinearPositions()
-    plt.xlabel('time(s/100)')
-    plt.ylabel('longitudinal coordinate (m)')
-    plt.show()
+    # # display
+    # plt.figure()
+    # for al in [world.getAlignmentById(0)]:
+    #     for v in al.vehicles:
+    #         if v.timeInterval is not None:
+    #             v.plotCurvilinearPositions()
+    # plt.xlabel('time(s/100)')
+    # plt.ylabel('longitudinal coordinate (m)')
+    # plt.show()
 
     return world

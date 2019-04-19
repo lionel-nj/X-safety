@@ -118,7 +118,7 @@ def changeVolumeOnVehicleInput(worldFile, newVolume, alignmentIdx):
     """changes the volume on a particular alignment"""
     worldFile.vehicleInputs[alignmentIdx].volume = newVolume
 
-### set of function to be implmented/insipired of in order to perform crossing behaviours ###
+# set of function to be implmented/insipired of in order to perform crossing behaviours ###
 def lossOfTime(beta, tnr):
     import math
     return beta * (math.exp(tnr / beta) - (1 + tnr / beta))
