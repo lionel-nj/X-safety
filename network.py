@@ -561,7 +561,6 @@ class World:
                 self.replaceUserOnTravelledAlignments(user)
 
     def getTravelledDistanceOnAlignment(self, user, t):
-        # todo: a verifier
         """returns the travelled distance of an user on its current alignment"""
         visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
         visitedAlignments.remove(user.curvilinearPositions.lanes[t])
