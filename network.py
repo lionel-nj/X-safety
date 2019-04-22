@@ -160,55 +160,6 @@ class Alignment:
 
 
 class ControlDevice:
-    # """generic traffic control devices"""
-    # categories = {0: "stop",
-    #               1: "yield",
-    #               2: "traffic light"}
-    #
-    # def __init__(self, idx, alignmentIdx, category):
-    #     self.alignmentIdx = alignmentIdx
-    #     self.category = category
-    #     self.idx = idx
-    #
-    # def save(self, filename):
-    #     toolkit.saveYaml(filename, self)
-    #
-    # @staticmethod
-    # def load(filename):
-    #     return toolkit.loadYaml(filename)
-    #
-    # def controlDeviceBehaviour(self, duration=None, green=None, red=None):
-    #     # TODO : tester
-    #     """defines the behaviour of a controlDevice depending on its category"""
-    #     if self.category == 2:
-    #         import simpy as sp
-    #         env = sp.Environment()
-    #         env.process(self.trafficLightBehaviour(env, green, red))
-    #         env.run(until=duration)
-    #     elif self.category == 0:
-    #         self.stopBehaviour()
-    #     else:
-    #         self.yieldBehaviour()
-    #
-    # def trafficLightBehaviour(self, env, green, red):
-    #     """computes a traffic light"""
-    #     while True:
-    #         light = 'forward'
-    #         self.state = light
-    #         yield env.timeout(green)
-    #
-    #         light = 'stop'
-    #         self.state = light
-    #         yield env.timeout(red)
-    #
-    # def stopBehaviour(self):
-    #     """controlDevice behaviour for a stop sign"""
-    #     self.state = 'stop'
-    #
-    # def yieldBehaviour(self):
-    #     """controlDevice behaviour for a yield sign"""
-    #     self.state = 'forward'
-
     """adapted from traffic_light_simulator package in pip3"""
     def __init__(self, idx, state, duration, alignmentIdx, redTime=None, greenTime=None):
         """
@@ -258,19 +209,6 @@ class ControlDevice:
             else:
                 self.switch()
                 self.remainingRed = self.redTime
-
-
-    # def runCycle(self, cycleNumber):
-    #     """
-    #     runs a certain number of cycles
-    #     :param tlight: TrafficLight object
-    #     :param cycles: number of cycles you want to run
-    #     """
-    #     for k in range(cycleNumber):
-    #         print(self.state)
-    #         self.cycle()
-
-# class TrafficLight(ControlDevice):
 
 
 class World:
@@ -830,7 +768,6 @@ class World:
                                 user.state = 'forward'
                         else:
                             user.state = 'forward'
-
 
 
 class UserInput:
