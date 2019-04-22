@@ -160,49 +160,117 @@ class Alignment:
 
 
 class ControlDevice:
-    """generic traffic control devices"""
-    categories = {0: "stop",
-                  1: "yield",
-                  2: "traffic light"}
+    # """generic traffic control devices"""
+    # categories = {0: "stop",
+    #               1: "yield",
+    #               2: "traffic light"}
+    #
+    # def __init__(self, idx, alignmentIdx, category):
+    #     self.alignmentIdx = alignmentIdx
+    #     self.category = category
+    #     self.idx = idx
+    #
+    # def save(self, filename):
+    #     toolkit.saveYaml(filename, self)
+    #
+    # @staticmethod
+    # def load(filename):
+    #     return toolkit.loadYaml(filename)
+    #
+    # def controlDeviceBehaviour(self, duration=None, green=None, red=None):
+    #     # TODO : tester
+    #     """defines the behaviour of a controlDevice depending on its category"""
+    #     if self.category == 2:
+    #         import simpy as sp
+    #         env = sp.Environment()
+    #         env.process(self.trafficLightBehaviour(env, green, red))
+    #         env.run(until=duration)
+    #     elif self.category == 0:
+    #         self.stopBehaviour()
+    #     else:
+    #         self.yieldBehaviour()
+    #
+    # def trafficLightBehaviour(self, env, green, red):
+    #     """computes a traffic light"""
+    #     while True:
+    #         light = 'forward'
+    #         self.state = light
+    #         yield env.timeout(green)
+    #
+    #         light = 'stop'
+    #         self.state = light
+    #         yield env.timeout(red)
+    #
+    # def stopBehaviour(self):
+    #     """controlDevice behaviour for a stop sign"""
+    #     self.state = 'stop'
+    #
+    # def yieldBehaviour(self):
+    #     """controlDevice behaviour for a yield sign"""
+    #     self.state = 'forward'
 
-    def __init__(self, idx, alignmentIdx, category):
-        self.alignmentIdx = alignmentIdx
-        self.category = category
+    """adapted from traffic_light_simulator package in pip3"""
+    def __init__(self, idx, state, duration, alignmentIdx, redTime=None, greenTime=None):
+        """
+        load artwork and set initial color
+        :param state: sets initial value for state (green = forward or red=stop)
+        :param redTime: sets amount of time for a red light to last
+        :param greenTime: sets amount of time for a green light to last
+        """
+        import copy
         self.idx = idx
+        self.state = state
+        self.redTime = redTime
+        self.duration = duration
+        self.greenTime = greenTime
+        self.alignmentIdx = alignmentIdx
+        self.remainingGreen = copy.deepcopy(greenTime)
+        self.remainingRed = copy.deepcopy(redTime)
 
-    def save(self, filename):
-        toolkit.saveYaml(filename, self)
-
-    @staticmethod
-    def load(filename):
-        return toolkit.loadYaml(filename)
-
-    def controlDeviceBehaviour(self, duration=None, green=None, red=None):
-        if self.category == 2:
-            import simpy as sp
-            env = sp.Environment()
-            env.process(self.trafficLightBehaviour(env, green, red))
-            env.run(until=duration)
-        elif self.category == 0:
-            self.stopBehaviour()
+    def switch(self):
+        """ swith state to next state in the sequence """
+        if self.state == 'stop':
+            self.state = 'forward'
         else:
-            self.yieldBehaviour()
+            self.state = 'stop'
 
-    def trafficLightBehaviour(self, env, green, red):
-        while True:
-            light = 'forward'
-            self.state = light
-            yield env.timeout(green)
+    def getState(self):
+        """ returns art for the current color """
+        return self.state
 
-            light = 'stop'
-            self.state = light
-            yield env.timeout(red)
+    def getCurrentStateTime(self):
+        if self.state == 'forward':
+            return self.greenTime
+        else:
+            return self.redTime
 
-    def stopBehaviour(self):
-        self.state = 'stop'
+    def cycle(self):
+        """ displays the current state for a TrafficLight object for the duration of state"""
+        if self.state == 'forward':
+            if self.remainingGreen > 1:
+                self.remainingGreen -= 1
+            else:
+                self.switch()
+                self.remainingGreen = self.greenTime
+        else:
+            if self.remainingRed > 1:
+                self.remainingRed -= 1
+            else:
+                self.switch()
+                self.remainingRed = self.redTime
 
-    def yieldBehaviour(self):
-        self.state = 'forward'
+
+    # def runCycle(self, cycleNumber):
+    #     """
+    #     runs a certain number of cycles
+    #     :param tlight: TrafficLight object
+    #     :param cycles: number of cycles you want to run
+    #     """
+    #     for k in range(cycleNumber):
+    #         print(self.state)
+    #         self.cycle()
+
+# class TrafficLight(ControlDevice):
 
 
 class World:
@@ -475,14 +543,12 @@ class World:
         if user.timeInterval is not None:
             if user.timeInterval.first <= instant + user.getFirstInstant():
                 occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
-                print(occupiedAlignmentAtBy)
                 reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
-                print(reachableAlignments)
                 nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell',
                                                                                        instant,
                                                                                        # + user.getFirstInstant() + 1,
                                                                                        timeStep)
-                print(nextPositionIfNoAlignmentChange)
+                # print(nextPositionIfNoAlignmentChange)
                 if self.getVisitedAlignmentsCumulatedDistance(user) \
                         < nextPositionIfNoAlignmentChange:
                     if reachableAlignments:
@@ -518,7 +584,6 @@ class World:
 
     def replaceUserOnTravelledAlignments(self, user):
         """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
-        # TODO : TESTER
         laneChange = user.changedAlignment()
         if laneChange[0]:
 
@@ -765,6 +830,7 @@ class World:
                                 user.state = 'forward'
                         else:
                             user.state = 'forward'
+
 
 
 class UserInput:

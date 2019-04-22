@@ -1,5 +1,4 @@
 import numpy as np
-from progress.bar import Bar
 
 import network
 import simulation
@@ -29,23 +28,29 @@ def run(world, simulationParameters):
     world.getGraph()
     userNum = 0
 
-    bar = Bar('Processing')
+    # bar = Bar('Processing')
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
+        for cd in world.controlDevices:
+            print(cd.state)
+            cd.cycle()
+            print(cd.state)
+
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for al in world.alignments:
             if al.vehicles is not None:
+                # world.getControlDeviceById(al.controlDeviceIndices[0]).runCycle()
                 for v in al.vehicles:
-                    world.checkControlDevices(v, i)
-                    world.checkComingThroughTraffic(v, i)
+                    # world.checkControlDevices(v, i, 100)
+                    # world.checkComingThroughTraffic(v, i)
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
-            bar.next()
+            # bar.next()
 
     world.replaceUsers()
     #
