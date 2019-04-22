@@ -161,7 +161,7 @@ class Alignment:
 
 class ControlDevice:
     """adapted from traffic_light_simulator package in pip3"""
-    def __init__(self, idx, state, duration, alignmentIdx, redTime=None, greenTime=None):
+    def __init__(self, idx, state, duration, category, alignmentIdx, redTime=None, greenTime=None):
         """
         load artwork and set initial color
         :param state: sets initial value for state (green = forward or red=stop)
@@ -171,12 +171,24 @@ class ControlDevice:
         import copy
         self.idx = idx
         self.state = state
-        self.redTime = redTime
+        self.category = category
         self.duration = duration
-        self.greenTime = greenTime
         self.alignmentIdx = alignmentIdx
         self.remainingGreen = copy.deepcopy(greenTime)
         self.remainingRed = copy.deepcopy(redTime)
+        if self.category == 1:
+            self.greenTime = 0
+            self.redTime = float('inf')
+        else:
+            self.greenTime = greenTime
+            self.redTime = redTime
+
+    categories = {1:'stop',
+                2: 'traffic light',
+                3: 'yield'}
+
+    def getCharCategory(self):
+        return self.categories[self.category]
 
     def switch(self):
         """ swith state to next state in the sequence """
@@ -190,6 +202,7 @@ class ControlDevice:
         return self.state
 
     def getCurrentStateTime(self):
+        """return current state of self"""
         if self.state == 'forward':
             return self.greenTime
         else:
@@ -771,10 +784,8 @@ class World:
 
 
 class UserInput:
-    def __init__(self, alignmentIdx,
-                 seed, volume, distributions):
+    def __init__(self, alignmentIdx, volume, distributions):
         self.alignmentIdx = alignmentIdx
-        self.seed = seed
         self.volume = volume
         self.distributions = distributions
 
