@@ -30,20 +30,16 @@ def run(world, simulationParameters):
 
     # bar = Bar('Processing')
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
-        # print('simulation step {}'.format(i))
+        print('simulation step {}'.format(i))
         for cd in world.controlDevices:
-            print(cd.state)
             cd.cycle()
-            print(cd.state)
-
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for al in world.alignments:
             if al.vehicles is not None:
-                # world.getControlDeviceById(al.controlDeviceIndices[0]).runCycle()
                 for v in al.vehicles:
-                    # world.checkControlDevices(v, i, 100)
-                    # world.checkComingThroughTraffic(v, i)
+                    world.checkControlDevicesAtInstant(v, i, 200)
+                    # world.comingThroughTraffic(v, i)
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
@@ -58,11 +54,11 @@ def run(world, simulationParameters):
     #     for v in al.vehicles:
     #         world.moveUserToAlignment(v)
 
-
+    #
     # # display
     # plt.figure()
-    # for al in [world.getAlignmentById(0)]:
-    #     for v in al.vehicles:
+    # for ui in world.userInputs:
+    #     for v in ui.alignment.vehicles:
     #         if v.timeInterval is not None:
     #             v.plotCurvilinearPositions()
     # plt.xlabel('time(s/100)')
