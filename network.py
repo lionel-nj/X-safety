@@ -562,13 +562,11 @@ class World:
                 subUser = user.subTrajectoryInInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant()))
                 subUser.state = user.state
-                subUser.moved = False
                 self.getAlignmentById(alignmentIdx).vehicles.append(subUser)
 
             # supprimer depuis le premier moment ou le vehicule change d'alignement
             instant = laneChange[1][0].first
             user.removeAttributesFromInstant(instant)
-            user.moved = True
 
     def replaceUsers(self):
         for userInput in self.userInputs:
@@ -577,7 +575,6 @@ class World:
 
     def assignUserToCorrespondingAlignment(self):
         # TODO : verifier le resultat
-        # todo : ajouter condition if user.moved dans updatecurvilinearPositions et pour la recherche du leader
         """assigns an user to its corresponding alignment"""
 
         for user in self.users:
@@ -613,14 +610,14 @@ class World:
         for al in self.alignments:
             edgesProperties.append((al.graphCorrespondance[0], al.graphCorrespondance[1], al.points.cumulativeDistances[-1]))
         G.add_weighted_edges_from(edgesProperties)
-
-        for cdIdx, cd in enumerate(self.controlDevices):
-            controlDevice = "cd{}".format(cdIdx)
-            G.add_node(controlDevice)
-            origin = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[0]
-            target = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[1]
-            weight = self.getAlignmentById(cd.alignmentIdx).points.cumulativeDistances[-1]
-            G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
+        if self.controlDevices is not None :
+            for cdIdx, cd in enumerate(self.controlDevices):
+                controlDevice = "cd{}".format(cdIdx)
+                G.add_node(controlDevice)
+                origin = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[0]
+                target = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[1]
+                weight = self.getAlignmentById(cd.alignmentIdx).points.cumulativeDistances[-1]
+                G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
 
         self.graph = G
 

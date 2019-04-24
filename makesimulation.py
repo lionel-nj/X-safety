@@ -30,8 +30,9 @@ def run(world, simulationParameters):
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         print('simulation step {}'.format(i))
-        for cd in world.controlDevices:
-            cd.cycle()
+        if world.controlDevices is not None:
+            for cd in world.controlDevices:
+                cd.cycle()
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for al in world.alignments:
