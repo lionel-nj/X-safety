@@ -17,6 +17,18 @@ class Alignment:
         self.points = points
         self.controlDevice = controlDevice
 
+    def save(self, filename):
+        toolkit.saveYaml(filename, self)
+
+    @staticmethod
+    def load(filename):
+        return toolkit.loadYaml(filename)
+
+    def plot(self, options='', **kwargs):
+        import matplotlib.pyplot as plt
+        self.points.plot(options, kwargs)
+        plt.plot()
+
     def build(self, entryPoint, exitPoint, others=None):
         """builds an alignments from points,
          entryPoint and exitPoint : moving.Point
@@ -26,13 +38,6 @@ class Alignment:
             self.points = moving.Trajectory.fromPointList([entryPoint, exitPoint])
         else:
             self.points = moving.Trajectory.fromPointList([entryPoint] + others + [exitPoint])
-
-    @staticmethod
-    def load(filename):
-        return toolkit.loadYaml(filename)
-
-    def save(self, filename):
-        toolkit.saveYaml(filename, self)
 
     def addPoint(self, x, y):
         self.points.addPositionXY(x, y)
@@ -58,52 +63,12 @@ class Alignment:
     def isBetween(a, b, c):
         return moving.Point.distanceNorm2(a, c) + moving.Point.distanceNorm2(c, b) == moving.Point.distanceNorm2(a, b)
 
-    # def insertCrossingPoint(self):
-    #     """inserts a crossing point : moving.Point in the alignment sequence"""
-    #     if self.crossingPoint == self.points[0]:
-    #         self.distanceToCrossingPoint = 0
-    #
-    #     elif self.points[-1] == self.crossingPoint:
-    #         self.distanceToCrossingPoint = self.points.getCumulativeDistance(len(self.points))
-    #
-    #     else:
-    #         for k in range(len(self.points) - 1):
-    #             if Alignment.isBetween(self.points[k], self.points[k + 1], self.crossingPoint):
-    #                 Alignment.insertPointAt(self, self.crossingPoint, k + 1)
-    #                 self.points.computeCumulativeDistances()
-    #                 self.distanceToCrossingPoint = self.points.getCumulativeDistance(k + 1)
-    #                 break
-
     def isConnectedTo(self, other):
         """boolean, detemines if two alignments are connected"""
         if other.idx in self.connectedAlignmentIndices or self.idx in other.connectedAlignmentIndices:
             return True
         else:
             return False
-
-    def angleAtCrossingPoint(self, other):
-        """determines the angle between two alignments at the crossing point
-        it is assumed that the method connectAlignments has already been applied to the alignments
-        which means that both of the alignments in input have a crossingPoint attribute
-        inputs : alignments
-        output : angle (degrees) at the crossing point of the alignments """
-
-        firstPoint = self.getFirstPoint()
-        secondPoint = other.getFirstPoint()
-
-        p1 = self.crossingPoint - firstPoint
-        p2 = self.crossingPoint - secondPoint
-
-        p = p1 - p2
-        angle = moving.Point.angle(p) * 180 / math.pi
-
-        self.angleAtCrossingPoint = angle
-        other.angleAtCrossingPoint = angle
-
-    def getAngleAtCrossing(self):
-        """ method returns the angle formed by the the crossing alignments"""
-        if hasattr(self, 'angleAtCrossing'):
-            return self.angleAtCrossingPoint
 
     def getPoint(self, i):
         """returns i-th point of an alignment"""
@@ -119,7 +84,7 @@ class Alignment:
 
     def isStartOf(self, point):
         "boolean : True if a moving.Point is the first point of an alignment"
-        if self.points[0].x == point.x and self.points[0].y == point.y:
+        if self.getFirstPoint().x == point.x and self.getFirstPoint().y == point.y:
             return True
         else:
             return False
@@ -127,7 +92,7 @@ class Alignment:
     def isEndOf(self, point):
         "boolean : True if a moving.Point is the last point of an alignment"
 
-        if self.points[-1].x == point.x and self.points[-1].y == point.y:
+        if self.getLastPoint().x == point.x and self.getLastPoint().y == point.y:
             return True
         else:
             return False
@@ -153,8 +118,9 @@ class Alignment:
             return False
 
     def getUsersNum(self):
+        """returns a user by its num"""
         usersNum = []
-        for user in self.alignments:
+        for user in self.vehicles:
             usersNum.append(user.num)
         return usersNum
 
@@ -220,7 +186,7 @@ class World:
 
     def __init__(self, alignments=None, controlDevices=None, intersections=None):
         self.alignments = alignments  # liste d alignements
-        self.intersections = intersections  # lsite des intersections (objets)
+        self.intersections = intersections  # liste des intersections (objets)
         self.controlDevices = controlDevices  # liste de CD
 
     def __repr__(self):
@@ -242,7 +208,6 @@ class World:
 
     def reset(self, alignments, controlDevices, userInputs):
         """alignments = list of Alignment class objects"""
-        self.getAlignmentById(0).connectAlignments(self.getAlignmentById(1))
         self.controlDevices = controlDevices
         self.alignments = alignments
         self.userInputs = userInputs
@@ -254,26 +219,72 @@ class World:
             a.points.plot(options, kwargs)
         plt.plot()
 
-    def showAlignments(self):
-        """plots alignments in a word representation file"""
-        import matplotlib.pyplot as plt
-        for alignments in self.alignments:
-            moving.Trajectory.plot(alignments.points)
-            moving.Trajectory.plot(alignments.points)
-        plt.show()
-        plt.close()
-
     def getAlignments(self):
         return self.alignments
 
-    def isVehicleBeforeCrossingPointAt(self, alignmentIdx, vehicleIdx, t, vehiclesData):
-        """ determines if a vehicle if located ahead of a crossing point in a world representation """
-        d = vehiclesData[alignmentIdx][vehicleIdx].curvilinearPositions[t][0] - self.getAlignmentById(
-            alignmentIdx).distanceToCrossingPoint
-        if d < 0:
-            return True
-        else:
-            return False
+    def getUserInputs(self):
+        return self.userInputs
+
+    def getControlDevices(self):
+        return self.controlDevices
+
+    def getAlignmentById(self, idx):
+        """get an alignment given its id"""
+        try:
+            idList = [el.idx for el in self.alignments]
+            if idx not in idList:
+                print('wrong alignment index({})'.format(idx))
+            else:
+                for al in self.alignments:
+                    if al.idx == idx:
+                        return al
+        except:
+            print('alignment idx does not match any existing alignment')
+            return None
+
+    def getControlDeviceById(self, idx):
+        """get an control device given its id"""
+        try:
+            idList = [el.idx for el in self.controlDevices]
+            if idx not in idList:
+                print('wrong controlDevice index({})'.format(idx))
+            else:
+                for cd in self.controlDevices:
+                    if cd.idx == idx:
+                        return cd
+        except:
+            print('controlDeviceIdx does not match any existing alignment')
+            return None
+
+    def getUserInputById(self, idx):
+        """get an user input given its id"""
+        try:
+            idList = [el.idx for el in self.userInputs]
+            if idx not in idList:
+                print('wrong userInput index({})'.format(idx))
+            else:
+                for ui in self.userInputs:
+                    if ui.idx == idx:
+                        return ui
+        except:
+            print('userInputsIdx does not match any existing alignment')
+            return None
+
+    def getUserByNum(self, userNum):
+        """returns an user given its num"""
+        userNums = []
+        for user in self.users:
+            userNums.append(user.num)
+        idx = userNums.index(userNum)
+        return self.users[idx]
+        # user = max(_user, key=lambda x: x[1])
+        # return self.getUserByAlignmentIdAndNum(user[0], user[1])
+
+    def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
+        """returns an user given its num and alignment"""
+        for user in self.getAlignmentById(alignmentIdx).vehicles:
+            if user.num == num:
+                return user
 
     def minDistanceChecked(self, leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
         """ checks if the minimum distance headway between two vehicles is verified
@@ -409,34 +420,12 @@ class World:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
                 if i <= h / timeStep < i + 1:
-                    ui.initUser(userNum, h)
+                    self.users.append(ui.initUser(userNum, h))
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
-
-    def convertSYtoXY(self):
-        """converts SY to XY for a set of vehicles in self"""
-        for al in self.alignments:
-            for user in al.vehicles:
-                if user.timeInterval is not None:
-                    user.positions = moving.Trajectory()
-                    user.velocities = moving.Trajectory()
-                    for cp in user.curvilinearPositions:
-                        user.positions.addPosition(
-                            moving.getXYfromSY(s=cp[0],
-                                               y=cp[1],
-                                               alignmentNum=cp[2],
-                                               alignments=[al.points]))
-                    for idx, cv in enumerate(user.curvilinearVelocities):
-                        user.velocities.addPosition(
-                            moving.getXYfromSY(s=cv[0],
-                                               y=cv[1],
-                                               alignmentNum=user.curvilinearPositions[idx][2],
-                                               alignments=[self.getAlignmentById(0).points]))
-                else:
-                    pass
 
     def getNotNoneVehiclesInWorld(self):
         """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
@@ -514,8 +503,40 @@ class World:
 
         return visitedAlignmentsCumulativeDistance
 
+    def getTravelledDistanceOnAlignment(self, user, t):
+        """returns the travelled distance of an user on its current alignment"""
+        visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
+        visitedAlignments.remove(user.curvilinearPositions.lanes[t])
+        s = 0
+        for indices in visitedAlignments:
+            s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+        userCurvilinearPositionAt = user.curvilinearPositions[t]
+        return userCurvilinearPositionAt - self.getVisitedAlignmentsCumulatedDistance(user)
+
+    def occupiedAlignmentLength(self, user):
+        """return the total length of the alignment occupied by an user = its last position"""
+        if user.curvilinearPositions is not None:
+            alignmentIdx = user.curvilinearPositions.getLaneAt(-1)
+            return self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
+        else:
+            return user.initialAlignmentIdx
+
+    @staticmethod
+    def hasBeenOnAlignment(user, alignmentIdx):
+        """determines if a vehicles has circulated on an alignment"""
+        return alignmentIdx in user.curvilinearPositions.lanes
+
+    def getPreviouslyOccupiedAlignmentsLength(self, user):
+        """returns the length of the alignments a vehicle has previously travelled on """
+        s = 0
+        if user.curvilinearPositions is not None:
+            alignmentIndices = list(set(user.curvilinearPositions.lanes))
+            for indices in alignmentIndices:
+                s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+        return s
+
     def moveUserToAlignment(self, user):
-        """ replaces every chunk of user.curvilinearPosition in the right alignment.vehicles
+        """replaces every chunk of user.curvilinearPosition in the right alignment.vehicles
         returns Boolean = True, if the user's trajectory has been chunked"""
         laneChange, laneChangeInstants, changesList = user.changedAlignment()
         if laneChange:
@@ -537,81 +558,41 @@ class World:
             alignmentIndices.pop(alignmentIndices.index(user.initialAlignmentIdx))
 
             # pour chaque alignement ou le vehicule passe, ajouter le vehicule
-
             for inter, alignmentIdx in zip(laneChange[1], alignmentIndices):
                 subUser = user.subTrajectoryInInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant()))
                 subUser.state = user.state
+                subUser.moved = False
                 self.getAlignmentById(alignmentIdx).vehicles.append(subUser)
 
-            #supprimer depuis le premier moment ou le cvehicule d=change d'alignement
+            # supprimer depuis le premier moment ou le vehicule change d'alignement
             instant = laneChange[1][0].first
             user.removeAttributesFromInstant(instant)
+            user.moved = True
 
     def replaceUsers(self):
         for userInput in self.userInputs:
             for user in userInput.alignment.vehicles:
                 self.replaceUserOnTravelledAlignments(user)
 
-    def getTravelledDistanceOnAlignment(self, user, t):
-        """returns the travelled distance of an user on its current alignment"""
-        visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
-        visitedAlignments.remove(user.curvilinearPositions.lanes[t])
-        s = 0
-        for indices in visitedAlignments:
-            s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
-        userCurvilinearPositionAt = user.curvilinearPositions[t]
-        return userCurvilinearPositionAt - self.getVisitedAlignmentsCumulatedDistance(user)
+    def assignUserToCorrespondingAlignment(self):
+        # TODO : verifier le resultat
+        # todo : ajouter condition if user.moved dans updatecurvilinearPositions et pour la recherche du leader
+        """assigns an user to its corresponding alignment"""
 
-    def occupiedAlignmentLength(self, user):
-        """return the total length of the alignment occupied by an user = its last position"""
-        if user.curvilinearPositions is not None:
-            alignmentIdx = user.curvilinearPositions.getLaneAt(-1)
-            return self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
-        else:
-            return user.initialAlignmentIdx
-
-    def getAlignmentById(self, idx):
-        """get an alignment given its id"""
-        try:
-            idList = [el.idx for el in self.alignments]
-            if idx not in idList:
-                print('wrong index number')
-            else:
-                for al in self.alignments:
-                    if al.idx == idx:
-                        return al
-        except:
-            print('alignment idx does not match any existing alignment')
-            return None
-
-    def getUserByNum(self, userNum):
-        """returns an user given its num"""
-        _user = []
-        for al in self.alignments:
-            _user.append((al.idx, self.getUserByAlignmentIdAndNum(al.idx, userNum).curvilinearPositions[-1][0]))
-        user = max(_user, key=lambda x: x[1])
-        return self.getUserByAlignmentIdAndNum(user[0], user[1])
-
-    def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
-        """returns an user given its num and alignment"""
-        for user in self.getAlignmentById(alignmentIdx).vehicles:
-            if user.num == num:
-                return user
-
-    @staticmethod
-    def hasBeenOnAlignment(user, alignmentIdx):
-        """determines if a vehicles has circulated on an alignment"""
-        return alignmentIdx in user.curvilinearPositions.lanes
-
-    def getPreviouslyOccupiedAlignmentsLength(self, user):
-        """returns the length of the alignments a vehicle has previously travelled on """
-        s = 0
-        if user.curvilinearPositions is not None:
-            alignmentIndices = list(set(user.curvilinearPositions.lanes))
-            for indices in alignmentIndices:
-                s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
-        return s
+        for user in self.users:
+            if user.curvilinearPositions is not None:
+                CP = user.curvilinearPositions[-1]
+                al = self.getAlignmentById(CP[2])
+                if user.num in al.getUsersNum():
+                    pass
+                else:
+                    al.vehicles.append(user)
+                    if len(user.curvilinearPositions) > 2:
+                        previousAl = self.getAlignmentById(user.curvilinearPositions.lanes[-2])
+                    else:
+                        previousAl = self.getAlignmentById(user.initialAlignmentIdx)
+                    previousAl.vehicles.remove(user)
 
     def isFirstGeneratedUser(self, user):
         """determines if an user is the first one that has been computed"""
@@ -741,20 +722,6 @@ class World:
         user = self.getUserByNum(userNum)
         user.state = 'stop'
 
-    def getControlDeviceById(self, idx):
-        """get an control device given its id"""
-        try:
-            idList = [el.idx for el in self.controlDevices]
-            if idx not in idList:
-                print('wrong index number')
-            else:
-                for cd in self.controlDevices:
-                    if cd.idx == idx:
-                        return cd
-        except:
-            print('controlDeviceIdx does not match any existing alignment')
-            return None
-
     def checkControlDevicesAtInstant(self, user, t, radius):
         """checks the state of controlDevices within a radius
         if controlDevice.state[t] == forward, user.state = forward, else user.state = stop"""
@@ -762,7 +729,7 @@ class World:
             if t - user.getFirstInstant() >= 0:
                 # print(t - user.getFirstInstant())
                 # print(user.curvilinearPositions)
-                al = self.getAlignmentById(user.curvilinearPositions.lanes[t - user.getFirstInstant() - 1])
+                al = self.getAlignmentById(user.curvilinearPositions.lanes[t - self.getFirstInstant() - 1])
                 if al.controlDeviceIndices:
                     for controlDeviceIdx in al.controlDeviceIndices:
                         if self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), t-1) is not None and self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), t-1) < radius:
@@ -793,6 +760,28 @@ class World:
                                 user.state = 'forward'
                         else:
                             user.state = 'forward'
+
+    def convertSYtoXY(self):
+        """converts SY to XY for a set of vehicles in self"""
+        for al in self.alignments:
+            for user in al.vehicles:
+                if user.timeInterval is not None:
+                    user.positions = moving.Trajectory()
+                    user.velocities = moving.Trajectory()
+                    for cp in user.curvilinearPositions:
+                        user.positions.addPosition(
+                            moving.getXYfromSY(s=cp[0],
+                                               y=cp[1],
+                                               alignmentNum=cp[2],
+                                               alignments=[al.points]))
+                    for idx, cv in enumerate(user.curvilinearVelocities):
+                        user.velocities.addPosition(
+                            moving.getXYfromSY(s=cv[0],
+                                               y=cv[1],
+                                               alignmentNum=user.curvilinearPositions[idx][2],
+                                               alignments=[self.getAlignmentById(0).points]))
+                else:
+                    pass
 
 
 class UserInput:
@@ -846,6 +835,7 @@ class UserInput:
         if len(self.alignment.vehicles) > 0:
             obj.leader = self.alignment.vehicles[-1]
         self.alignment.vehicles.append(obj)
+        return obj
 
     def getUserByNum(self, num):
         """gets an user by its id"""

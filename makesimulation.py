@@ -27,8 +27,7 @@ def run(world, simulationParameters):
     world.connectAlignments()
     world.getGraph()
     userNum = 0
-
-    # bar = Bar('Processing')
+    world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         print('simulation step {}'.format(i))
         for cd in world.controlDevices:
@@ -38,7 +37,9 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
-                    world.checkControlDevicesAtInstant(v, i, 200)
+                    # print(v.num, al.idx)
+                    # print(v.curvilinearPositions)
+                    # world.checkControlDevicesAtInstant(v, i, 200)
                     # world.comingThroughTraffic(v, i)
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
@@ -46,9 +47,9 @@ def run(world, simulationParameters):
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
-            # bar.next()
-
-    world.replaceUsers()
+        world.assignUserToCorrespondingAlignment()
+    #
+    # world.replaceUsers()
     #
     # for al in [world.getAlignmentById(0)]:
     #     for v in al.vehicles:
