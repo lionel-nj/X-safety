@@ -124,10 +124,24 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
+    def plotTrajectories(self):
+        import matplotlib.pyplot as plt
+        x = []
+        t = []
+        for idx, user in enumerate(self.vehicles):
+            t.append([])
+            x.append(user.curvilinearPositions.positions[0])
+            for time in range(user.getFirstInstant(), len(user.curvilinearPositions) + user.getFirstInstant()):
+                t[idx].append(time * .1)
+
+            plt.plot(t[idx], x[idx])
+        plt.show()
+
 
 class ControlDevice:
     """class for control deveices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
+
     def __init__(self, idx, initialState, category, alignmentIdx, redTime=None, greenTime=None):
         import copy
         self.idx = idx
@@ -144,9 +158,9 @@ class ControlDevice:
         self.remainingGreen = copy.deepcopy(greenTime)
         self.states = [self.initialState]
 
-    categories = {1:'stop',
-                2: 'traffic light',
-                3: 'yield'}
+    categories = {1: 'stop',
+                  2: 'traffic light',
+                  3: 'yield'}
 
     def getCharCategory(self):
         """returns a chain of character describing the category of self"""
@@ -234,6 +248,7 @@ class World:
             idList = [el.idx for el in self.alignments]
             if idx not in idList:
                 print('wrong alignment index({})'.format(idx))
+                print(idx)
             else:
                 for al in self.alignments:
                     if al.idx == idx:
@@ -453,28 +468,47 @@ class World:
                                 self.simulatedUsers[-1][-1][-1] = instant
                                 break
 
-    def connectAlignments(self):
-        """method to link the alignments: for a given alignment, it associates all the other alignments
-         that can be reached from it"""
-        import copy
-        for idx, al in enumerate(self.alignments):
-            _alignments = copy.deepcopy(self.alignments)
-            _alignments.pop(idx)
-            al.reachableAlignments = []
-            if not _alignments:
-                print('your world only has 1 alignment')
-                break
-            for other in _alignments:
-                if other.isStartOf(al.getLastPoint()):
-                    if other.isReachableFrom(al):
-                        al.reachableAlignments.append(other.idx)
+    # def connectAlignments(self):
+    #     """method to link the alignments: for a given alignment, it associates all the other alignments
+    #      that can be reached from it"""
+    #     import copy
+    #     for idx, al in enumerate(self.alignments):
+    #         _alignments = copy.deepcopy(self.alignments)
+    #         _alignments.pop(idx)
+    #         al.reachableAlignments = []
+    #         if not _alignments:
+    #             print('your world only has 1 alignment')
+    #             break
+    #         for other in _alignments:
+    #             if other.isStartOf(al.getLastPoint()):
+    #                 if other.isReachableFrom(al):
+    #                     al.reachableAlignments.append(other.idx)
 
     def getNextAlignment(self, user, instant, timeStep):
         """returns the next alignment an user will be assigned to, according to the instant"""
         if user.timeInterval is not None:
             if user.timeInterval.first <= instant + user.getFirstInstant():
                 occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
-                reachableAlignments = self.getAlignmentById(occupiedAlignmentAtBy).reachableAlignments
+                if self.getAlignmentById(occupiedAlignmentAtBy).connectedAlignmentIndices is not None:
+                    a = list(zip(self.getAlignmentById(occupiedAlignmentAtBy).connectedAlignmentIndices,
+                                               self.getAlignmentById(occupiedAlignmentAtBy).movementProportions))
+                    reachableAlignments = [idx[0] for idx in a if idx[1] != 0]
+
+                else:
+                    reachableAlignments = None
+
+                #
+                # reachableAlignments = list((i, proportion) for i, proportion in
+                #                            zip([world.getAlignmentById(3).connectedAlignmentIndices],
+                #                                [world.getAlignmentById(3).movementProportions]))
+                #                            i !=
+
+                # if reachableAlignments == [None]:
+                #     reachableAlignments = []
+                # else:
+                #
+                #     reachableAlignments = [alIndices[0] for alIndices in reachableAlignments]
+
                 nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell',
                                                                                        instant,
                                                                                        # + user.getFirstInstant() + 1,
@@ -483,7 +517,7 @@ class World:
                 if self.getVisitedAlignmentsCumulatedDistance(user) \
                         < nextPositionIfNoAlignmentChange:
                     if reachableAlignments:
-                        nextAlignment = reachableAlignments[0]
+                        nextAlignment = reachableAlignments[0] # todo: [0] a modifier selon la proportion des mouvements
                     else:
                         nextAlignment = None
                 else:
@@ -604,13 +638,14 @@ class World:
         """adds graph attribute to self"""
         import networkx as nx
         G = nx.Graph()
-        for k in range(len(self.alignments)+1):
+        for k in range(len(self.alignments) + 1):
             G.add_node(k)
         edgesProperties = []
         for al in self.alignments:
-            edgesProperties.append((al.graphCorrespondance[0], al.graphCorrespondance[1], al.points.cumulativeDistances[-1]))
+            edgesProperties.append(
+                (al.graphCorrespondance[0], al.graphCorrespondance[1], al.points.cumulativeDistances[-1]))
         G.add_weighted_edges_from(edgesProperties)
-        if self.controlDevices is not None :
+        if self.controlDevices is not None:
             for cdIdx, cd in enumerate(self.controlDevices):
                 controlDevice = "cd{}".format(cdIdx)
                 G.add_node(controlDevice)
@@ -632,11 +667,13 @@ class World:
 
                     user1DistanceUpstream = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
                     user1DistanceDownstream = \
-                        self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                        self.getAlignmentById(
+                            user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
                             -1] - user1DistanceUpstream
                     user2DistanceUpstream = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
                     user2DistanceDownstream = \
-                        self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                        self.getAlignmentById(
+                            user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
                             -1] - user2DistanceUpstream
 
                     G = self.graph
@@ -667,7 +704,8 @@ class World:
                 if user1CP == user2.alignmentIdx:
                     user1DistanceUpstream = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
                     user1DistanceDownstream = \
-                        self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                        self.getAlignmentById(
+                            user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
                             -1] - user1DistanceUpstream
 
                     G = self.graph
@@ -678,12 +716,14 @@ class World:
                     G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceUpstream)])
                     G.add_weighted_edges_from([('user1', user1Target, user1DistanceDownstream)])
 
-                    distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx), weight='weight')
+                    distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
+                                                       weight='weight')
                     G.remove_node('user1')
 
                     return distance
                 else:
-                    return print('Can not compute distance between control Device and user because they are not located on the same alignment')
+                    return print(
+                        'Can not compute distance between control Device and user because they are not located on the same alignment')
 
         elif type(user2) == moving.MovingObject and type(user1) == ControlDevice:
             user1, user2 = user2, user1
@@ -729,7 +769,11 @@ class World:
                 al = self.getAlignmentById(user.curvilinearPositions.lanes[t - self.getFirstInstant() - 1])
                 if al.controlDeviceIndices:
                     for controlDeviceIdx in al.controlDeviceIndices:
-                        if self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), t-1) is not None and self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), t-1) < radius:
+                        if self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx),
+                                                  t - 1) is not None and self.distanceAtInstant(user,
+                                                                                                self.getControlDeviceById(
+                                                                                                        controlDeviceIdx),
+                                                                                                t - 1) < radius:
                             if self.getControlDeviceById(controlDeviceIdx).getStateAt(t) == 'stop':
                                 user.state = 'stop'
                             else:

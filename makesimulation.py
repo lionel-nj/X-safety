@@ -24,7 +24,7 @@ def run(world, simulationParameters):
     for al in world.alignments:
         al.vehicles = []
 
-    world.connectAlignments()
+    # world.connectAlignments()
     world.getGraph()
     userNum = 0
     world.users = []
@@ -48,23 +48,15 @@ def run(world, simulationParameters):
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
                                                  previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
-        world.assignUserToCorrespondingAlignment()
-    #
-    # world.replaceUsers()
-    #
-    # for al in [world.getAlignmentById(0)]:
-    #     for v in al.vehicles:
-    #         world.moveUserToAlignment(v)
-
+            world.assignUserToCorrespondingAlignment()
     #
     # # display
     # plt.figure()
-    # for ui in world.userInputs:
-    #     for v in ui.alignment.vehicles:
+    # for al in world.alignments:
+    #     for v in al.vehicles:
     #         if v.timeInterval is not None:
     #             v.plotCurvilinearPositions()
-    # plt.xlabel('time(s/100)')
-    # plt.ylabel('longitudinal coordinate (m)')
-    # plt.show()
-
+    #     plt.xlabel('time(s/100)')
+    #     plt.ylabel('longitudinal coordinate (m)')
+    #     plt.show()
     return world
