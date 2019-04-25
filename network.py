@@ -608,10 +608,8 @@ class World:
                 self.replaceUserOnTravelledAlignments(user)
 
     def assignUserToCorrespondingAlignment(self):
-        # TODO : verifier le resultat
         # trouver le nouveau leader
         """assigns an user to its corresponding alignment"""
-
         for user in self.users:
             if user.curvilinearPositions is not None:
                 CP = user.curvilinearPositions[-1]
