@@ -609,6 +609,7 @@ class World:
 
     def assignUserToCorrespondingAlignment(self):
         # TODO : verifier le resultat
+        # trouver le nouveau leader
         """assigns an user to its corresponding alignment"""
 
         for user in self.users:
@@ -618,6 +619,8 @@ class World:
                 if user.num in al.getUsersNum():
                     pass
                 else:
+                    if user.leader is not None:
+                        user.leader = self.getUserByNum(user.leader.num)
                     al.vehicles.append(user)
                     if len(user.curvilinearPositions) > 2:
                         previousAl = self.getAlignmentById(user.curvilinearPositions.lanes[-2])
@@ -873,7 +876,13 @@ class UserInput:
         # utile?
         # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
 
+        if hasattr(self, 'generatedNum'):
+            self.generatedNum.append(obj.num)
+        else:
+            self.generatedNum = [obj.num]
+
         if len(self.alignment.vehicles) > 0:
+            # obj.leader = self.generatedNum[-1]
             obj.leader = self.alignment.vehicles[-1]
         self.alignment.vehicles.append(obj)
         return obj
