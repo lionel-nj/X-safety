@@ -666,37 +666,54 @@ class World:
                     user1CP = user1.getCurvilinearPositionAtInstant(instant)[2]
                     user2CP = user2.getCurvilinearPositionAtInstant(instant)[2]
 
-                    user1DistanceUpstream = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
-                    user1DistanceDownstream = \
-                        self.getAlignmentById(
-                            user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                            -1] - user1DistanceUpstream
-                    user2DistanceUpstream = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
-                    user2DistanceDownstream = \
-                        self.getAlignmentById(
-                            user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                            -1] - user2DistanceUpstream
+                    if user1CP != user2CP:
 
-                    G = self.graph
+                        user1DistanceUpstream = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
+                        if user1DistanceUpstream < self.getAlignmentById(
+                                user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                                -1]:
+                            user1DistanceDownstream = \
+                                self.getAlignmentById(
+                                    user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                                    -1] - user1DistanceUpstream
+                        else:
+                            return None
 
-                    G.add_node('user1')
-                    G.add_node('user2')
+                        user2DistanceUpstream = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
+                        if user2DistanceUpstream < self.getAlignmentById(
+                                user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                                -1]:
+                            user2DistanceDownstream = \
+                                self.getAlignmentById(
+                                    user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                                    -1] - user2DistanceUpstream
+                        else:
+                            return None
 
-                    user1Origin = self.getAlignmentById(user1CP).graphCorrespondance[0]
-                    user1Target = self.getAlignmentById(user1CP).graphCorrespondance[1]
-                    user2Origin = self.getAlignmentById(user2CP).graphCorrespondance[0]
-                    user2Target = self.getAlignmentById(user2CP).graphCorrespondance[1]
+                        G = self.graph
 
-                    G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceUpstream)])
-                    G.add_weighted_edges_from([('user1', user1Target, user1DistanceDownstream)])
+                        G.add_node('user1')
+                        G.add_node('user2')
 
-                    G.add_weighted_edges_from([(user2Origin, 'user2', user2DistanceUpstream)])
-                    G.add_weighted_edges_from([('user2', user2Target, user2DistanceDownstream)])
+                        user1Origin = self.getAlignmentById(user1CP).graphCorrespondance[0]
+                        user1Target = self.getAlignmentById(user1CP).graphCorrespondance[1]
+                        user2Origin = self.getAlignmentById(user2CP).graphCorrespondance[0]
+                        user2Target = self.getAlignmentById(user2CP).graphCorrespondance[1]
 
-                    distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
-                    G.remove_node('user1')
-                    G.remove_node('user2')
-                    return distance
+                        G.add_weighted_edges_from([(user1Origin, 'user1', user1DistanceUpstream)])
+                        G.add_weighted_edges_from([('user1', user1Target, user1DistanceDownstream)])
+
+                        G.add_weighted_edges_from([(user2Origin, 'user2', user2DistanceUpstream)])
+                        G.add_weighted_edges_from([('user2', user2Target, user2DistanceDownstream)])
+
+                        distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
+                        G.remove_node('user1')
+                        G.remove_node('user2')
+                        return distance
+
+                    else:
+                        return abs(user1.getCurvilinearPositionAtInstant(instant)[0] - user2.getCurvilinearPositionAtInstant(instant)[0])
+
                 else:
                     print('user do not coexist, therefore can not compute distance')
         elif type(user1) == moving.MovingObject and type(user2) == ControlDevice:
