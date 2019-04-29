@@ -47,7 +47,8 @@ def run(world, simulationParameters):
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
                                                  occupiedAlignmentLength=world.occupiedAlignmentLength(v),
-                                                 previouslyOccupiedAlignmentsLength=world.getPreviouslyOccupiedAlignmentsLength(v))
+                                                 previouslyOccupiedAlignmentsLength=world.getVisitedAlignmentLength(v))
+
             world.assignUserToCorrespondingAlignment()
     #
     # # display

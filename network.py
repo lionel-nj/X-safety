@@ -538,13 +538,13 @@ class World:
 
     def getTravelledDistanceOnAlignment(self, user, t):
         """returns the travelled distance of an user on its current alignment"""
-        visitedAlignments = list(set(user.curvilinearPositions.lanes[:t]))
-        visitedAlignments.remove(user.curvilinearPositions.lanes[t])
+        visitedAlignments = list(set(user.curvilinearPositions.lanes[:(t - user.getFirstInstant() + 1)]))
+        visitedAlignments.remove(user.curvilinearPositions.lanes[t - user.getFirstInstant()])
         s = 0
         for indices in visitedAlignments:
             s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
-        userCurvilinearPositionAt = user.curvilinearPositions[t]
-        return userCurvilinearPositionAt - self.getVisitedAlignmentsCumulatedDistance(user)
+        userCurvilinearPositionAt = user.getCurvilinearPositionAtInstant(t)[0]
+        return userCurvilinearPositionAt - s
 
     def occupiedAlignmentLength(self, user):
         """return the total length of the alignment occupied by an user = its last position"""
@@ -581,34 +581,6 @@ class World:
                 self.getAlignmentById(alignmentChange[-1]).addUserToAlignment(user.getObjectInTimeInterval(
                     moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
             return True
-
-    def replaceUserOnTravelledAlignments(self, user):
-        """removes parts of curvilinearPosition that doesn't belong to the correct alignment """
-        laneChange = user.changedAlignment()
-        if laneChange[0]:
-
-            # recuperer les alignments qui sont empruntés : alignmentIndices
-            alignmentIndices = []
-            for el in laneChange[-1]:
-                alignmentIndices.extend(el)
-                alignmentIndices = list(set(alignmentIndices))
-            alignmentIndices.pop(alignmentIndices.index(user.initialAlignmentIdx))
-
-            # pour chaque alignement ou le vehicule passe, ajouter le vehicule
-            for inter, alignmentIdx in zip(laneChange[1], alignmentIndices):
-                subUser = user.subTrajectoryInInterval(
-                    moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant()))
-                subUser.state = user.state
-                self.getAlignmentById(alignmentIdx).vehicles.append(subUser)
-
-            # supprimer depuis le premier moment ou le vehicule change d'alignement
-            instant = laneChange[1][0].first
-            user.removeAttributesFromInstant(instant)
-
-    def replaceUsers(self):
-        for userInput in self.userInputs:
-            for user in userInput.alignment.vehicles:
-                self.replaceUserOnTravelledAlignments(user)
 
     def assignUserToCorrespondingAlignment(self):
         # trouver le nouveau leader
@@ -670,15 +642,15 @@ class World:
                     user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
 
                     if user1AlignmentIdx == user2AlignmentIdx:
-                        return abs(user1.getDistanceOnAlignmentAtInstant(instant) - user2.getDistanceOnAlignmentAtInstant(instant))
+                        return abs(self.getTravelledDistanceOnAlignment(user1, instant) - self.getTravelledDistanceOnAlignment(user2, instant))
 
                     else:
-                        user1UpstreamDistance = user1.distanceOnAlignments[instant - user1.getFirstInstant()]
+                        user1UpstreamDistance = self.getTravelledDistanceOnAlignment(user1, instant)
                         user1DownstreamDistance = \
                             self.getAlignmentById(
                                 user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
                                 -1] - user1UpstreamDistance
-                        user2UpstreamDistance = user2.distanceOnAlignments[instant - user2.getFirstInstant()]
+                        user2UpstreamDistance = self.getTravelledDistanceOnAlignment(user2, instant)
                         user2DownstreamDistance = \
                             self.getAlignmentById(
                                 user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
