@@ -45,11 +45,8 @@ def run(world, simulationParameters):
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
-                                                 _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep),
-                                                 occupiedAlignmentLength=world.occupiedAlignmentLength(v),
-                                                 previouslyOccupiedAlignmentsLength=world.getVisitedAlignmentLength(v))
-
-            world.assignUserToCorrespondingAlignment()
+                                                 _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
+        world.assignUserToCorrespondingAlignment()
     #
     # # display
     # plt.figure()
