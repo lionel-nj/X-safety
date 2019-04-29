@@ -62,7 +62,6 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices: null
   controlDeviceIndices: null
-  cumulativeDistances: 500
   idx: 2
   graphCorrespondance:
     - 2
@@ -71,17 +70,13 @@ alignments:
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
-    - 200.0
-    - 500.0
+    - 15000.0
     distances:
-    - 200.0
-    - 300.0
+    - 15000.0
     positions:
     - - 800.0
-      - 1000.0
-      - 1300.0
+      - 15800.0
     - - 0.0
-      - 0.0
       - 0.0
   width: null
 
@@ -90,7 +85,6 @@ alignments:
   - 2
   - 4
   controlDeviceIndices: null
-  cumulativeDistances: 400
   idx: 3
   graphCorrespondance:
     - 3
@@ -154,9 +148,9 @@ userInputs:
       scale: 1
     headway: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: null
-      distributionName: expon
-      distributionType: theoric
+      degeneratedConstant: 20
+      distributionName: null
+      distributionType: degenerated
       loc: 1.5
       scale: 2.1
     length: !!python/object:network.Distribution
@@ -196,7 +190,7 @@ userInputs:
       distributionName: expon
       distributionType: theoric
       loc: 1.5
-      scale: 2.1
+      scale: 60000
     length: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
