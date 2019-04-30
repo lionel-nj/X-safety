@@ -1,10 +1,7 @@
 import numpy as np
 
-import network
-import simulation
-
-world = network.World.load('simple-net.yml')
-sim = simulation.Simulation.load('config.yml')
+# world = network.World.load('outputData/simple-net.yml')
+# sim = simulation.Simulation.load('inputData/config.yml')
 
 
 def run(world, simulationParameters):
