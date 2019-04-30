@@ -1,4 +1,4 @@
-!!python/object:network.World
+!!python/object:modules.network.World
 
 alignments:
 - !!python/object:network.Alignment
@@ -143,7 +143,7 @@ userInputs:
       scale: 1
     headway: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 20
+      degeneratedConstant: 30
       distributionName: null
       distributionType: degenerated
       loc: 1.5

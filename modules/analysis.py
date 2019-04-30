@@ -28,7 +28,7 @@ def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
     for al in world.alignments:
         for k in range(len(al.vehicles) - 1):
             if getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue):
-                minDistances.append((min(getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue)), al.vehicles[k].num, al.vehicles[k-1].num))
+                minDistances.append((min(getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue)), al.vehicles[k].num, al.vehicles[k-1].num), al.vehicles[k].curvilinearPositions[-1][2])
             # il manque deux éléments minDistance à rajouter à la liste : dernier de 2 et premier de 1 // dernier de 1 et premier de 0
     return minDistances
 
@@ -50,14 +50,13 @@ def getHeadwayValues(world):
     headways = []
     for al in world.alignments:
         for k in range(1, len(al.vehicles) - 1):
-            headways.append(min(getHeadway(world, al.vehicles[k].num, al.vehicles[k+1].num)))
+            headways.append(getHeadway(world, al.vehicles[k].num, al.vehicles[k+1].num))
+    return headways
 
 
-def ttcValueAt(world, user0num, user1num, t):
+def ttcValueAt(world, user0, user1, t):
     # si vitesse suiveur > vitesse leader à instant t: alors ttc = (xleader-xfollo-leaderLength)/(Vfollower - Vleader) ,
     # plutot que les xi on utilisera la fonction de distance implmentée dans la classe World
-    user0 = world.getUserByNum(user0num)
-    user1 = world.getUserByNum(user1num)
     if t >= min(user0.getFirstInstant(), user1.getFirstInstant()):
         v0 = user0.getCurvilinearVelocityAtInstant(t)[0]
         v1 = user1.getCurvilinearVelocityAtInstant(t)[0]
@@ -66,10 +65,12 @@ def ttcValueAt(world, user0num, user1num, t):
             return ttc
 
 
-def getTTCvalues(world, user0, user1):
-    inter = moving.Interval.intersection(user0.timeInterval, user1.timeInterval)
+def getTTCValues(world, user0, user1):
+    inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
     ttc = []
-    for t in list(inter):
+    inter = list(inter)
+    inter.pop()
+    for t in inter:
         ttc.append(ttcValueAt(world, user0, user1, t))
     ttc = list(filter(None, ttc))
     return ttc
@@ -78,11 +79,12 @@ def getTTCvalues(world, user0, user1):
 def getTTCValuesForEachPairOfVehicles(world):
     ttc = []
     minTTCValues = []
-    for al in world:
-        for k in range(0,len(al.vehicles)):
-            ttc.append(getTTCvalues(world, al.vehicles[k], al.vehicles[k - 1]))
+    for al in world.alignments:
+        for k in range(0, len(al.vehicles)):
+            ttc.append(getTTCValues(world, al.vehicles[k], al.vehicles[k - 1]))
     for el in ttc:
-        minTTCValues.append(min(el))
+        if el:
+            minTTCValues.append(min(el))
     return ttc, minTTCValues
 
 
