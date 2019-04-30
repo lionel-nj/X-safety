@@ -28,7 +28,7 @@ def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
     for al in world.alignments:
         for k in range(len(al.vehicles) - 1):
             if getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue):
-                minDistances.append(min(getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue)))
+                minDistances.append((min(getDistanceValuesBetweenUsers(world, al.vehicles[k].num, al.vehicles[k+1].num, minCoexistenceDurationValue)), al.vehicles[k].num, al.vehicles[k-1].num))
             # il manque deux éléments minDistance à rajouter à la liste : dernier de 2 et premier de 1 // dernier de 1 et premier de 0
     return minDistances
 
