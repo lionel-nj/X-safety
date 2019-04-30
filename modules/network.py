@@ -1,5 +1,4 @@
 import itertools
-import math
 
 from trafficintelligence import moving, utils
 
@@ -301,50 +300,23 @@ class World:
             if user.num == num:
                 return user
 
-    def minDistanceChecked(self, leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
+    def minDistanceChecked(self, user0, user1, t, dmin):
         """ checks if the minimum distance headway between two vehicles is verified
         in a car following situation : i is the leader vehicle and j is the following vehicle"""
-
-        tempLeader = self.getAlignmentById(leaderAlignmentIdx).vehicles[i]
-        tempFollower = self.getAlignmentById(followerAlignmentIdx).vehicles[j]
-        if tempLeader.timeInterval.first > tempFollower.timeInterval.first:
-            leader = tempFollower
-            follower = tempLeader
-        else:
-            leader = tempLeader
-            follower = tempFollower
-        if moving.Interval.intersection(leader.timeInterval,
-                                        follower.timeInterval) is not None and leader.timeInterval.contains(t):
-            if leaderAlignmentIdx == followerAlignmentIdx:
-                d = UserInput.distanceGap(leader.getCurvilinearPositionAtInstant(t)[0],
-                                          follower.getCurvilinearPositionAtInstant(t)[0],
-                                          leader.geometry)
-                if d >= dmin:
-                    return True
+        d = self.distanceAtInstant(user0, user1, t)
+        if d:
+            if d >= dmin:
+                return True
+            else:
                 return False
 
-            else:
-                angle = self.getAlignmentById(leaderAlignmentIdx).angleAtCrossingPoint(
-                    self.getAlignmentById(followerAlignmentIdx))
-                d1 = leader.curvilinearPositions[t][0] - self.getAlignmentById(
-                    leaderAlignmentIdx).distanceToCrossingPoint
-                d2 = follower.curvilinearPositions[t][0] - self.getAlignmentById(
-                    followerAlignmentIdx).distanceToCrossingPoint
-                d = ((d1 ** 2) + (d2 ** 2) - (2 * d1 * d2 * math.cos(angle))) ** 0.5  # loi des cosinus
-                if d >= dmin:
-                    return True
-                else:
-                    return False
-        else:
-            return True
-
-    def isAnEncounter(self, leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
+    def isAnEncounter(self, leaderAlignmentIdx, followerAlignmentIdx, user0, user1, t, dmin):
         """ checks if there is an encounter between two vehicules
         leaderAlignmentIdx and followerAlignmentIdx are integers
         i,j : integers
         t : time, integer
         dmin : float  """
-        if self.minDistanceChecked(leaderAlignmentIdx, followerAlignmentIdx, i, j, t, dmin):
+        if self.minDistanceChecked(leaderAlignmentIdx, followerAlignmentIdx, user0, user1, t, dmin):
             return False
         else:
             return True
@@ -353,10 +325,6 @@ class World:
         """ counts according to the selected method (cross or in line)
          the number of interactions taking place at a distance smaller than dmin.
         """
-
-        # {(26,27):[1,1,1,0,0,0,1,1,1]
-        #  (27,28):[1,1,1,0,0,0,1,1,1]}
-
         if method == "inLine":
             vehList = []
             for user in self.getAlignmentById(alignmentIdx).vehicles:
