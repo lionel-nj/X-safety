@@ -291,8 +291,6 @@ class World:
             userNums.append(user.num)
         idx = userNums.index(userNum)
         return self.users[idx]
-        # user = max(_user, key=lambda x: x[1])
-        # return self.getUserByAlignmentIdAndNum(user[0], user[1])
 
     def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
         """returns an user given its num and alignment"""
@@ -310,77 +308,65 @@ class World:
             else:
                 return False
 
-    def isAnEncounter(self, leaderAlignmentIdx, followerAlignmentIdx, user0, user1, t, dmin):
+    def isAnEncounter(self, user0, user1, t, dmin):
         """ checks if there is an encounter between two vehicules
         leaderAlignmentIdx and followerAlignmentIdx are integers
         i,j : integers
         t : time, integer
         dmin : float  """
-        if self.minDistanceChecked(leaderAlignmentIdx, followerAlignmentIdx, user0, user1, t, dmin):
-            return False
-        else:
-            return True
+        if self.minDistanceChecked(user0, user1, t, dmin) is not None:
+            if self.minDistanceChecked(user0, user1, t, dmin):
+                return False
+            else:
+                return True
 
-    def count(self, method, dmin, alignmentIdx=None):
-        """ counts according to the selected method (cross or in line)
+    def getInteractionsDuration(world, dmin, inLine=False, crossing=False):
+        """ counts according to the selected method (cross or inLine)
          the number of interactions taking place at a distance smaller than dmin.
         """
-        if method == "inLine":
-            vehList = []
-            for user in self.getAlignmentById(alignmentIdx).vehicles:
-                if user.timeInterval is not None:
-                    vehList.append(user)
-
-            rows = len(vehList)
-            result = {}
-
-            for h in range(4, rows - 1):
-                commonInterval = self.getAlignmentById(alignmentIdx).vehicles[h].commonTimeInterval(
-                    self.getAlignmentById(alignmentIdx).vehicles[h + 1])
-                result[(h, h + 1)] = []
-                for t in commonInterval:
-                    if self.isAnEncounter(alignmentIdx, alignmentIdx, h, h + 1, t, dmin):
-                        result[(h, h + 1)].append(1)
+        if inLine and not crossing:
+            for uiIdx, ui in enumerate(world.userInputs):
+                result = {}
+                for h in range(0, len(ui.alignment.vehicles) - 1):
+                    if moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval) is not None:
+                        inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
+                        result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)] = []
+                        for t in list(inter):
+                            if inter.last >= t >= inter.first:
+                                if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
+                                    result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
+                                else:
+                                    result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
+                            else:
+                                return None
                     else:
-                        result[(h, h + 1)].append(0)
-
+                        return None
             return result
 
-        elif method == "crossing":
-
-            vehList = [[], []]
-
-            for el in self.getAlignmentById(0).vehicles:
-                if el.timeInterval is not None:
-                    vehList[0].append(el)
-
-            for el in self.getAlignmentById(1).vehicles:
-                if el.timeInterval is not None:
-                    vehList[1].append(el)
-
-            rows = len(vehList[0])
-            columns = len(vehList[1])
-            interactionTime = []
-            totalNumberOfCrossingEncounters = 0
-
-            for h in range(rows):
-                interactionTime.append([])
-                for v in range(columns):
-                    interactionTime[h].append([])
-                    follower = self.getAlignmentById(1).vehicles[v].getLeader(self.getAlignmentById(1).vehicles[v])
-
-                    for t in range(follower.timeInterval.first, follower.timeInterval.last + 1):
-                        if self.isAnEncounter(0, 1, h, v, t, dmin):
-                            interactionTime[h][v].append(1)
-                        else:
-                            interactionTime[h][v].append(0)
-
-                    numberOfEncounters = toolkit.countElementInList(interactionTime[h][v], 1)  #
-                    totalNumberOfCrossingEncounters += numberOfEncounters
-            return totalNumberOfCrossingEncounters
+        elif crossing and not inLine:
+            pass
+            # vehList = [ui.alignment.vehicles for ui in self.userInputs]
+            # interactionTime = []
+            # totalNumberOfCrossingEncounters = 0
+            #
+            # for h in range(vehList[0]):
+            #     interactionTime.append([])
+            #     for v in range(vehList[1]):
+            #         interactionTime[h].append([])
+            #         follower = self.getAlignmentById(1).vehicles[v].getLeader(self.getAlignmentById(1).vehicles[v])
+            #
+            #         for t in range(follower.timeInterval.first, follower.timeInterval.last + 1):
+            #             if self.isAnEncounter(0, 1, h, v, t, dmin):
+            #                 interactionTime[h][v].append(1)
+            #             else:
+            #                 interactionTime[h][v].append(0)
+            #
+            #         numberOfEncounters = toolkit.countElementInList(interactionTime[h][v], 1)  #
+            #         totalNumberOfCrossingEncounters += numberOfEncounters
+            # return totalNumberOfCrossingEncounters
 
         else:
-            print('error in method name')
+            print('error in method name, method name should be "inline" or "crossing"')
 
     def countAllEncounters(self, vehiclesData, dmin):
         """counts the encounters in a world

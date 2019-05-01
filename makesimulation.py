@@ -1,8 +1,9 @@
+import matplotlib.pyplot as plt
 import numpy as np
+
 
 # world = network.World.load('outputData/simple-net.yml')
 # sim = simulation.Simulation.load('inputData/config.yml')
-
 
 def run(world, simulationParameters):
 
@@ -43,15 +44,15 @@ def run(world, simulationParameters):
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
-        world.assignUserToCorrespondingAlignment()
+        # world.assignUserToCorrespondingAlignment()
     #
-    # # display
-    # plt.figure()
-    # for al in world.alignments:
-    #     for v in al.vehicles:
-    #         if v.timeInterval is not None:
-    #             v.plotCurvilinearPositions()
-    #     plt.xlabel('time(s/100)')
-    #     plt.ylabel('longitudinal coordinate (m)')
-    #     plt.show()
+    # display
+    plt.figure()
+    for al in world.alignments:
+        for v in al.vehicles:
+            if v.timeInterval is not None:
+                v.plotCurvilinearPositions()
+        plt.xlabel('time(s/100)')
+        plt.ylabel('longitudinal coordinate (m)')
+        plt.show()
     return world
