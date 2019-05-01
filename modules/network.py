@@ -341,8 +341,8 @@ class World:
                                 return None
                     else:
                         return None
-                    for pair in result:
-                        result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
+            for pair in result:
+                result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
             return result
 
         elif crossing and not inLine:
