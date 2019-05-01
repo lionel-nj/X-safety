@@ -341,6 +341,8 @@ class World:
                                 return None
                     else:
                         return None
+                    for pair in result:
+                        result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
             return result
 
         elif crossing and not inLine:
@@ -376,10 +378,10 @@ class World:
         totalNumberOfEncounters = []
 
         for alignment in self.alignments:
-            totalNumberOfEncounters.append(self.count(method="inLine", vehiclesData=vehiclesData,
+            totalNumberOfEncounters.append(self.getInteractionsDuration(method="inLine", vehiclesData=vehiclesData,
                                                       alignmentIdx=alignment.idx, dmin=dmin))
 
-        totalNumberOfEncounters.append(self.count(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
+        totalNumberOfEncounters.append(self.getInteractionsDuration(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
 
         return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
