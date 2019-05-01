@@ -325,8 +325,8 @@ class World:
          the number of interactions taking place at a distance smaller than dmin.
         """
         if inLine and not crossing:
+            result = {}
             for uiIdx, ui in enumerate(world.userInputs):
-                result = {}
                 for h in range(0, len(ui.alignment.vehicles) - 1):
                     if moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval) is not None:
                         inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
