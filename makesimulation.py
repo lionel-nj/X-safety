@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -27,7 +26,7 @@ def run(world, simulationParameters):
     userNum = 0
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
-        print('simulation step {}'.format(i))
+        # print('simulation step {}'.format(i))
         if world.controlDevices is not None:
             for cd in world.controlDevices:
                 cd.cycle()
@@ -47,12 +46,12 @@ def run(world, simulationParameters):
         # world.assignUserToCorrespondingAlignment()
     #
     # display
-    plt.figure()
-    for al in world.alignments:
-        for v in al.vehicles:
-            if v.timeInterval is not None:
-                v.plotCurvilinearPositions()
-        plt.xlabel('time(s/100)')
-        plt.ylabel('longitudinal coordinate (m)')
-        plt.show()
+    # plt.figure()
+    # for ui in world.userInputs:
+    #     for v in ui.alignment.vehicles:
+    #         if v.timeInterval is not None:
+    #             v.plotCurvilinearPositions()
+    #     plt.xlabel('time(s/100)')
+    #     plt.ylabel('longitudinal coordinate (m)')
+    #     plt.show()
     return world

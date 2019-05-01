@@ -320,32 +320,28 @@ class World:
             else:
                 return True
 
-    def getInteractionsDuration(world, dmin, inLine=False, crossing=False):
+    def getInteractionsDuration(self, dmin, inLine=False):
         """ counts according to the selected method (cross or inLine)
          the number of interactions taking place at a distance smaller than dmin.
         """
-        if inLine and not crossing:
+        if inLine:
             result = {}
-            for uiIdx, ui in enumerate(world.userInputs):
+            for uiIdx, ui in enumerate(self.userInputs):
                 for h in range(0, len(ui.alignment.vehicles) - 1):
-                    if moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval) is not None:
+                    if ui.alignment.vehicles[h].timeInterval is not None and ui.alignment.vehicles[h+1].timeInterval is not None:
                         inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
                         result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)] = []
                         for t in list(inter):
                             if inter.last >= t >= inter.first:
-                                if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
+                                if self.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
                                     result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
                                 else:
                                     result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
-                            else:
-                                return None
-                    else:
-                        return None
             for pair in result:
                 result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
             return result
 
-        elif crossing and not inLine:
+        elif not inLine:
             pass
             # vehList = [ui.alignment.vehicles for ui in self.userInputs]
             # interactionTime = []

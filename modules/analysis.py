@@ -9,20 +9,19 @@ from trafficintelligence import moving
 
 def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationValue, plot=False, withTrajectories=False):
     """script to get distance between a pair of vehicles in a car following situation """
-    # todo : dostrings
-    inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
-    if len(list(inter)) >= minCoexistenceDurationValue:
-        d = []
-        for t in range(inter.first, inter.last+1):
-            d.append(world.distanceAtInstant(user0, user1, t))
-            if plot:
-                plt.plot(list(moving.TimeInterval(inter.first, inter.last+1), d))
-                if withTrajectories:
-                    user0.plotCurvilinearPositions()
-                    user1.plotCurvilinearPositions()
-        return d
-    else:
-        print("vehicles do not meet the coexistence duration condition therefore program will not compute distance list")
+    # todo : docstrings
+    if user0.timeInterval is not None and user1.timeInterval is not None:
+        inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
+        if len(list(inter)) >= minCoexistenceDurationValue:
+            d = []
+            for t in range(inter.first, inter.last+1):
+                d.append(world.distanceAtInstant(user0, user1, t))
+                if plot:
+                    plt.plot(list(moving.TimeInterval(inter.first, inter.last+1), d))
+                    if withTrajectories:
+                        user0.plotCurvilinearPositions()
+                        user1.plotCurvilinearPositions()
+            return d
 
 
 def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
@@ -31,8 +30,7 @@ def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
     for ui in world.userInputs:
         for k in range(len(ui.alignment.vehicles) - 1):
             if getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue):
-                minDistances.append((min(getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue)), ui.alignment.vehicles[k].num, ui.alignment.vehicles[k+1].num))
-            # il manque deux éléments minDistance à rajouter à la liste : dernier de 2 et premier de 1 // dernier de 1 et premier de 0
+                minDistances.append(min(getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue)))
     return minDistances
 
 
@@ -44,16 +42,18 @@ def speedDifferentialAtMinDistanceValueIndex(world, minCoexistenceDurationValue,
     pass
 
 
-def getHeadway(world, user0num, user1num):
-    h = abs(world.getUserByNum(user0num).timeAtS0 - world.getUserByNum(user1num).timeAtS0)
-    return h
+def getHeadway(user0, user1):
+    if user0.timeAtS0 and user1.timeAtS0:
+        h = abs(user0.timeAtS0 - user1.timeAtS0)
+        return h
 
 
 def getHeadwayValues(world):
     headways = []
     for ui in world.userInputs:
-        for k in range(1, len(ui.alignment.vehicles) - 1):
-            headways.append(getHeadway(world, ui.alignment.vehicles[k].num, ui.alignment.vehicles[k+1].num))
+        for k in range(0, len(ui.alignment.vehicles) - 1):
+            if getHeadway(ui.alignment.vehicles[k], ui.alignment.vehicles[k+1]):
+                headways.append(getHeadway(ui.alignment.vehicles[k], ui.alignment.vehicles[k+1]))
     return headways
 
 
@@ -91,8 +91,8 @@ def getTTCValuesForEachPairOfVehicles(world):
     return ttc, minTTCValues
 
 
-def getHist(values, xlabel, ylabel):
-    """script to get min distance value histogram"""
+def hist(values, xlabel, ylabel):
+    """script histogram"""
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.hist(values)

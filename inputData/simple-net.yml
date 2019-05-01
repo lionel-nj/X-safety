@@ -143,10 +143,10 @@ userInputs:
       scale: 1
     headway: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 30
-      distributionName: null
-      distributionType: degenerated
-      loc: 1.5
+      degeneratedConstant: null
+      distributionName: expon
+      distributionType: theoric
+      loc: 1
       scale: 2.1
     length: !!python/object:network.Distribution
       cdf: null
@@ -169,42 +169,3 @@ userInputs:
       distributionType: theoric
       loc: 2
       scale: 0.5
-- !!python/object:network.UserInput
-  alignmentIdx: 3
-  distributions:
-    dn: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
-      loc: 8.333333
-      scale: 1
-    headway: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: 30
-      distributionName: null
-      distributionType: degenerated
-      loc: 1.5
-      scale: 2.1
-    length: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
-      loc: 7
-      scale: 1
-    speed: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
-      loc: 14
-      scale: 3
-    tau: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
-      loc: 2
-      scale: 0.5
-
