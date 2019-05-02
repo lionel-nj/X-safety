@@ -35,8 +35,6 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.vehicles is not None:
                 for v in al.vehicles:
-                    # print(v.num, al.idx)
-                    # print(v.curvilinearPositions)
                     # world.checkControlDevicesAtInstant(v, i, 200)
                     # world.comingThroughTraffic(v, i)
                     v.updateCurvilinearPositions(method="newell",

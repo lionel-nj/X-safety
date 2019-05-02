@@ -19,10 +19,10 @@ def saveYaml(filename, data):
         yaml.dump(data, outfile, default_flow_style=False, Dumper=Dumper)
 
 
-def copyYaml(filename, newname):
+def copyYaml(filename, newName):
     """copies a yaml file"""
     data = loadYaml(filename)
-    saveYaml(newname, data)
+    saveYaml(newName, data)
 
 
 def updateYaml(filename, element, key):
@@ -45,48 +45,48 @@ def deleteElementFromYaml(filename, key):
         print("the key requested does not exist in the yaml file")
 
 
-def generateDistribution(data):
+def generateDistribution(dataFile):
     """generates a distribution from a set of data"""
     'input : fichier csv'
-    with open(data, 'r') as f:
-        liste = csv.reader(f)
-        a = list(liste)
+    with open(dataFile, 'r') as f:
+        data = csv.reader(f)
+        a = list(data)
 
     # initialisations
-    tiv = []
-    tivprob = []
+    value = []
+    prob = []
 
-    # completion de la liste des tiv
+    # completion de la liste des value
     for k in range(0, len(a)):
-        tiv = tiv + [float(a[k][0])]
+        value = value + [float(a[k][0])]
 
     # suppression des zéros
-    tiv = [i for i in tiv if i != 0]
+    value = [i for i in value if i != 0]
 
-    # tri de la liste des tiv
-    tiv = sorted(tiv)
+    # tri de la liste des value
+    value = sorted(value)
 
     # comptage des élément  = > obtention des fréquences
 
-    count = list(collections.Counter(tiv).values())
+    count = list(collections.Counter(value).values())
 
     # frequences
     for k in range(0, len(count)):
-        tivprob = tivprob + [count[k] / len(tiv)]
+        prob = prob + [count[k] / len(value)]
 
-    # suppression des doublons de la liste des tiv
-    tiv = sorted(list(set(tiv)))
+    # suppression des doublons de la liste des value
+    value = sorted(list(set(value)))
 
     # mettre la probabilite de 0 à 0
-    tiv = [0] + tiv
-    tivprob = [0] + tivprob
+    value = [0] + value
+    prob = [0] + prob
 
     # cumul des probabilités
-    tivprobcum = list(itertools.accumulate(tivprob))
+    probcum = list(itertools.accumulate(prob))
 
     # generation d'un échantillon
-    saveYaml('tiv.yml', tiv)
-    saveYaml('tiv_prob_cum.yml', tivprobcum)
+    saveYaml('value.yml', value)
+    saveYaml('value_prob_cum.yml', probcum)
 
 
 def saveHeadwaysAsIntervals(sample, simDuration):
@@ -119,6 +119,8 @@ def changeVolumeOnVehicleInput(worldFile, newVolume, alignmentIdx):
     worldFile.vehicleInputs[alignmentIdx].volume = newVolume
 
 # set of function to be implmented/insipired of in order to perform crossing behaviours ###
+
+
 def lossOfTime(beta, tnr):
     import math
     return beta * (math.exp(tnr / beta) - (1 + tnr / beta))
@@ -138,7 +140,8 @@ def timeGap(worldFile, rowVehicle, rowVehicleAlignmentId, time):
     return gap
 ##########################################################################################
 
-def find_nearest(a, a0):
+
+def findNearest(a, a0):
     """"Element in nd array `a` closest to the scalar value `a0`"""
     idx = np.abs(a - a0).argmin()
     return a.flat[idx]
