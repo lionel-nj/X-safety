@@ -65,30 +65,34 @@ def ttcValueAt(world, simParam, user0, user1, t):
         v1 = user1.getCurvilinearVelocityAtInstant(t)[0]
         if v1 > v0:
             ttc = world.distanceAtInstant(user0, user1, t) - user0.geometry/((v1-v0)/simParam.timeStep)
-            return ttc
+            return ttc, t
 
 
 def getTTCValues(world, simParam, user0, user1):
     inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
     ttc = []
+    timeList = []
     inter = list(inter)
     inter.pop()
     for t in inter:
-        ttc.append(ttcValueAt(world, simParam, user0, user1, t))
+        ttc.append(ttcValueAt(world, simParam, user0, user1, t)[0])
+        timeList.append(ttcValueAt(world, simParam, user0, user1, t)[1])
     ttc = list(filter(None, ttc))
-    return ttc
+    return ttc, timeList
 
 
 def getTTCValuesForEachPairOfVehicles(world):
     ttc = []
+    timeList = []
     minTTCValues = []
     for ui in world.userInputs:
         for k in range(0, len(ui.alignment.vehicles)):
-            ttc.append(getTTCValues(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1]))
+            ttc.append(getTTCValues(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])[0])
+            timeList.append(getTTCValues(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])[1])
     for el in ttc:
         if el:
             minTTCValues.append(min(el))
-    return ttc, minTTCValues
+    return ttc, minTTCValues, timeList
 
 
 def hist(values, xlabel, ylabel):
