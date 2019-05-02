@@ -64,34 +64,42 @@ def ttcValueAt(world, simParam, user0, user1, t):
         v0 = user0.getCurvilinearVelocityAtInstant(t)[0]
         v1 = user1.getCurvilinearVelocityAtInstant(t)[0]
         if v1 > v0:
-            ttc = world.distanceAtInstant(user0, user1, t) - user0.geometry/((v1-v0)/simParam.timeStep)
+            ttc = (world.distanceAtInstant(user0, user1, t) - user0.geometry)/((v1-v0)/simParam.timeStep)
             return ttc, t
 
 
 def getTTCValues(world, simParam, user0, user1):
-    inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
-    ttc = []
-    timeList = []
-    inter = list(inter)
-    inter.pop()
-    for t in inter:
-        ttc.append(ttcValueAt(world, simParam, user0, user1, t)[0])
-        timeList.append(ttcValueAt(world, simParam, user0, user1, t)[1])
-    ttc = list(filter(None, ttc))
-    return ttc, timeList
+    if user0.timeInterval is not None and user1.timeInterval is not None:
+        inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
+        ttc = []
+        timeList = []
+        inter = list(inter)
+        inter.pop()
+        for t in inter:
+            val = ttcValueAt(world, simParam, user0, user1, t)
+            if val:
+                ttc.append(val[0])
+                timeList.append(val[1])
+        ttc = list(filter(None, ttc))
+        return ttc, timeList
 
 
-def getTTCValuesForEachPairOfVehicles(world):
+def getTTCValuesForEachPairOfVehicles(world, simParam, plot=False):
     ttc = []
     timeList = []
     minTTCValues = []
     for ui in world.userInputs:
         for k in range(0, len(ui.alignment.vehicles)):
-            ttc.append(getTTCValues(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])[0])
-            timeList.append(getTTCValues(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])[1])
+            val = getTTCValues(world, simParam, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])
+            if val:
+                ttc.append(val[0])
+                timeList.append(val[1])
     for el in ttc:
         if el:
             minTTCValues.append(min(el))
+    if plot:
+        for idx in range(len(ttc)):
+            plt.plot(timeList[idx], ttc[idx])
     return ttc, minTTCValues, timeList
 
 
@@ -105,6 +113,8 @@ def hist(values, xlabel, ylabel):
 
 def countInteractions(world, user0, user1):
     pass
+
+
 
 #
 #
