@@ -16,11 +16,11 @@ def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationVal
             d = []
             for t in range(inter.first, inter.last+1):
                 d.append(world.distanceAtInstant(user0, user1, t))
-                if plot:
-                    plt.plot(list(moving.TimeInterval(inter.first, inter.last+1), d))
-                    if withTrajectories:
-                        user0.plotCurvilinearPositions()
-                        user1.plotCurvilinearPositions()
+            if plot:
+                plt.plot(list(moving.TimeInterval(inter.first, inter.last+1)), d)
+                if withTrajectories:
+                    user0.plotCurvilinearPositions()
+                    user1.plotCurvilinearPositions()
             return d
 
 
