@@ -34,26 +34,10 @@ def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
     return minDistances
 
 
-def getMinDistanceValueIndex(world, minCoexistenceDurationValue, user0num, user1num):
-    pass
-
-
-def speedDifferentialAtMinDistanceValueIndex(world, minCoexistenceDurationValue, user0num, user1num,):
-    pass
-
-
-def getHeadway(user0, user1):
-    if user0.timeAtS0 and user1.timeAtS0:
-        h = abs(user0.timeAtS0 - user1.timeAtS0)
-        return h
-
-
 def getHeadwayValues(world):
     headways = []
     for ui in world.userInputs:
-        for k in range(0, len(ui.alignment.vehicles) - 1):
-            if getHeadway(ui.alignment.vehicles[k], ui.alignment.vehicles[k+1]):
-                headways.append(getHeadway(ui.alignment.vehicles[k], ui.alignment.vehicles[k+1]))
+        headways.append(ui.headways[0:len(ui.alignment.vehicles)])
     return headways
 
 
