@@ -1365,7 +1365,6 @@ class MovingObject(STObject, VideoFilenameAddable):
         self.initialCumulatedHeadway = initialCumulatedHeadway
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment
-        self.distanceOnAlignments = []
         self.state = state
 
     def computeNextCurvilinearPositions(self, method, instant, timeStep, _nextAlignmentIdx=None, maxSpeed=None,
@@ -1432,36 +1431,43 @@ class MovingObject(STObject, VideoFilenameAddable):
                     s2 = min(freeFlowCoord, constrainedCoord)
                     return s2
 
-    def updateCurvilinearPositions(self, method, instant, timeStep, _nextAlignmentIdx = None, maxSpeed = None, acceleration = None):
+    def updateCurvilinearPositions(self, method, instant, timeStep, _nextAlignmentIdx=None, maxSpeed=None,
+                                   acceleration=None):
         '''Update curvilinear position of user at new instant'''
 
         if method == 'newell':
-            if self.curvilinearPositions is None: # vehicle without positions
+            if self.curvilinearPositions is None:  # vehicle without positions
                 if self.timeAtS0 is None:
                     if self.leader is None:
                         self.timeAtS0 = self.initialCumulatedHeadway
-                    elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(-1) > self.d and len(self.leader.curvilinearPositions) >=2:
+                    elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(
+                            -1) > self.d and len(self.leader.curvilinearPositions) >= 2:
                         firstInstantAfterD = self.leader.getLastInstant()
-                        while self.leader.existsAtInstant(firstInstantAfterD) and self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD-1)[0] > self.d:# find first instant after d
-                            firstInstantAfterD -= 1 # if not recorded position before self.d, we extrapolate linearly from first known position
-                        leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD-1)[0]
-                        self.timeAtS0 = self.tau + firstInstantAfterD*timeStep - (self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[0]-self.d)*timeStep/leaderSpeed # second part is the time at which leader is at self.d
-                        if self.timeAtS0 < self.initialCumulatedHeadway: #obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
+                        while self.leader.existsAtInstant(firstInstantAfterD) and \
+                                self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[
+                                    0] > self.d:  # find first instant after d
+                            firstInstantAfterD -= 1  # if not recorded position before self.d, we extrapolate linearly from first known position
+                        leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD - 1)[0]
+                        self.timeAtS0 = self.tau + firstInstantAfterD * timeStep - (
+                                    self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[
+                                        0] - self.d) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
+                        if self.timeAtS0 < self.initialCumulatedHeadway:  # obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
                             self.timeAtS0 = self.initialCumulatedHeadway
-                elif instant*timeStep > self.timeAtS0:
-                    #firstInstant = int(ceil(self.timeAtS0/timeStep))# this first instant is instant by definition
-                    leaderInstant = instant-self.tau/timeStep
+                elif instant * timeStep > self.timeAtS0:
+                    # firstInstant = int(ceil(self.timeAtS0/timeStep))# this first instant is instant by definition
+                    leaderInstant = instant - self.tau / timeStep
                     if self.leader is None:
-                        s = (timeStep*instant-self.timeAtS0)*self.desiredSpeed
+                        s = (timeStep * instant - self.timeAtS0) * self.desiredSpeed
                         self.timeInterval = TimeInterval(instant, instant)
                         self.curvilinearPositions = CurvilinearTrajectory([s], [0.], [self.initialAlignmentIdx])
                         self.curvilinearVelocities = CurvilinearTrajectory()
                     elif self.leader.existsAtInstant(leaderInstant):
                         self.timeInterval = TimeInterval(instant, instant)
-                        freeFlowCoord = (instant*timeStep - self.timeAtS0)*self.desiredSpeed
+                        freeFlowCoord = (instant * timeStep - self.timeAtS0) * self.desiredSpeed
                         # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
-                        constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0]-self.d
-                        self.curvilinearPositions = CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.], [self.initialAlignmentIdx])
+                        constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
+                        self.curvilinearPositions = CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.],
+                                                                          [self.initialAlignmentIdx])
                         self.curvilinearVelocities = CurvilinearTrajectory()
             else:
                 if _nextAlignmentIdx is not None:
@@ -1471,24 +1477,18 @@ class MovingObject(STObject, VideoFilenameAddable):
                     laneChange = None
                     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                 s1 = self.curvilinearPositions.getSCoordAt(-1)
-                freeFlowCoord = s1 + self.desiredSpeed*timeStep
+                freeFlowCoord = s1 + self.desiredSpeed * timeStep
                 if self.leader is None:
-                    s2 = freeFlowCoord
-
                     if self.getLastInstant() < instant:
                         s2 = freeFlowCoord
                         self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                 else:
-                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant-self.tau/timeStep)[0]-self.d
+                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
+                                           0] - self.d
                     s2 = min(freeFlowCoord, constrainedCoord)
                     self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
                 self.setLastInstant(instant)
-                self.curvilinearVelocities.addPositionSYL(s2-s1, 0., laneChange)
-
-
-    def getDistanceOnAlignmentAtInstant(self, instant):
-        return self.distanceOnAlignments[instant - self.getFirstInstant()]
-
+                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
 
     def existsAt(self, t):
         if self.timeInterval is not None:
@@ -1535,35 +1535,6 @@ class MovingObject(STObject, VideoFilenameAddable):
     def duplicateLastVelocity(self):
         self.curvilinearVelocities.addPosition(self.getCurvilinearVelocityAtInstant(-1))
 
-    def getLeader(self, other):
-        if self.timeInterval.first <= other.timeInterval.first:
-            return self
-        else:
-            return other
-
-    def getFollower(self, other):
-        if self.timeInterval.first <= other.timeInterval.first:
-            return other
-        else:
-            return self
-
-    def computeTTC(self, timeStep):
-        ttcs = []
-        commonInterval = self.commonTimeInterval(self.leader)
-        for t in commonInterval:
-            ttcs.append(self.computeTTCAtInstant(t, timeStep))
-        return ttcs
-
-    def computeTTCAtInstant(self, t, timeStep):
-        xl = self.leader.getCurvilinearPositionAtInstant(t)[0]
-        vl = self.leader.getCurvilinearVelocityAtInstant(t)[0] / timeStep
-        ll = self.leader.geometry
-        xf = self.getCurvilinearPositionAtInstant(t)[0]
-        vf = self.getCurvilinearVelocityAtInstant(t)[0] / timeStep
-        dv = vf - vl
-        if vf > vl:
-            ttc = (xl - xf - ll) / dv
-            return ttc, t
 
     @staticmethod
     def concatenate(obj1, obj2, num=None, newFeatureNum=None, computePositions=False):
@@ -1632,29 +1603,17 @@ class MovingObject(STObject, VideoFilenameAddable):
         newObject.setUserType(obj1.getUserType())
         return newObject
 
-
-    def subTrajectoryInInterval(self, inter):
+    def getObjectInTimeInterval(self, inter):
         '''Returns a new object extracted from self,
         restricted to time interval inter'''
         intersection = TimeInterval.intersection(inter, self.getTimeInterval())
         if not intersection.empty():
             trajectoryInterval = TimeInterval(intersection.first - self.getFirstInstant(),
                                               intersection.last - self.getFirstInstant())
-            obj = MovingObject(num=self.num, timeInterval=intersection, geometry=self.geometry, userType=self.userType,
-                               nObjects=self.nObjects)
-
-            if self.initCurvilinear:
-                if self.curvilinearPositions is not None:
-                    obj.curvilinearPositions = self.curvilinearPositions.subTrajectoryInInterval(
-                        trajectoryInterval)
-                if self.curvilinearVelocities is not None:
-                    obj.curvilinearVelocities = self.curvilinearVelocities.subTrajectoryInInterval(
-                        trajectoryInterval)
-            else:
-                if self.positions is not None:
-                    obj.positions = self.positions.subTrajectoryInInterval(trajectoryInterval)
-                if self.velocities is not None:
-                    obj.velocities = self.velocities.subTrajectoryInInterval(trajectoryInterval)
+            obj = MovingObject(self.num, intersection, self.positions.getTrajectoryInInterval(trajectoryInterval),
+                               self.geometry, self.userType, self.nObjects)
+            if self.velocities is not None:
+                obj.velocities = self.velocities.getTrajectoryInInterval(trajectoryInterval)
             return obj
         else:
             print('The object does not exist at {}'.format(inter))
