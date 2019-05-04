@@ -298,89 +298,6 @@ class World:
             if user.num == num:
                 return user
 
-    def minDistanceChecked(self, user0, user1, t, dmin):
-        """ checks if the minimum distance headway between two vehicles is verified
-        in a car following situation : i is the leader vehicle and j is the following vehicle"""
-        d = self.distanceAtInstant(user0, user1, t)
-        if d:
-            if d >= dmin:
-                return True
-            else:
-                return False
-
-    def isAnEncounter(self, user0, user1, t, dmin):
-        """ checks if there is an encounter between two vehicules
-        leaderAlignmentIdx and followerAlignmentIdx are integers
-        i,j : integers
-        t : time, integer
-        dmin : float  """
-        if self.minDistanceChecked(user0, user1, t, dmin) is not None:
-            if self.minDistanceChecked(user0, user1, t, dmin):
-                return False
-            else:
-                return True
-
-    def getInteractionsDuration(self, dmin, inLine=False):
-        """ counts according to the selected method (cross or inLine)
-         the number of interactions taking place at a distance smaller than dmin.
-        """
-        if inLine:
-            result = {}
-            for uiIdx, ui in enumerate(self.userInputs):
-                for h in range(0, len(ui.alignment.vehicles) - 1):
-                    if ui.alignment.vehicles[h].timeInterval is not None and ui.alignment.vehicles[h+1].timeInterval is not None:
-                        inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
-                        result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)] = []
-                        for t in list(inter):
-                            if inter.last >= t >= inter.first:
-                                if self.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
-                                    result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
-                                else:
-                                    result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
-            for pair in result:
-                result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
-            return result
-
-        elif not inLine:
-            pass
-            # vehList = [ui.alignment.vehicles for ui in self.userInputs]
-            # interactionTime = []
-            # totalNumberOfCrossingEncounters = 0
-            #
-            # for h in range(vehList[0]):
-            #     interactionTime.append([])
-            #     for v in range(vehList[1]):
-            #         interactionTime[h].append([])
-            #         follower = self.getAlignmentById(1).vehicles[v].getLeader(self.getAlignmentById(1).vehicles[v])
-            #
-            #         for t in range(follower.timeInterval.first, follower.timeInterval.last + 1):
-            #             if self.isAnEncounter(0, 1, h, v, t, dmin):
-            #                 interactionTime[h][v].append(1)
-            #             else:
-            #                 interactionTime[h][v].append(0)
-            #
-            #         numberOfEncounters = toolkit.countElementInList(interactionTime[h][v], 1)  #
-            #         totalNumberOfCrossingEncounters += numberOfEncounters
-            # return totalNumberOfCrossingEncounters
-
-        else:
-            print('error in method name, method name should be "inline" or "crossing"')
-
-    def countAllEncounters(self, vehiclesData, dmin):
-        """counts the encounters in a world
-        vehiclesData : list of list of moving objects
-        dmin : float"""
-
-        totalNumberOfEncounters = []
-
-        for alignment in self.alignments:
-            totalNumberOfEncounters.append(self.getInteractionsDuration(method="inLine", vehiclesData=vehiclesData,
-                                                      alignmentIdx=alignment.idx, dmin=dmin))
-
-        totalNumberOfEncounters.append(self.getInteractionsDuration(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
-
-        return totalNumberOfEncounters, sum(totalNumberOfEncounters)
-
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users on their respective alignments """
         for ui in self.userInputs:
@@ -872,7 +789,6 @@ class Distribution(object):
             return utils.ConstantDistribution(self.degeneratedConstant)
         else:
             raise NameError('error in distribution type')
-
 
 
 

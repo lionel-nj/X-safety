@@ -1,10 +1,7 @@
 import matplotlib.pyplot as plt
-
 from trafficintelligence import moving
 
-# world = network.World.load('world.yml')
-# sim = simulation.Simulation.load('inputData/config.yml')
-# analysisParameters = toolkit.loadYaml('inputData/analysis-parameters.yml')
+import toolkit
 
 
 def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationValue, plot=False, withTrajectories=False):
@@ -25,7 +22,7 @@ def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationVal
 
 
 def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
-    """script to get min of distances between each pair of veehicles crossing in an intersection  """
+    """script to get min of distances between each pair of vehicles crossing in an intersection  """
     minDistances = []
     for ui in world.userInputs:
         for k in range(len(ui.alignment.vehicles) - 1):
@@ -41,62 +38,73 @@ def getHeadwayValues(world):
     return headways
 
 
-def ttcValueAt(world, simParam, user0, user1, t):
-    # si vitesse suiveur > vitesse leader à instant t: alors ttc = (xleader-xfollower-leaderLength)/(Vfollower - Vleader) ,
-    # plutot que les xi on utilisera la fonction de distance implementée dans la classe World
-    if t >= min(user0.getFirstInstant(), user1.getFirstInstant()):
-        v0 = user0.getCurvilinearVelocityAtInstant(t)[0]
-        v1 = user1.getCurvilinearVelocityAtInstant(t)[0]
-        if v1 > v0:
-            ttc = (world.distanceAtInstant(user0, user1, t) - user0.geometry)/((v1-v0)/simParam.timeStep)
-            return ttc, t
+def minDistanceChecked(world, user0, user1, t, dmin):
+    """ checks if the minimum distance headway between two vehicles is verified
+    in a car following situation : i is the leader vehicle and j is the following vehicle"""
+    d = world.distanceAtInstant(user0, user1, t)
+    if d:
+        if d >= dmin:
+            return True
+        else:
+            return False
 
 
-def getTTCValues(world, simParam, user0, user1):
-    if user0.timeInterval is not None and user1.timeInterval is not None:
-        inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
-        ttc = []
-        timeList = []
-        inter = list(inter)
-        inter.pop()
-        for t in inter:
-            val = ttcValueAt(world, simParam, user0, user1, t)
-            if val:
-                ttc.append(val[0])
-                timeList.append(val[1])
-        ttc = list(filter(None, ttc))
-        return ttc, timeList
+def isAnEncounter(world, user0, user1, t, dmin):
+    """ checks if there is an encounter between two vehicules
+    leaderAlignmentIdx and followerAlignmentIdx are integers
+    i,j : integers
+    t : time, integer
+    dmin : float  """
+    if world.minDistanceChecked(user0, user1, t, dmin) is not None:
+        if world.minDistanceChecked(user0, user1, t, dmin):
+            return False
+        else:
+            return True
 
 
-def getTTCValuesForEachPairOfVehicles(world, simParam, plot=False):
-    ttc = []
-    timeList = []
-    minTTCValues = []
-    for ui in world.userInputs:
-        for k in range(0, len(ui.alignment.vehicles)):
-            val = getTTCValues(world, simParam, ui.alignment.vehicles[k], ui.alignment.vehicles[k - 1])
-            if val:
-                ttc.append(val[0])
-                timeList.append(val[1])
-    for el in ttc:
-        if el:
-            minTTCValues.append(min(el))
-    if plot:
-        for idx in range(len(ttc)):
-            plt.plot(timeList[idx], ttc[idx])
-    return ttc, minTTCValues, timeList
+def getInteractionsDuration(world, dmin, inLine=False):
+    """ counts according to the selected method (cross or inLine)
+     the number of interactions taking place at a distance smaller than dmin.
+    """
+    if inLine:
+        result = {}
+        for uiIdx, ui in enumerate(world.userInputs):
+            for h in range(0, len(ui.alignment.vehicles) - 1):
+                if ui.alignment.vehicles[h].timeInterval is not None and ui.alignment.vehicles[h+1].timeInterval is not None:
+                    inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
+                    result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)] = []
+                    for t in list(inter):
+                        if inter.last >= t >= inter.first:
+                            if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
+                                result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
+                            else:
+                                result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
+        for pair in result:
+            result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
+        return result
+
+    elif not inLine:
+        pass
+    else:
+        print('error in method name, method name should be "inline" or "crossing"')
 
 
-def hist(values, xlabel, ylabel):
-    """script histogram"""
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.hist(values)
-    plt.show()
+def countAllEncounters(world, vehiclesData, dmin):
+    """counts the encounters in a world
+    vehiclesData : list of list of moving objects
+    dmin : float"""
+
+    totalNumberOfEncounters = []
+
+    for alignment in world.alignments:
+        totalNumberOfEncounters.append(world.getInteractionsDuration(method="inLine", vehiclesData=vehiclesData,
+                                                  alignmentIdx=alignment.idx, dmin=dmin))
+
+    totalNumberOfEncounters.append(world.getInteractionsDuration(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
+
+    return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
 
-def countInteractions(world, user0, user1):
-    pass
 
 
 
