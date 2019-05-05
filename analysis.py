@@ -4,6 +4,13 @@ from trafficintelligence import moving
 import toolkit
 
 
+def getHeadwayValues(world):
+    headways = []
+    for ui in world.userInputs:
+        headways.append(ui.headways[0:len(ui.alignment.vehicles)])
+    return headways
+
+
 def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationValue, plot=False, withTrajectories=False):
     """script to get distance between a pair of vehicles in a car following situation """
     # todo : docstrings
@@ -29,13 +36,6 @@ def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
             if getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue):
                 minDistances.append(min(getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue)))
     return minDistances
-
-
-def getHeadwayValues(world):
-    headways = []
-    for ui in world.userInputs:
-        headways.append(ui.headways[0:len(ui.alignment.vehicles)])
-    return headways
 
 
 def minDistanceChecked(world, user0, user1, t, dmin):
@@ -68,17 +68,26 @@ def getInteractionsDuration(world, dmin, inLine=False):
     """
     if inLine:
         result = {}
+        # pour chaque userInput
         for uiIdx, ui in enumerate(world.userInputs):
+            # pour chaque vehicule présent : sauf le dernier
             for h in range(0, len(ui.alignment.vehicles) - 1):
+                # si les deux vehicules sont générés
                 if ui.alignment.vehicles[h].timeInterval is not None and ui.alignment.vehicles[h+1].timeInterval is not None:
+                    # recuperer l'intervalle de coexistence des vehicules
                     inter = moving.TimeInterval.intersection(ui.alignment.vehicles[h].timeInterval, ui.alignment.vehicles[h+1].timeInterval)
+                    # initialiser resultat(paire de vehicules concernées : leader.num, follower.num)
                     result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)] = []
+                    # pour chaque instant de l'intervalle de coexistence
                     for t in list(inter):
-                        if inter.last >= t >= inter.first:
-                            if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
-                                result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
-                            else:
-                                result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
+                        # si il y a une rencontre entre les 2 vehicules à l'instant t : ajouter 1 à la liste des rencontres :resultat(paire)
+                        if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
+                            result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
+                        # sinon : ajouter 0 à cette même liste
+                        else:
+                            result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(0)
+        # une fois les listes complétées
+        # pour chaque liste dans resultat(paire) : transformer la liste en [décompte des 1 = nombre d'interactions, longueur des interactions]
         for pair in result:
             result[pair] = [toolkit.countElementInList(result[pair], 1)] + toolkit.makeSubListFromList(result[pair], 1)
         return result
@@ -88,21 +97,6 @@ def getInteractionsDuration(world, dmin, inLine=False):
     else:
         print('error in method name, method name should be "inline" or "crossing"')
 
-
-def countAllEncounters(world, vehiclesData, dmin):
-    """counts the encounters in a world
-    vehiclesData : list of list of moving objects
-    dmin : float"""
-
-    totalNumberOfEncounters = []
-
-    for alignment in world.alignments:
-        totalNumberOfEncounters.append(world.getInteractionsDuration(method="inLine", vehiclesData=vehiclesData,
-                                                  alignmentIdx=alignment.idx, dmin=dmin))
-
-    totalNumberOfEncounters.append(world.getInteractionsDuration(method="crossing", vehiclesData=vehiclesData, dmin=dmin))
-
-    return totalNumberOfEncounters, sum(totalNumberOfEncounters)
 
 
 
