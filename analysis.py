@@ -5,6 +5,7 @@ import toolkit
 
 
 def getHeadwayValues(world):
+    """ script to return headway values of generated vehicules in world"""
     headways = []
     for ui in world.userInputs:
         headways.append(ui.headways[0:len(ui.alignment.vehicles)])
@@ -13,7 +14,6 @@ def getHeadwayValues(world):
 
 def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationValue, plot=False, withTrajectories=False):
     """script to get distance between a pair of vehicles in a car following situation """
-    # todo : docstrings
     if user0.timeInterval is not None and user1.timeInterval is not None:
         inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
         if len(list(inter)) >= minCoexistenceDurationValue:
