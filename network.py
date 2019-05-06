@@ -685,8 +685,10 @@ class World:
             if user.curvilinearVelocities is not None:
                 user.duplicateLastVelocity()
 
+
 class UserInput:
-    def __init__(self, alignmentIdx, distributions):
+    def __init__(self, idx, alignmentIdx, distributions):
+        self.idx = idx
         self.alignmentIdx = alignmentIdx
         self.distributions = distributions
 
