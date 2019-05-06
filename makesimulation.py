@@ -41,7 +41,8 @@ def run(world, simulationParameters):
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
                                                  _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
-        # world.assignUserToCorrespondingAlignment()
+    world.duplicateLastVelocities()
+    # world.assignUserToCorrespondingAlignment()
     #
     # display
     # plt.figure()

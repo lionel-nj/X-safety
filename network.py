@@ -313,11 +313,11 @@ class World:
 
     def getNotNoneVehiclesInWorld(self):
         """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
-        users = [[] * len(self.alignments)]
-        for al in self.alignments:
-            for user in al.vehicles:
+        users = [[] * len(self.userInputs)]
+        for ui in self.userInputs:
+            for user in ui.alignment.vehicles:
                 if user.timeInterval is not None:
-                    users[al.idx].append(user)
+                    users[ui.idx].append(user)
         return users
 
     def getSimulatedUsers(self):
@@ -651,6 +651,13 @@ class World:
                         else:
                             user.state = 'forward'
 
+    def travelledAlignments(self, user):
+        alignments = list(set(user.curvilinearPositions.lanes))
+        travelledAlignments = []
+        for alIndices in alignments:
+            travelledAlignments.append(self.getAlignmentById(alIndices).points)
+        return travelledAlignments
+
     def convertSYtoXY(self):
         """converts SY to XY for a set of vehicles in self"""
         for al in self.alignments:
@@ -673,6 +680,10 @@ class World:
                 else:
                     pass
 
+    def duplicateLastVelocities(self):
+        for user in self.users:
+            if user.curvilinearVelocities is not None:
+                user.duplicateLastVelocity()
 
 class UserInput:
     def __init__(self, alignmentIdx, distributions):

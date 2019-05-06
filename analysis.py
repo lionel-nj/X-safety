@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from trafficintelligence import moving
+from trafficintelligence import moving, events
 
 import toolkit
 
@@ -12,29 +12,23 @@ def getHeadwayValues(world):
     return headways
 
 
-def getDistanceValuesBetweenUsers(world, user0, user1, minCoexistenceDurationValue, plot=False, withTrajectories=False):
-    """script to get distance between a pair of vehicles in a car following situation """
-    if user0.timeInterval is not None and user1.timeInterval is not None:
-        inter = moving.TimeInterval.intersection(user0.timeInterval, user1.timeInterval)
-        if len(list(inter)) >= minCoexistenceDurationValue:
-            d = []
-            for t in range(inter.first, inter.last+1):
-                d.append(world.distanceAtInstant(user0, user1, t))
-            if plot:
-                plt.plot(list(moving.TimeInterval(inter.first, inter.last+1)), d)
-                if withTrajectories:
-                    user0.plotCurvilinearPositions()
-                    user1.plotCurvilinearPositions()
-            return d
+def getDistanceValuesBetweenUsers(world, roadUser1, roadUser2, plot=False):
+    """script to get distance between a pair of vehicles"""
+    if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
+        i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+        i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1), alignment2=world.travelledAlignments(roadUser2))
+        if plot:
+            plt.plot(i.indicators['Distance'].values.keys(), list(i.indicators['Distance'].values.values()))
+        return list(i.indicators['Distance'].values.values())
 
 
-def getMinDistanceBetweenEachPairCF(world, minCoexistenceDurationValue):
-    """script to get min of distances between each pair of vehicles crossing in an intersection  """
+def getMinDistanceBetweenEachPairCF(world):
+    """script to get min of distances between each pair of vehicles"""
     minDistances = []
     for ui in world.userInputs:
         for k in range(len(ui.alignment.vehicles) - 1):
-            if getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue):
-                minDistances.append(min(getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1], minCoexistenceDurationValue)))
+            if getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1]):
+                minDistances.append(min(getDistanceValuesBetweenUsers(world, ui.alignment.vehicles[k], ui.alignment.vehicles[k+1])))
     return minDistances
 
 
@@ -55,8 +49,8 @@ def isAnEncounter(world, user0, user1, t, dmin):
     i,j : integers
     t : time, integer
     dmin : float  """
-    if world.minDistanceChecked(user0, user1, t, dmin) is not None:
-        if world.minDistanceChecked(user0, user1, t, dmin):
+    if minDistanceChecked(world, user0, user1, t, dmin) is not None:
+        if minDistanceChecked(world, user0, user1, t, dmin):
             return False
         else:
             return True
@@ -81,7 +75,7 @@ def getInteractionsDuration(world, dmin, inLine=False):
                     # pour chaque instant de l'intervalle de coexistence
                     for t in list(inter):
                         # si il y a une rencontre entre les 2 vehicules à l'instant t : ajouter 1 à la liste des rencontres :resultat(paire)
-                        if world.isAnEncounter(ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
+                        if isAnEncounter(world, ui.alignment.vehicles[h], ui.alignment.vehicles[h + 1], t, dmin):
                             result[(ui.alignment.vehicles[h].num, ui.alignment.vehicles[h + 1].num)].append(1)
                         # sinon : ajouter 0 à cette même liste
                         else:
