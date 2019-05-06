@@ -1,4 +1,4 @@
-!!python/object:modules.network.World
+!!python/object:network.World
 
 alignments:
 - !!python/object:network.Alignment
