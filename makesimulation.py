@@ -19,10 +19,10 @@ def run(world, simulationParameters):
 
     # suggestion, a voir si c'est le plus pratique
     for al in world.alignments:
-        al.vehicles = []
+        al.users = []
 
-    # world.connectAlignments()
     world.getGraph()
+    world.prepare()
     userNum = 0
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
@@ -33,24 +33,31 @@ def run(world, simulationParameters):
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for al in world.alignments:
-            if al.vehicles is not None:
-                for v in al.vehicles:
+            if al.users is not None:
+                for v in al.users:
                     # world.checkControlDevicesAtInstant(v, i, 200)
                     # world.comingThroughTraffic(v, i)
+                    world.getVisitedAlignmentLength(v)
+                    if v.curvilinearPositions is None:
+                        currentAlignment = world.getAlignmentById(v.initialAlignmentIdx)
+                    else:
+                        currentAlignment = world.getAlignmentById(v.curvilinearPositions.lanes[-1])
                     v.updateCurvilinearPositions(method="newell",
                                                  instant=i,
                                                  timeStep=simulationParameters.timeStep,
-                                                 _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
+                                                 currentAlignment=currentAlignment)
+
+                    # world.assignUserAlignment(v)
+                                                 # _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
     world.duplicateLastVelocities()
-    # world.assignUserToCorrespondingAlignment()
-    #
-    # display
-    # plt.figure()
-    # for ui in world.userInputs:
-    #     for v in ui.alignment.vehicles:
-    #         if v.timeInterval is not None:
-    #             v.plotCurvilinearPositions()
-    #     plt.xlabel('time(s/100)')
-    #     plt.ylabel('longitudinal coordinate (m)')
-    #     plt.show()
+    # #
+    # # display
+    # # plt.figure()
+    # # for ui in world.userInputs:
+    # #     for v in ui.alignment.vehicles:
+    # #         if v.timeInterval is not None:
+    # #             v.plotCurvilinearPositions()
+    # #     plt.xlabel('time(s/100)')
+    # #     plt.ylabel('longitudinal coordinate (m)')
+    # #     plt.show()
     return world

@@ -1,7 +1,8 @@
 import itertools
 
-from trafficintelligence import moving, utils
+from trafficintelligence import utils, moving
 
+import moving
 import toolkit
 
 
@@ -135,6 +136,16 @@ class Alignment:
 
             plt.plot(t[idx], x[idx])
         plt.show()
+
+    def getNextAlignment(self, user, nextPosition):
+        visitedAlignmentsLength = user.visitedAlignmentsLength
+        if visitedAlignmentsLength - nextPosition < 0:
+            if len(self.connectedAlignments) > 0:
+                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvementsm avec une variable aleatoire uniforme
+            else:
+                return None
+        else:
+            return None
 
 
 class ControlDevice:
@@ -337,65 +348,6 @@ class World:
                                 self.simulatedUsers[-1][-1][-1] = instant
                                 break
 
-    # def connectAlignments(self):
-    #     """method to link the alignments: for a given alignment, it associates all the other alignments
-    #      that can be reached from it"""
-    #     import copy
-    #     for idx, al in enumerate(self.alignments):
-    #         _alignments = copy.deepcopy(self.alignments)
-    #         _alignments.pop(idx)
-    #         al.reachableAlignments = []
-    #         if not _alignments:
-    #             print('your world only has 1 alignment')
-    #             break
-    #         for other in _alignments:
-    #             if other.isStartOf(al.getLastPoint()):
-    #                 if other.isReachableFrom(al):
-    #                     al.reachableAlignments.append(other.idx)
-
-    def getNextAlignment(self, user, instant, timeStep):
-        """returns the next alignment an user will be assigned to, according to the instant"""
-        if user.timeInterval is not None:
-            if user.timeInterval.first <= instant + user.getFirstInstant():
-                occupiedAlignmentAtBy = user.curvilinearPositions.getLaneAt(-1)
-                if self.getAlignmentById(occupiedAlignmentAtBy).connectedAlignmentIndices is not None:
-                    a = list(zip(self.getAlignmentById(occupiedAlignmentAtBy).connectedAlignmentIndices,
-                                               self.getAlignmentById(occupiedAlignmentAtBy).movementProportions))
-                    reachableAlignments = [idx[0] for idx in a if idx[1] != 0]
-
-                else:
-                    reachableAlignments = None
-
-                #
-                # reachableAlignments = list((i, proportion) for i, proportion in
-                #                            zip([world.getAlignmentById(3).connectedAlignmentIndices],
-                #                                [world.getAlignmentById(3).movementProportions]))
-                #                            i !=
-
-                # if reachableAlignments == [None]:
-                #     reachableAlignments = []
-                # else:
-                #
-                #     reachableAlignments = [alIndices[0] for alIndices in reachableAlignments]
-
-                nextPositionIfNoAlignmentChange = user.computeNextCurvilinearPositions('newell',
-                                                                                       instant,
-                                                                                       # + user.getFirstInstant() + 1,
-                                                                                       timeStep)
-                # print(nextPositionIfNoAlignmentChange)
-                if self.getVisitedAlignmentsCumulatedDistance(user) \
-                        < nextPositionIfNoAlignmentChange:
-                    if reachableAlignments:
-                        nextAlignment = reachableAlignments[0] # todo: [0] a modifier selon la proportion des mouvements
-                    else:
-                        nextAlignment = None
-                else:
-                    nextAlignment = None
-
-                return nextAlignment
-        else:
-            return None
-
     def getVisitedAlignmentsCumulatedDistance(self, user):
         """returns total length of the alignment the user had been assigned to """
         visitedAlignmentsIndices = list(set(user.curvilinearPositions.lanes))
@@ -405,7 +357,7 @@ class World:
 
         return visitedAlignmentsCumulativeDistance
 
-    def getDistanceUserDistanceOnAlignmentAt(self, user, t):
+    def getUserDistanceOnAlignmentAt(self, user, t):
         """returns the travelled distance of an user on its current alignment"""
         visitedAlignments = list(set(user.curvilinearPositions.lanes[:(t - user.getFirstInstant() + 1)]))
         visitedAlignments.remove(user.curvilinearPositions.lanes[t - user.getFirstInstant()])
@@ -438,7 +390,7 @@ class World:
                 for indices in alignmentIndices:
                     s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
             else:
-                s=0
+                s = 0
         return s
 
     def moveUserToAlignment(self, user):
@@ -510,15 +462,17 @@ class World:
                     user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
 
                     if user1AlignmentIdx == user2AlignmentIdx:
-                        return abs(self.getDistanceUserDistanceOnAlignmentAt(user1, instant) - self.getDistanceUserDistanceOnAlignmentAt(user2, instant))
+                        return abs(
+                            self.getUserDistanceOnAlignmentAt(user1, instant) - self.getUserDistanceOnAlignmentAt(user2,
+                                                                                                                  instant))
 
                     else:
-                        user1UpstreamDistance = self.getDistanceUserDistanceOnAlignmentAt(user1, instant)
+                        user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
                         user1DownstreamDistance = \
                             self.getAlignmentById(
                                 user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
                                 -1] - user1UpstreamDistance
-                        user2UpstreamDistance = self.getDistanceUserDistanceOnAlignmentAt(user2, instant)
+                        user2UpstreamDistance = self.getUserDistanceOnAlignmentAt(user2, instant)
                         user2DownstreamDistance = \
                             self.getAlignmentById(
                                 user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
@@ -621,7 +575,7 @@ class World:
                         if self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx),
                                                   t - 1) is not None and self.distanceAtInstant(user,
                                                                                                 self.getControlDeviceById(
-                                                                                                        controlDeviceIdx),
+                                                                                                    controlDeviceIdx),
                                                                                                 t - 1) < radius:
                             if self.getControlDeviceById(controlDeviceIdx).getStateAt(t) == 'stop':
                                 user.state = 'stop'
@@ -683,7 +637,25 @@ class World:
     def duplicateLastVelocities(self):
         for user in self.users:
             if user.curvilinearVelocities is not None:
-                user.duplicateLastVelocity()
+                user.curvilinearVelocities.duplicateLastPosition()
+
+    def prepare(self):
+        for al in self.alignments:
+            al.connectedAlignments = []
+            if al.connectedAlignmentIndices is not None:
+                for connectedAlignments in al.connectedAlignmentIndices:
+                    al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
+
+    def getVisitedAlignmentLength(self, user):
+        # todo: docstrings + test
+        user.visitedAlignmentsLength = 0
+        if user.curvilinearPositions is not None:
+            visitedAlignments = list(set(user.curvilinearPositions.lanes))
+            # visitedAlignments.remove(user.curvilinearPositions.lanes[-1])
+            for alIndices in visitedAlignments:
+                user.visitedAlignmentsLength += self.getAlignmentById(alIndices).points.cumulativeDistances[-1]
+        else:
+            user.visitedAlignmentsLength = 0
 
 
 class UserInput:
@@ -730,20 +702,17 @@ class UserInput:
                                 self.dDistribution.rvs(),
                                 # kj=120 veh/km
                                 initialCumulatedHeadway,
-                                self.alignmentIdx,
-                                'forward')
-        # utile?
-        # obj.criticalGap = gapNorm.getDistribution().rvs(random_state=10*userNum + 2*self.alignmentIdx)
+                                self.alignmentIdx)
 
-        if hasattr(self, 'generatedNum'):
-            self.generatedNum.append(obj.num)
-        else:
-            self.generatedNum = [obj.num]
+        # if hasattr(self, 'generatedNum'):
+        #     self.generatedNum.append(obj.num)
+        # else:
+        #     self.generatedNum = [obj.num]
 
-        if len(self.alignment.vehicles) > 0:
+        if len(self.alignment.users) > 0:
             # obj.leader = self.generatedNum[-1]
-            obj.leader = self.alignment.vehicles[-1]
-        self.alignment.vehicles.append(obj)
+            obj.leader = self.alignment.users[-1]
+        self.alignment.users.append(obj)
         return obj
 
     def getUserByNum(self, num):
@@ -802,7 +771,6 @@ class Distribution(object):
             return utils.ConstantDistribution(self.degeneratedConstant)
         else:
             raise NameError('error in distribution type')
-
 
 
 if __name__ == "__main__":

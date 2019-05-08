@@ -8,22 +8,20 @@ class Simulation(object):
         'sec',
         'm',
         'sec',
-        'm',
-        'm',
-        'm',
-        'm'
-    ]
+        'N/A'
+            ]
+    duration: 500
+    interactionDistance: 25
+    minimumTimeHeadway: 500
+    timeStep: 0.1
+    seed: 45
 
-    def __init__(self, duration, timeStep, interactionDistance, minimumTimeHeadway, averageVehicleLength,
-                 averageVehicleWidth, vehicleLengthSD, vehicleWidthSD):
+    def __init__(self, duration, timeStep, interactionDistance, minimumTimeHeadway, seed):
         self.duration = duration
         self.timeStep = timeStep
         self.interactionDistance = interactionDistance
         self.minimumTimeHeadway = minimumTimeHeadway
-        self.averageVehicleLength = averageVehicleLength
-        self.averageVehicleWidth = averageVehicleWidth
-        self.vehicleLengthSD = vehicleLengthSD
-        self.vehicleWidthSD = vehicleWidthSD
+        self.seed = seed
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
