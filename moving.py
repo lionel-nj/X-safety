@@ -1358,9 +1358,6 @@ class MovingObject(STObject, VideoFilenameAddable):
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
 
-    def stop(self):
-        self.inSimulation = False
-
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):
         '''Update curvilinear position of user at new instant'''

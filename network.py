@@ -140,16 +140,12 @@ class Alignment:
     def getNextAlignment(self, user, nextPosition):
         visitedAlignmentsLength = user.visitedAlignmentsLength
         if visitedAlignmentsLength - nextPosition < 0: # si on est sorti de l'alignement
-            print(1)
             if self.connectedAlignments is not None:
-                print(2)
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                print(3)
-                user.stop()
+                user.inSimulation = False
                 return False
         else: # si on reste sur l'alignement
-            print(4)
             return None
 
 
