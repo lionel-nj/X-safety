@@ -32,25 +32,18 @@ def run(world, simulationParameters):
                 cd.cycle()
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
-        for al in world.alignments:
-            if al.users is not None:
-                for v in al.users:
-                    if v.inSimulation:
-                        # world.checkControlDevicesAtInstant(v, i, 200)
-                        # world.comingThroughTraffic(v, i)
-                        world.getVisitedAlignmentLength(v)
-                        if v.curvilinearPositions is None:
-                            currentAlignment = world.getAlignmentById(v.initialAlignmentIdx)
-                        else:
-                            currentAlignment = world.getAlignmentById(v.curvilinearPositions.lanes[-1])
+        for ui in world.userInputs:
+            if ui.alignment.users is not None:
+                for v in ui.alignment.users:
+                    if v.inSimulation:# is None:
+                        world.getUserCurrentAlignment(v)
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
-                                                     timeStep=simulationParameters.timeStep,
-                                                     currentAlignment=currentAlignment)
+                                                     timeStep=simulationParameters.timeStep)
 
                         # world.assignUserAlignment(v)
                                                  # _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
-    world.duplicateLastVelocities()
+    # world.duplicateLastVelocities()
     # #
     # # display
     # # plt.figure()

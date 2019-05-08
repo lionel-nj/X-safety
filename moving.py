@@ -1190,12 +1190,6 @@ class CurvilinearTrajectory(Trajectory):
     def getLaneAt(self, i):
         return self.lanes[i]
 
-    def pop(self, i=None):
-        if i:
-            return CurvilinearTrajectory(S=[self.positions[0].pop(i)], Y=[self.positions[1].pop(i)], lanes=[self.lanes.pop(i)])
-        else:
-            return CurvilinearTrajectory(S=[self.positions[0].pop()], Y=[self.positions[1].pop()], lanes=[self.lanes.pop()])
-
     def subTrajectoryInInterval(self, inter):
         'Returns all curvilinear positions between index inter.first and index.last (included)'
         if inter.first >= 0 and inter.last <= self.length():
@@ -1213,15 +1207,14 @@ class CurvilinearTrajectory(Trajectory):
         'Adds position in the point format for curvilinear of list with 3 values'
         self.addPositionSYL(p[0], p[1], p[2])
 
+    def duplicateLastPosition(self):
+        super(CurvilinearTrajectory, self).duplicateLastPosition()
+        self.lanes.append(self.lanes[-1])
+
     def setPosition(self, i, s, y, lane):
         self.setPositionXY(i, s, y)
         if i < self.__len__():
             self.lanes[i] = lane
-
-    def duplicateLastPosition(self):
-        self.positions[0].append(self.positions[0][-1])
-        self.positions[1].append(self.positions[1][-1])
-        self.lanes.append(self.lanes[-1])
 
     def differentiate(self, doubleLastPosition=False):
         diff = CurvilinearTrajectory()
@@ -1294,7 +1287,6 @@ class MovingObject(STObject, VideoFilenameAddable):
         self.userType = userType
         self.setNObjects(nObjects)  # a feature has None for nObjects
         self.features = None
-        self.initCurvilinear = initCurvilinear
         # compute bounding polygon from trajectory
 
     @staticmethod
@@ -1353,7 +1345,7 @@ class MovingObject(STObject, VideoFilenameAddable):
         inter, self.positions, self.velocities = MovingObject.aggregateTrajectories(self.features,
                                                                                     self.getTimeInterval())
 
-    def addNewellAttributes(self, desiredSpeed, tau, d, initialCumulatedHeadway, initialAlignmentIdx, state):
+    def addNewellAttributes(self, desiredSpeed, tau, d, initialCumulatedHeadway, initialAlignmentIdx):
         '''adds attributes necessary for Newell car following model
         using curvilinear trajectories'''
         # Newell model parameters
@@ -1364,77 +1356,15 @@ class MovingObject(STObject, VideoFilenameAddable):
         # other attributes necessary for computation
         self.initialCumulatedHeadway = initialCumulatedHeadway
         self.initialAlignmentIdx = initialAlignmentIdx
-        self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment
-        self.state = state
+        self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
 
-    def computeNextCurvilinearPositions(self, method, instant, timeStep, _nextAlignmentIdx=None, maxSpeed=None,
-                                        acceleration=None, occupiedAlignmentLength=None):
-        '''computes curvilinear position of user at new instant'''
+    def stop(self):
+        self.inSimulation = False
 
-        if method == 'newell':
-            if self.curvilinearPositions is None:  # vehicle without positions
-                if self.timeAtS0 is None:
-                    if self.leader is None:
-                        self.timeAtS0 = self.initialCumulatedHeadway
-                    elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(
-                            -1) > self.d and len(self.leader.curvilinearPositions) >= 2:
-                        firstInstantAfterD = self.leader.getLastInstant()
-                        while self.leader.existsAtInstant(firstInstantAfterD) and \
-                                self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[
-                                    0] > self.d:
-                            firstInstantAfterD -= 1  # if not recorded position before self.d, we extrapolate linearly from first known position
-                        leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD - 1)[0]
-                        self.timeAtS0 = self.tau + firstInstantAfterD * timeStep - (
-                                self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[
-                                    0] - self.d) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
-                        if self.timeAtS0 < self.initialCumulatedHeadway:  # obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
-                            self.timeAtS0 = self.initialCumulatedHeadway
-                elif instant * timeStep > self.timeAtS0:
-                    # firstInstant = int(ceil(self.timeAtS0/timeStep))# this first instant is instant by definition
-                    leaderInstant = instant - self.tau / timeStep
-                    if self.leader is None:
-                        s = (timeStep * instant - self.timeAtS0) * self.desiredSpeed
-                        # timeInterval = TimeInterval(instant, instant)
-                        return s
-                        # curvilinearPositions = CurvilinearTrajectory([s], [0.], [self.initialAlignmentIdx])
-                        # curvilinearVelocities = CurvilinearTrajectory()
-                    elif self.leader.existsAtInstant(leaderInstant):
-                        # timeInterval = TimeInterval(instant, instant)
-                        freeFlowCoord = (instant * timeStep - self.timeAtS0) * self.desiredSpeed
-                        # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
-                        constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
-                        return min(freeFlowCoord, constrainedCoord)
-
-            else:
-                if _nextAlignmentIdx is not None:
-                    laneChange = (self.curvilinearPositions.getLaneAtInstant(- 1), _nextAlignmentIdx)
-                    nextAlignmentIdx = _nextAlignmentIdx
-                    s1 = self.curvilinearPositions.getSCoordAt(instant - 1)
-                    freeFlowCoord = s1 + self.desiredSpeed * timeStep
-
-                else:
-                    laneChange = None
-                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(- 1)
-                    s1 = self.curvilinearPositions.getSCoordAt(- 1)
-                    freeFlowCoord = s1 + self.desiredSpeed * timeStep
-
-                if self.leader is None:
-                    if self.getLastInstant() < instant:
-                        s2 = freeFlowCoord
-                        return freeFlowCoord
-                    else:
-                        s2 = freeFlowCoord
-                        return s2
-                else:
-                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
-                                           0] - self.d
-                    s2 = min(freeFlowCoord, constrainedCoord)
-                    return s2
-
-    def updateCurvilinearPositions(self, method, instant, timeStep, _nextAlignmentIdx=None, maxSpeed=None,
+    def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):
         '''Update curvilinear position of user at new instant'''
-
+        # TODO changer nextAlignmentIdx pour l'alignment en cours, reflechir pour des control devices
         if method == 'newell':
             if self.curvilinearPositions is None:  # vehicle without positions
                 if self.timeAtS0 is None:
@@ -1470,71 +1400,41 @@ class MovingObject(STObject, VideoFilenameAddable):
                                                                           [self.initialAlignmentIdx])
                         self.curvilinearVelocities = CurvilinearTrajectory()
             else:
-                if _nextAlignmentIdx is not None:
-                    laneChange = (self.curvilinearPositions.getLaneAt(-1), _nextAlignmentIdx)
-                    nextAlignmentIdx = _nextAlignmentIdx
-                else:
-                    laneChange = None
-                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                 s1 = self.curvilinearPositions.getSCoordAt(-1)
                 freeFlowCoord = s1 + self.desiredSpeed * timeStep
+
+                if self.leader is not None:
+                    if not self.leader.inSimulation:
+                        self.leader = None
+
                 if self.leader is None:
                     if self.getLastInstant() < instant:
                         s2 = freeFlowCoord
-                        self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
+                        nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                        if nextAlignment is None:
+                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                        else:
+                            if nextAlignment:
+                                nextAlignmentIdx = nextAlignment.idx
+                        if self.inSimulation:
+                            self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                 else:
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
                                            0] - self.d
                     s2 = min(freeFlowCoord, constrainedCoord)
-                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
-                self.setLastInstant(instant)
-                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
-
-    def existsAt(self, t):
-        if self.timeInterval is not None:
-            if self.timeInterval.contains(t):
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def getLaneChangeLength(self, i):
-        initialLane = self.curvilinearPositions.lanes[i]
-        if len(set(self.curvilinearPositions.lanes[i:])) == 1:
-            return len(self.curvilinearPositions.lanes[i:])
-        else:
-            for idx, lane in enumerate(self.curvilinearPositions.lanes[i:]):
-                if lane != initialLane:
-                    return idx
-
-    def changedAlignment(self):
-        """returns a tuple (Bolean : True if the user changed Alignment
-                            list : instants of beginning and ending of alignment changed
-                            list : origins ans destination of the alignment changes)"""
-        if self.curvilinearPositions:
-            initialLane = self.curvilinearPositions[0][2]
-            laneChangeIntervals = []
-            changesList = []
-            laneChange = False
-            for idx, cp in enumerate(self.curvilinearPositions):
-                if cp[2] != initialLane:
-                    laneChange = True
-                    if not laneChangeIntervals:
-                        laneChangeIntervals.append(TimeInterval(idx, idx + self.getLaneChangeLength(idx) - 1))
+                    nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                    if nextAlignment is None:
+                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                     else:
-                        laneChangeIntervals.append(TimeInterval(laneChangeIntervals[-1].last + 1,
-                                                                laneChangeIntervals[-1].last + self.getLaneChangeLength(
-                                                                    idx)))
-                    changesList.append((initialLane, cp[2]))
-                    initialLane = cp[2]
-            return laneChange, laneChangeIntervals, changesList
-        else:
-            return False, [], []
-
-    def duplicateLastVelocity(self):
-        self.curvilinearVelocities.addPosition(self.getCurvilinearVelocityAtInstant(-1))
-
+                        nextAlignmentIdx = nextAlignment.idx
+                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                if self.inSimulation:
+                    if nextAlignment is not None:
+                        laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
+                    else:
+                        laneChange = None
+                    self.setLastInstant(instant)
+                    self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
 
     @staticmethod
     def concatenate(obj1, obj2, num=None, newFeatureNum=None, computePositions=False):
@@ -1619,15 +1519,6 @@ class MovingObject(STObject, VideoFilenameAddable):
             print('The object does not exist at {}'.format(inter))
             return None
 
-    def removeAttributesFromInstant(self, i):
-        length = len(self.curvilinearPositions)
-        del self.curvilinearPositions.positions[0][i:length]
-        del self.curvilinearPositions.positions[1][i:length]
-        del self.curvilinearPositions.lanes[i:length]
-        del self.curvilinearVelocities.positions[0][i:length]
-        del self.curvilinearVelocities.positions[1][i:length]
-        del self.curvilinearVelocities.lanes[i:length]
-
     def getObjectsInMask(self, mask, homography=None, minLength=1):
         '''Returns new objects made of the positions in the mask
         mask is in the destination of the homography space'''
@@ -1704,29 +1595,6 @@ class MovingObject(STObject, VideoFilenameAddable):
                     plot([instants[0]], [coords[0]], 'ro', **kwargs)
         else:
             print('Object {} has no curvilinear positions'.format(self.getNum()))
-
-    def plotCurvilinearVelocities(self, lane=None, options='', withOrigin=False, **kwargs):
-        if hasattr(self, 'curvilinearPositions'):
-            if lane is None:
-                plot(list(self.getTimeInterval()), self.curvilinearVelocities.positions[0], options, **kwargs)
-                if withOrigin:
-                    plot([self.getFirstInstant()], [self.curvilinearVelocities.positions[0][0]], 'ro', **kwargs)
-            else:
-                instants = []
-                coords = []
-                for t, p in zip(self.getTimeInterval(), self.curvilinearVelocities):
-                    if p[2] == lane:
-                        instants.append(t)
-                        coords.append(p[0])
-                    else:
-                        instants.append(NaN)
-                        coords.append(NaN)
-                plot(instants, coords, options, **kwargs)
-                if withOrigin and len(instants) > 0:
-                    plot([instants[0]], [coords[0]], 'ro', **kwargs)
-        else:
-            print('Object {} has no curvilinear positions'.format(self.getNum()))
-
 
     def interpolateCurvilinearPositions(self, t):
         '''Linear interpolation of curvilinear positions, t being a float'''

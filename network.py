@@ -2,7 +2,7 @@ import itertools
 
 from trafficintelligence import utils, moving
 
-# import moving
+import moving
 import toolkit
 
 
@@ -139,13 +139,17 @@ class Alignment:
 
     def getNextAlignment(self, user, nextPosition):
         visitedAlignmentsLength = user.visitedAlignmentsLength
-        if visitedAlignmentsLength - nextPosition < 0:
-            if len(self.connectedAlignments) > 0:
+        if visitedAlignmentsLength - nextPosition < 0: # si on est sorti de l'alignement
+            print(1)
+            if self.connectedAlignments is not None:
+                print(2)
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                self.inSimulation = False
-                return None
-        else:
+                print(3)
+                user.stop()
+                return False
+        else: # si on reste sur l'alignement
+            print(4)
             return None
 
 
@@ -646,6 +650,8 @@ class World:
             if al.connectedAlignmentIndices is not None:
                 for connectedAlignments in al.connectedAlignmentIndices:
                     al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
+            else:
+                al.connectedAlignments = None
 
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings + test
@@ -657,6 +663,13 @@ class World:
                 user.visitedAlignmentsLength += self.getAlignmentById(alIndices).points.cumulativeDistances[-1]
         else:
             user.visitedAlignmentsLength = 0
+
+    def getUserCurrentAlignment(self, user):
+        self.getVisitedAlignmentLength(user)
+        if user.curvilinearPositions is None:
+            user.currentAlignment = self.getAlignmentById(user.initialAlignmentIdx)
+        else:
+            user.currentAlignment = self.getAlignmentById(user.curvilinearPositions.lanes[-1])
 
 
 class UserInput:
@@ -698,6 +711,7 @@ class UserInput:
         """generates a MovingObject on the VehicleInput alignment"""
 
         obj = moving.MovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
+        obj.inSimulation = True
         obj.addNewellAttributes(self.speedDistribution.rvs(),
                                 self.tauDistribution.rvs(),
                                 self.dDistribution.rvs(),
@@ -709,7 +723,6 @@ class UserInput:
         #     self.generatedNum.append(obj.num)
         # else:
         #     self.generatedNum = [obj.num]
-        obj.inSimulation = True
         if len(self.alignment.users) > 0:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.alignment.users[-1]
