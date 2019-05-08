@@ -2,7 +2,7 @@ import itertools
 
 from trafficintelligence import utils, moving
 
-import moving
+# import moving
 import toolkit
 
 
@@ -141,8 +141,9 @@ class Alignment:
         visitedAlignmentsLength = user.visitedAlignmentsLength
         if visitedAlignmentsLength - nextPosition < 0:
             if len(self.connectedAlignments) > 0:
-                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvementsm avec une variable aleatoire uniforme
+                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
+                self.inSimulation = False
                 return None
         else:
             return None
@@ -708,7 +709,7 @@ class UserInput:
         #     self.generatedNum.append(obj.num)
         # else:
         #     self.generatedNum = [obj.num]
-
+        obj.inSimulation = True
         if len(self.alignment.users) > 0:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.alignment.users[-1]

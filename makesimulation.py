@@ -35,19 +35,20 @@ def run(world, simulationParameters):
         for al in world.alignments:
             if al.users is not None:
                 for v in al.users:
-                    # world.checkControlDevicesAtInstant(v, i, 200)
-                    # world.comingThroughTraffic(v, i)
-                    world.getVisitedAlignmentLength(v)
-                    if v.curvilinearPositions is None:
-                        currentAlignment = world.getAlignmentById(v.initialAlignmentIdx)
-                    else:
-                        currentAlignment = world.getAlignmentById(v.curvilinearPositions.lanes[-1])
-                    v.updateCurvilinearPositions(method="newell",
-                                                 instant=i,
-                                                 timeStep=simulationParameters.timeStep,
-                                                 currentAlignment=currentAlignment)
+                    if v.inSimulation:
+                        # world.checkControlDevicesAtInstant(v, i, 200)
+                        # world.comingThroughTraffic(v, i)
+                        world.getVisitedAlignmentLength(v)
+                        if v.curvilinearPositions is None:
+                            currentAlignment = world.getAlignmentById(v.initialAlignmentIdx)
+                        else:
+                            currentAlignment = world.getAlignmentById(v.curvilinearPositions.lanes[-1])
+                        v.updateCurvilinearPositions(method="newell",
+                                                     instant=i,
+                                                     timeStep=simulationParameters.timeStep,
+                                                     currentAlignment=currentAlignment)
 
-                    # world.assignUserAlignment(v)
+                        # world.assignUserAlignment(v)
                                                  # _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
     world.duplicateLastVelocities()
     # #
