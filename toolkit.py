@@ -168,6 +168,14 @@ def makeSubListFromList(itemList, elem):
     # return result
 
 
+def inverseDict(dictValues, keysSet1, keysSet2):
+    reverseDict = {}
+    for key2 in keysSet2:
+        reverseDict[key2] = {}
+        for key1 in keysSet1:
+            reverseDict[key2][key1] = dictValues[key1][key2]
+    return reverseDict
+
 if __name__ == "__main__":
     import doctest
 
