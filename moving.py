@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 '''Libraries for moving objects, trajectories...'''
 
-# import copy
+import copy
 from math import sqrt, atan2, cos, sin
 
 from matplotlib.pyplot import plot, text
