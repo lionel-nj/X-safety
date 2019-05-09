@@ -4,6 +4,7 @@ import itertools
 
 import numpy as np
 import yaml
+from twilio.rest import Client
 
 
 def loadYaml(filename):
@@ -175,6 +176,22 @@ def inverseDict(dictValues, keysSet1, keysSet2):
         for key1 in keysSet1:
             reverseDict[key2][key1] = dictValues[key1][key2]
     return reverseDict
+
+def callMeWhenTestAreDOne():
+	# Your Account Sid and Auth Token from twilio.com/console
+	# DANGER! This is insecure. See http://twil.io/secure
+	account_sid = 'AC75e40f32bb2c24f9f11d71e000465147'
+	auth_token = 'c9a80bdc3a33cdea435c25dec282c095'
+	client = Client(account_sid, auth_token)
+
+
+	# call me when done
+	call = client.calls.create(
+		                url='http://demo.twilio.com/docs/voice.xml',
+		                to='+15145715064',
+		                from_='+14387962998'
+		            )
+	print(call.sid)
 
 if __name__ == "__main__":
     import doctest
