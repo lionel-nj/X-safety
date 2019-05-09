@@ -40,10 +40,7 @@ def run(world, simulationParameters):
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
                                                      timeStep=simulationParameters.timeStep)
-
-                        # world.assignUserAlignment(v)
-                                                 # _nextAlignmentIdx=world.getNextAlignment(v, i, simulationParameters.timeStep))
-    # world.duplicateLastVelocities()
+    world.duplicateLastVelocities()
     # #
     # # display
     # # plt.figure()

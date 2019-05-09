@@ -2,7 +2,7 @@ import itertools
 
 from trafficintelligence import utils, moving
 
-import moving
+# import moving
 import toolkit
 
 
@@ -327,7 +327,7 @@ class World:
         """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
         users = [[] * len(self.userInputs)]
         for ui in self.userInputs:
-            for user in ui.alignment.vehicles:
+            for user in ui.alignment.users:
                 if user.timeInterval is not None:
                     users[ui.idx].append(user)
         return users
