@@ -176,7 +176,7 @@ def inverseDict(dictValues, keysSet1, keysSet2):
             reverseDict[key2][key1] = dictValues[key1][key2]
     return reverseDict
 
-def textWhenDone():
+def callWhenDone():
     from twilio.rest import Client
 
     # Your Account Sid and Auth Token from twilio.com/console
@@ -184,12 +184,11 @@ def textWhenDone():
     account_sid = 'AC75e40f32bb2c24f9f11d71e000465147'
     auth_token = 'c9a80bdc3a33cdea435c25dec282c095'
     client = Client(account_sid, auth_token)
-    client.messages.create(
-        to="+5145715064",
-        from_="+14387962998",
-        body="Code executé!",
-        media_url='https://demo.twilio.com/owl.png')
-
+    call = client.calls.create(
+                        url='http://demo.twilio.com/docs/voice.xml',
+                        to='+15145715064',
+                        from_='+14387962998'
+                    )
 
 if __name__ == "__main__":
     import doctest
