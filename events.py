@@ -185,7 +185,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             print(
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
 
-    def computeIndicators(self, world, alignment1=None, alignment2=None):
+    def computeIndicators(self, world=None, alignment1=None, alignment2=None):
         '''Computes the collision course cosine only if the cosine is positive'''
         collisionCourseDotProducts = {}  # [0]*int(self.timeInterval.length())
         collisionCourseAngles = {}
@@ -198,12 +198,12 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 # alignment1.computeCumulativeDistances()
                 # alignment2.computeCumulativeDistances()
 
-                p1 = moving.getXYfromSY(world.getDistanceUserDistanceOnAlignmentAt(self.roadUser1, instant),
+                p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
                                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[2],
                                         alignment1)
 
-                p2 = moving.getXYfromSY(world.getDistanceUserDistanceOnAlignmentAt(self.roadUser2, instant),
+                p2 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser2, instant),
                                         self.roadUser2.getCurvilinearPositionAtInstant(instant)[1],
                                         self.roadUser2.getCurvilinearPositionAtInstant(instant)[2],
                                         alignment2)
