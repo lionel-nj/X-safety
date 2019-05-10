@@ -195,9 +195,6 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         interactionInstants = []
         for instant in self.timeInterval:
             if self.useCurvilinear:
-                # alignment1.computeCumulativeDistances()
-                # alignment2.computeCumulativeDistances()
-
                 p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
                                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[2],
@@ -217,15 +214,18 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                                         alignment1)
                 deltap = p1 - p2
                 deltav = v2 - v1
+                distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
 
             else:
                 deltap = self.roadUser1.getPositionAtInstant(instant) - self.roadUser2.getPositionAtInstant(instant)
                 v1 = self.roadUser1.getVelocityAtInstant(instant)
                 v2 = self.roadUser2.getVelocityAtInstant(instant)
                 deltav = v2 - v1
+                distance = deltap.norm2()
             velocityAngles[instant] = np.arccos(moving.Point.dot(v1, v2) / (v1.norm2() * v2.norm2()))
             collisionCourseDotProducts[instant] = moving.Point.dot(deltap, deltav)
-            distances[instant] = deltap.norm2()
+
+            distances[instant] = distance
             speedDifferentials[instant] = deltav.norm2()
             if collisionCourseDotProducts[instant] > 0:
                 interactionInstants.append(instant)
