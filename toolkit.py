@@ -2,6 +2,7 @@ import collections
 import csv
 import itertools
 
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 
@@ -176,6 +177,7 @@ def inverseDict(dictValues, keysSet1, keysSet2):
             reverseDict[key2][key1] = dictValues[key1][key2]
     return reverseDict
 
+
 def callWhenDone():
     from twilio.rest import Client
 
@@ -189,6 +191,18 @@ def callWhenDone():
                         to='+15145715064',
                         from_='+14387962998'
                     )
+
+
+def drawBoxPlot(data, edgeColor, fillColor):
+    fig, ax = plt.subplots()
+    bp = ax.boxplot(data, patch_artist=True)
+
+    for element in ['boxes', 'whiskers', 'fliers', 'means', 'medians', 'caps']:
+        plt.setp(bp[element], color=edgeColor)
+
+    for patch in bp['boxes']:
+        patch.set(facecolor=fillColor)
+
 
 if __name__ == "__main__":
     import doctest
