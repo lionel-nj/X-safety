@@ -465,7 +465,7 @@ class World:
                     if user1AlignmentIdx == user2AlignmentIdx:
                         return abs(
                             self.getUserDistanceOnAlignmentAt(user1, instant) - self.getUserDistanceOnAlignmentAt(user2,
-                                                                                                                  instant))
+                                                                                                                  instant) - user1.geometry)
 
                     else:
                         user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
@@ -495,7 +495,7 @@ class World:
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
 
-                        distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
+                        distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight') - user1.geometry
                         G.remove_node('user1')
                         G.remove_node('user2')
                         return distance
