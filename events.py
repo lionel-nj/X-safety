@@ -197,31 +197,36 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             if self.useCurvilinear:
                 p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
-                                        self.roadUser1.getCurvilinearPositionAtInstant(instant)[2],
+                                        utils._set(self.roadUser1.curvilinearPositions.lanes).index(self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]),
                                         alignment1)
 
                 p2 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser2, instant),
                                         self.roadUser2.getCurvilinearPositionAtInstant(instant)[1],
-                                        self.roadUser2.getCurvilinearPositionAtInstant(instant)[2],
+                                        utils._set(self.roadUser2.curvilinearPositions.lanes).index(self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]),
                                         alignment2)
                 v1 = moving.getXYfromSY(self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0],
                                         self.roadUser1.getCurvilinearVelocityAtInstant(instant)[1],
-                                        self.roadUser1.getCurvilinearPositionAtInstant(instant)[2],
+                                        utils._set(self.roadUser1.curvilinearPositions.lanes).index(self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]),
                                         alignment1)
                 v2 = moving.getXYfromSY(self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0],
                                         self.roadUser2.getCurvilinearVelocityAtInstant(instant)[1],
-                                        self.roadUser2.getCurvilinearPositionAtInstant(instant)[2],
-                                        alignment1)
+                                        utils._set(self.roadUser2.curvilinearPositions.lanes).index(self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]),
+                                        alignment2)
                 deltap = p1 - p2
                 deltav = v2 - v1
-                distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
+                if utils._set(self.roadUser1.curvilinearPositions.lanes).index(
+                self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]) ==  utils._set(self.roadUser2.curvilinearPositions.lanes).index(self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]):
+
+                    distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant) - self.roadUser1.geometry
+                else:
+                    distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
 
             else:
                 deltap = self.roadUser1.getPositionAtInstant(instant) - self.roadUser2.getPositionAtInstant(instant)
                 v1 = self.roadUser1.getVelocityAtInstant(instant)
                 v2 = self.roadUser2.getVelocityAtInstant(instant)
                 deltav = v2 - v1
-                distance = deltap.norm2()
+                distance = deltap.norm2() - self.roadUser1.geometry
             velocityAngles[instant] = np.arccos(moving.Point.dot(v1, v2) / (v1.norm2() * v2.norm2()))
             collisionCourseDotProducts[instant] = moving.Point.dot(deltap, deltav)
 

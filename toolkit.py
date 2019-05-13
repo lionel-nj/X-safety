@@ -162,11 +162,7 @@ def countElementInList(elementsList, element):
 def makeSubListFromList(itemList, elem):
     """makes small groups of 1, each time a group is found in the list"""
     from itertools import groupby
-    result = []
     return [sum(g) for i, g in groupby(itemList) if i == elem]
-    # for item in items:
-    #     result.append([1] * item)
-    # return result
 
 
 def inverseDict(dictValues, keysSet1, keysSet2):
