@@ -325,7 +325,7 @@ class World:
 
     def getNotNoneVehiclesInWorld(self):
         """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
-        users = [[] * len(self.userInputs)]
+        users = [[] for _ in range(self.userInputs)]
         for ui in self.userInputs:
             for user in ui.alignment.users:
                 if user.timeInterval is not None:
