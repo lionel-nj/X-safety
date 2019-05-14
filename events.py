@@ -195,7 +195,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         interactionInstants = []
         for instant in self.timeInterval:
             if self.useCurvilinear:
-                if world.getUserDistanceOnAlignmentAt(self.roadUser1, instant) <= 900 and world.getUserDistanceOnAlignmentAt(self.roadUser2, instant) <= 400:
+                if 850 <= world.getUserDistanceOnAlignmentAt(self.roadUser1, instant) <= 900 and 350 <= world.getUserDistanceOnAlignmentAt(self.roadUser2, instant) <= 400:
                     p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                             self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
                                             utils._set(self.roadUser1.curvilinearPositions.lanes).index(self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]),
