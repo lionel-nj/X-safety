@@ -184,21 +184,21 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         else:
             print(
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
-
-    def areCrossing(self, firstThreshold, secondThreshold, instant):
-        roadUser1 = self.roadUser1
-        roadUser2 = self.roadUser2
-        if roadUser1.inSimulation[instant - roadUser1.getFirstInstant()] == 1 and roadUser2.inSimulation[instant - roadUser2.getFirstInstant()] == 1:
-            if roadUser1.leader is not None and roadUser2.leader is not None:
-                return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-            elif roadUser1.leader is not None and roadUser2.leader is None:
-                return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold
-            elif roadUser1.leader is None and roadUser2.leader is not None:
-                return roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-            else:
-                return True
-        else:
-            return False
+    #
+    # def areCrossing(self, firstThreshold, secondThreshold, instant):
+    #     roadUser1 = self.roadUser1
+    #     roadUser2 = self.roadUser2
+    #     if roadUser1.inSimulation[instant - roadUser1.getFirstInstant()] == 1 and roadUser2.inSimulation[instant - roadUser2.getFirstInstant()] == 1:
+    #         if roadUser1.leader is not None and roadUser2.leader is not None:
+    #             return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
+    #         elif roadUser1.leader is not None and roadUser2.leader is None:
+    #             return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold
+    #         elif roadUser1.leader is None and roadUser2.leader is not None:
+    #             return roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
+    #         else:
+    #             return True
+    #     else:
+    #         return False
 
     def computeIndicators(self, world=None, alignment1=None, alignment2=None):
         '''Computes the collision course cosine only if the cosine is positive'''
@@ -210,7 +210,8 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         interactionInstants = []
         for instant in self.timeInterval:
             if self.useCurvilinear:
-                if self.areCrossing(900, 400, instant):
+                if True:
+                # if self.areCrossing(900, 400, instant):
                     if 800 <= self.roadUser1.getCurvilinearPositionAtInstant(instant)[0] <= 1000 and 200 <= self.roadUser2.getCurvilinearPositionAtInstant(instant)[0] <= 600:
                         p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                                 self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],

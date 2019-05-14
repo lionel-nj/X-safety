@@ -1358,6 +1358,17 @@ class MovingObject(STObject, VideoFilenameAddable):
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
 
+    # def areCrossing(self, other, firstThreshold, secondThreshold, instant):
+    #
+    #     if self.leader is not None and other.leader is not None:
+    #         return self.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and other.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
+    #     elif self.leader is not None and other.leader is None:
+    #         return self.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold
+    #     elif self.leader is None and other.leader is not None:
+    #         return other.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
+    #     else:
+    #         return True
+
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):
         '''Update curvilinear position of user at new instant'''
@@ -1401,7 +1412,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                 freeFlowCoord = s1 + self.desiredSpeed * timeStep
 
                 if self.leader is not None:
-                    if not self.leader.inSimulation[-1]:
+                    if not self.leader.inSimulation:
                         self.leader = None
 
                 if self.leader is None:
@@ -1413,7 +1424,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                         else:
                             if nextAlignment:
                                 nextAlignmentIdx = nextAlignment.idx
-                        if self.inSimulation[-1]:
+                        if self.inSimulation:
                             self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                 else:
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
@@ -1425,7 +1436,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                     else:
                         nextAlignmentIdx = nextAlignment.idx
                     self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
-                if self.inSimulation[-1]:
+                if self.inSimulation:
                     if nextAlignment is not None:
                         laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
                     else:
@@ -1802,7 +1813,7 @@ class MovingObject(STObject, VideoFilenameAddable):
         return MovingObject.distances(obj1, obj2, instant1, instant2).min()
 
     @staticmethod
-    def maxDistance(obj1, obj2, instant1, instant2=None):
+    def maxDistance(obj1, obj2, instant, instant2=None):
         return MovingObject.distances(obj1, obj2, instant1, instant2).max()
 
     def maxSize(self):

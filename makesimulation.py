@@ -35,7 +35,7 @@ def run(world, simulationParameters):
         for ui in world.userInputs:
             if ui.alignment.users is not None:
                 for v in ui.alignment.users:
-                    if v.inSimulation:# is None:
+                    if v.inSimulation:
                         world.getUserCurrentAlignment(v)
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
