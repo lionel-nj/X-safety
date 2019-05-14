@@ -141,9 +141,10 @@ class Alignment:
         visitedAlignmentsLength = user.visitedAlignmentsLength
         if visitedAlignmentsLength - nextPosition < 0: # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
+                user.inSimulation.append(True)
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                user.inSimulation = False
+                user.inSimulation.append(False)
                 return False
         else: # si on reste sur l'alignement
             return None
@@ -707,7 +708,7 @@ class UserInput:
         """generates a MovingObject on the VehicleInput alignment"""
 
         obj = moving.MovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
-        obj.inSimulation = True
+        obj.inSimulation = [True]
         obj.addNewellAttributes(self.speedDistribution.rvs(),
                                 self.tauDistribution.rvs(),
                                 self.dDistribution.rvs(),

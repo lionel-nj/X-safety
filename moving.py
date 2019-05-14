@@ -1401,7 +1401,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                 freeFlowCoord = s1 + self.desiredSpeed * timeStep
 
                 if self.leader is not None:
-                    if not self.leader.inSimulation:
+                    if not self.leader.inSimulation[-1]:
                         self.leader = None
 
                 if self.leader is None:
@@ -1413,7 +1413,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                         else:
                             if nextAlignment:
                                 nextAlignmentIdx = nextAlignment.idx
-                        if self.inSimulation:
+                        if self.inSimulation[-1]:
                             self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                 else:
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
@@ -1425,7 +1425,7 @@ class MovingObject(STObject, VideoFilenameAddable):
                     else:
                         nextAlignmentIdx = nextAlignment.idx
                     self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
-                if self.inSimulation:
+                if self.inSimulation[-1]:
                     if nextAlignment is not None:
                         laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
                     else:
@@ -1802,7 +1802,7 @@ class MovingObject(STObject, VideoFilenameAddable):
         return MovingObject.distances(obj1, obj2, instant1, instant2).min()
 
     @staticmethod
-    def maxDistance(obj1, obj2, instant, instant2=None):
+    def maxDistance(obj1, obj2, instant1, instant2=None):
         return MovingObject.distances(obj1, obj2, instant1, instant2).max()
 
     def maxSize(self):

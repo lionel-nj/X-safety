@@ -28,7 +28,6 @@ alignments:
       - 0.0
       - 0.0
   width: null
-
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
   - 2
@@ -57,7 +56,6 @@ alignments:
       - 0.0
       - 0.0
   width: null
-
 - !!python/object:network.Alignment
   connectedAlignmentIndices: null
   controlDeviceIndices: null
@@ -69,20 +67,19 @@ alignments:
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
-    - 15000.0
+    - 1000.0
     distances:
-    - 15000.0
+    - 1000.0
     positions:
     - - 800.0
-      - 15800.0
+      - 1800.0
     - - 0.0
       - 0.0
   width: null
-
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
-  - 4
   - 2
+  - 4
   controlDeviceIndices: null
   idx: 3
   graphCorrespondance:
@@ -107,7 +104,6 @@ alignments:
       - -200.0
       - 0.0
   width: null
-
 - !!python/object:network.Alignment
   connectedAlignmentIndices: null
   controlDeviceIndices: null
@@ -119,14 +115,14 @@ alignments:
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
     - 0.0
-    - 15000.0
+    - 1000.0
     distances:
-    - 15000.0
+    - 1000.0
     positions:
     - - 800.0
       - 800.0
     - - 0
-      - 15000.0
+      - 1000.0
   width: null
 controlDevices: null
 
