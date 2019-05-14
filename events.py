@@ -188,7 +188,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
     def areCrossing(self, firstThreshold, secondThreshold, instant):
         roadUser1 = self.roadUser1
         roadUser2 = self.roadUser2
-        if roadUser1.inSimulation[instant - roadUser1.getFirstInstant()] == 1 and roadUser2.inSimulation[instant - roadUser1.getFirstInstant()] == 1:
+        if roadUser1.inSimulation[instant - roadUser1.getFirstInstant()] == 1 and roadUser2.inSimulation[instant - roadUser2.getFirstInstant()] == 1:
             if roadUser1.leader is not None and roadUser2.leader is not None:
                 return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
             elif roadUser1.leader is not None and roadUser2.leader is None:
