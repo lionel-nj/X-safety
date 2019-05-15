@@ -185,20 +185,22 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             print(
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
     #
-    # def areCrossing(self, firstThreshold, secondThreshold, instant):
-    #     roadUser1 = self.roadUser1
-    #     roadUser2 = self.roadUser2
-    #     if roadUser1.inSimulation[instant - roadUser1.getFirstInstant()] == 1 and roadUser2.inSimulation[instant - roadUser2.getFirstInstant()] == 1:
-    #         if roadUser1.leader is not None and roadUser2.leader is not None:
-    #             return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-    #         elif roadUser1.leader is not None and roadUser2.leader is None:
-    #             return roadUser1.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold
-    #         elif roadUser1.leader is None and roadUser2.leader is not None:
-    #             return roadUser2.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-    #         else:
-    #             return True
-    #     else:
-    #         return False
+
+    def areCrossing(self,  firstThreshold, secondThreshold, instant):
+        roadUser1 = self.roadUser1
+        roadUser2 = self.roadUser2
+
+        if roadUser1.getFirstInstant() <= instant <= roadUser1.getLastInstant() and roadUser2.getFirstInstant() <= instant <= roadUser2.getLastInstant():
+            if roadUser1.leader is not None and roadUser2.leader is not None:
+                return roadUser1.leader.getCurvilinearPositionAtInstant(instant)[0] > firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant)[0] > secondThreshold
+            elif roadUser1.leader is not None and roadUser2.leader is None:
+                return roadUser1.leader.getCurvilinearPositionAtInstant(instant)[0] > firstThreshold
+            elif roadUser1.leader is None and roadUser2.leader is not None:
+                return roadUser2.leader.getCurvilinearPositionAtInstant(instant)[0] > secondThreshold
+            else:
+                return True
+        else:
+            return False
 
     def computeIndicators(self, world=None, alignment1=None, alignment2=None):
         '''Computes the collision course cosine only if the cosine is positive'''
@@ -210,9 +212,9 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         interactionInstants = []
         for instant in self.timeInterval:
             if self.useCurvilinear:
-                if True:
-                # if self.areCrossing(900, 400, instant):
-                    if 800 <= self.roadUser1.getCurvilinearPositionAtInstant(instant)[0] <= 1000 and 200 <= self.roadUser2.getCurvilinearPositionAtInstant(instant)[0] <= 600:
+                # if True:
+                if self.areCrossing(907, 407, instant):
+                    if 850 <= self.roadUser1.getCurvilinearPositionAtInstant(instant)[0] <= 907 and 350 <= self.roadUser2.getCurvilinearPositionAtInstant(instant)[0] <= 407:
                         p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                                                 self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
                                                 utils._set(self.roadUser1.curvilinearPositions.lanes).index(self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]),
@@ -246,18 +248,19 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 deltav = v2 - v1
                 distance = deltap.norm2() - self.roadUser1.geometry
 
-            if 850 <= self.roadUser1.getCurvilinearPositionAtInstant(instant)[0] <= 900 and 350 <= self.roadUser2.getCurvilinearPositionAtInstant(instant)[0] <= 400:
+            if self.areCrossing(907, 407, instant):
+                if 850 <= self.roadUser1.getCurvilinearPositionAtInstant(instant)[0] <= 907 and 350 <= self.roadUser2.getCurvilinearPositionAtInstant(instant)[0] <= 407:
 
-                velocityAngles[instant] = np.arccos(moving.Point.dot(v1, v2) / (v1.norm2() * v2.norm2()))
-                collisionCourseDotProducts[instant] = moving.Point.dot(deltap, deltav)
+                    velocityAngles[instant] = np.arccos(moving.Point.dot(v1, v2) / (v1.norm2() * v2.norm2()))
+                    collisionCourseDotProducts[instant] = moving.Point.dot(deltap, deltav)
 
-                distances[instant] = distance
-                speedDifferentials[instant] = deltav.norm2()
-                if collisionCourseDotProducts[instant] > 0:
-                    interactionInstants.append(instant)
-                if distances[instant] != 0 and speedDifferentials[instant] != 0:
-                    collisionCourseAngles[instant] = np.arccos(
-                        collisionCourseDotProducts[instant] / (distances[instant] * speedDifferentials[instant]))
+                    distances[instant] = distance
+                    speedDifferentials[instant] = deltav.norm2()
+                    if collisionCourseDotProducts[instant] > 0:
+                        interactionInstants.append(instant)
+                    if distances[instant] != 0 and speedDifferentials[instant] != 0:
+                        collisionCourseAngles[instant] = np.arccos(
+                            collisionCourseDotProducts[instant] / (distances[instant] * speedDifferentials[instant]))
 
         if len(interactionInstants) >= 2:
             self.interactionInterval = moving.TimeInterval(interactionInstants[0], interactionInstants[-1])
