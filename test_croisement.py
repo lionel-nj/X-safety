@@ -88,7 +88,7 @@ plt.legend([str(h) for h in headways])
 plt.savefig('fig1.png')
 
 plt.close('all')
-plt.plot(headways, [x[0] for x in d.values()], color='blue')
+plt.plot(headways, [x[0] for x in collisionNumbers.values()], color='blue')
 sup = [x[0]+x[1] for x in collisionNumbers.values()]
 inf = [x[0]-x[1] for x in collisionNumbers.values()]
 plt.fill_between(headways, sup, inf, alpha=.4, color='lightblue')
