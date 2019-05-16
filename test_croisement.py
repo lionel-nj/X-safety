@@ -1,20 +1,21 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from trafficintelligence import events
 
 import makesimulation
 import network
 import simulation
+import toolkit
 
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
-sim.duration = 150
+sim.duration = 200
 
-seeds = [52,33, 0,110,2,45, 110, 65, 456, 87]
+seeds = [7878, 4368, 65984, 98, 420, 4389, 52, 33, 0, 110]
 headways = [1.5, 1.8, 2, 2.5]
 
 interactions = {}
 usersCount = {}
-c = 0
 for seed in seeds:
     print(seed)
     usersCount[seed] = {}
@@ -24,7 +25,6 @@ for seed in seeds:
         interactions[seed][h] = {}
         world = network.World.load('cross-net.yml')
         sim.seed = seed
-        world.userInputs[0].distributions['headway'].scale = h-world.userInputs[0].distributions['headway'].loc
         world.userInputs[1].distributions['headway'].scale = h-world.userInputs[1].distributions['headway'].loc
         world = makesimulation.run(world, sim)
         usersCount[seed][h] = world.getNotNoneVehiclesInWorld()
@@ -37,9 +37,6 @@ for seed in seeds:
                     i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
                     i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1), alignment2=world.travelledAlignments(roadUser2))
                     interactions[seed][h][(roadUser1.num, roadUser2.num)].append(i)
-                    c += 1
-                    print(c)
-# toolkit.callWhenDone()
 
 minDistanceList = {} # liste des distances minimales pour chaque simulation, pour chaque headway testé
 
@@ -53,25 +50,48 @@ for h in headways:
         minDistanceList[h].append(minDistance)
 
 # mean-std for number of collisions
-d = {}
+collisionNumbers = {}
 for h in headways:
-    c = []
+    collisions = []
     for liste in minDistanceList[h]:
         if liste!= []:
-            c.append(sum(1 for x in liste if x < 8)/len(liste))
-    print(c)
-    d[h] = (np.mean(c), np.std(c))
+            collisions.append(sum(1 for x in liste if x < 8)/len(liste))
+    collisionNumbers[h] = (np.mean(collisions), np.std(collisions))
 
 # mean-std for minimum interaction distances
 meanAndSTDminDistance = {}
 for h in headways:
     _temp = []
-    for liste in minDistanceList[h]:
-        _temp.append(np.mean(liste))
+    for el in minDistanceList[h]:
+        _temp.append(np.mean(el))
     meanAndSTDminDistance[h] = (np.mean(_temp), np.std(_temp))
 
+# nombre minimal de repetitiosn a effectuer avant convergence des indicateurs
 Nlist = {}
 for h in headways:
-    NCOL = (2.015*d[h][1]/(d[h][1]*.05))**2
-    NNUM = (2.015*meanAndSTDminDistance[h][1]/(meanAndSTDminDistance[h][1]*.05))**2
+    NCOL = (2.015*collisionNumbers[h][1]/(collisionNumbers[h][0]*.1))**2
+    NNUM = (2.015*meanAndSTDminDistance[h][1]/(meanAndSTDminDistance[h][0]*.1))**2
     Nlist[h] = max(NCOL, NNUM)
+
+# display
+plt.close('all')
+for h in headways:
+    plt.figure(num=0)
+    _temp, bins, _ = plt.hist(minDistanceList[h], density=True)
+    plt.close(0)
+    plt.figure(num=1)
+    _toPlot = np.average(_temp, axis=0)
+    plt.plot([k for k in range(0,50,5)], _toPlot)
+plt.xlabel('temps inter-véhiculaire moyen(s)')
+plt.ylabel('fréquences')
+plt.legend([str(h) for h in headways])
+plt.savefig('fig1.png')
+
+plt.close('all')
+plt.plot(headways, [x[0] for x in d.values()], color='blue')
+sup = [x[0]+x[1] for x in collisionNumbers.values()]
+inf = [x[0]-x[1] for x in collisionNumbers.values()]
+plt.fill_between(headways, sup, inf, alpha=.4, color='lightblue')
+plt.savefig('fig2.png')
+plt.close('all')
+toolkit.allWhenDone()
