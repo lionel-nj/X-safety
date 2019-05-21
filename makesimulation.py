@@ -27,7 +27,7 @@ def run(world, simulationParameters):
     userNum = 0
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
-        # print('simulation step {}'.format(i))
+        print('simulation step {}'.format(i))
         # if world.controlDevices is not None:
             # for cd in world.controlDevices:
                 # cd.cycle()
@@ -38,9 +38,11 @@ def run(world, simulationParameters):
                 for v in ui.alignment.users:
                     if v.inSimulation:
                         world.getUserCurrentAlignment(v)
+                        nextControlDeviceIdx = world.getNextControlDevice(v, i)
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
-                                                     timeStep=simulationParameters.timeStep)
+                                                     timeStep=simulationParameters.timeStep,
+                                                     timeGap=world.estimateGap(v, nextControlDeviceIdx, i, 1))
 
     world.duplicateLastVelocities()
 

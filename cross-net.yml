@@ -132,8 +132,6 @@ controlDevices:
     alignmentIdx: 1
     states:
       - forward
-
-
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0
@@ -173,8 +171,14 @@ userInputs:
       distributionType: theoric
       loc: 2
       scale: 0.5
+    criticalGap: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      distributionType: theoric
+      loc: 6
+      scale: 2
   idx: 0
-
 - !!python/object:network.UserInput
   alignmentIdx: 3
   distributions:
@@ -213,6 +217,13 @@ userInputs:
       distributionType: theoric
       loc: 2
       scale: 0.5
+    criticalGap: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: null
+      distributionName: norm
+      distributionType: theoric
+      loc: 6
+      scale: 2
   idx: 1
 
 
