@@ -774,6 +774,12 @@ class Trajectory(object):
         else:
             return False
 
+    def angle(self, other):
+        import math
+        a1 = abs((self[-1] - self[-2]).angle())
+        a2 = abs((other[-1] - other[-2]).angle())
+        return math.pi - (a1+a2)
+
     def setPositionXY(self, i, x, y):
         if i < self.__len__():
             self.positions[0][i] = x
@@ -1345,7 +1351,7 @@ class MovingObject(STObject, VideoFilenameAddable):
         inter, self.positions, self.velocities = MovingObject.aggregateTrajectories(self.features,
                                                                                     self.getTimeInterval())
 
-    def addNewellAttributes(self, desiredSpeed, tau, d, initialCumulatedHeadway, initialAlignmentIdx):
+    def addNewellAttributes(self, desiredSpeed, tau, d, criticalGap, initialCumulatedHeadway, initialAlignmentIdx):
         '''adds attributes necessary for Newell car following model
         using curvilinear trajectories'''
         # Newell model parameters
@@ -1357,20 +1363,11 @@ class MovingObject(STObject, VideoFilenameAddable):
         self.initialCumulatedHeadway = initialCumulatedHeadway
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
-
-    # def areCrossing(self, other, firstThreshold, secondThreshold, instant):
-    #
-    #     if self.leader is not None and other.leader is not None:
-    #         return self.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold and other.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-    #     elif self.leader is not None and other.leader is None:
-    #         return self.leader.getCurvilinearPositionAtInstant(instant) >= firstThreshold
-    #     elif self.leader is None and other.leader is not None:
-    #         return other.leader.getCurvilinearPositionAtInstant(instant) >= secondThreshold
-    #     else:
-    #         return True
+        self.criticalGap = criticalGap
 
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
-                                   acceleration=None):
+                                   acceleration=None, timeGap=None):
+        # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
         # TODO changer nextAlignmentIdx pour l'alignment en cours, reflechir pour des control devices
         if method == 'newell':
@@ -1404,9 +1401,11 @@ class MovingObject(STObject, VideoFilenameAddable):
                         freeFlowCoord = (instant * timeStep - self.timeAtS0) * self.desiredSpeed
                         # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
                         constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
-                        self.curvilinearPositions = CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.],
-                                                                          [self.initialAlignmentIdx])
-                        self.curvilinearVelocities = CurvilinearTrajectory()
+                        if self.criticalGap <= timeGap:
+                            self.curvilinearPositions = CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.],
+                                                                              [self.initialAlignmentIdx])
+                            self.curvilinearVelocities = CurvilinearTrajectory()
+
             else:
                 s1 = self.curvilinearPositions.getSCoordAt(-1)
                 freeFlowCoord = s1 + self.desiredSpeed * timeStep
@@ -1425,7 +1424,11 @@ class MovingObject(STObject, VideoFilenameAddable):
                             if nextAlignment:
                                 nextAlignmentIdx = nextAlignment.idx
                         if self.inSimulation:
-                            self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
+                            if self.criticalGap <= timeGap:
+                                self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
+                            else:
+                                self.duplicateLastPosition()
+
                 else:
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
                                            0] - self.d
@@ -1435,14 +1438,20 @@ class MovingObject(STObject, VideoFilenameAddable):
                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                     else:
                         nextAlignmentIdx = nextAlignment.idx
-                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                    if self.criticalGap <= timeGap:
+                        self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                    else:
+                        self.duplicateLastPosition()
                 if self.inSimulation:
                     if nextAlignment is not None:
                         laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
                     else:
                         laneChange = None
                     self.setLastInstant(instant)
-                    self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+                    if self.criticalGap <= timeGap:
+                        self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+                    else:
+                        self.curvilinearVelocities.addPositionSYL(0, 0, laneChange)
 
     @staticmethod
     def concatenate(obj1, obj2, num=None, newFeatureNum=None, computePositions=False):
