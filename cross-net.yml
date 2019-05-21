@@ -80,7 +80,8 @@ alignments:
   connectedAlignmentIndices:
   - 2
   - 4
-  controlDeviceIndices: null
+  controlDeviceIndices:
+    - 0
   idx: 3
   graphCorrespondance:
     - 4
@@ -124,7 +125,14 @@ alignments:
     - - 0
       - 1000.0
   width: null
-controlDevices: null
+controlDevices:
+  - !!python/object:network.ControlDevice
+    idx: 0
+    category: 3
+    alignmentIdx: 1
+    states:
+      - forward
+
 
 userInputs:
 - !!python/object:network.UserInput

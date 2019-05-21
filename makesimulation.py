@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -27,9 +28,9 @@ def run(world, simulationParameters):
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         # print('simulation step {}'.format(i))
-        if world.controlDevices is not None:
-            for cd in world.controlDevices:
-                cd.cycle()
+        # if world.controlDevices is not None:
+            # for cd in world.controlDevices:
+                # cd.cycle()
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for ui in world.userInputs:
@@ -40,15 +41,16 @@ def run(world, simulationParameters):
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
                                                      timeStep=simulationParameters.timeStep)
+
     world.duplicateLastVelocities()
 
-    # # display
-    # plt.figure()
-    # for ui in world.userInputs:
-    #     for v in ui.alignment.users:
-    #         if v.timeInterval is not None:
-    #             v.plotCurvilinearPositions()
-    #     plt.xlabel('time(s/100)')
-    #     plt.ylabel('longitudinal coordinate (m)')
-    #     plt.show()
+    # display
+    plt.figure()
+    for ui in world.userInputs:
+        for v in ui.alignment.users:
+            if v.timeInterval is not None:
+                v.plotCurvilinearPositions()
+        plt.xlabel('time(s/100)')
+        plt.ylabel('longitudinal coordinate (m)')
+        plt.show()
     return world
