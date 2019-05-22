@@ -38,11 +38,11 @@ def run(world, simulationParameters):
                 for v in ui.alignment.users:
                     if v.inSimulation:
                         world.getUserCurrentAlignment(v)
-                        nextControlDeviceIdx = world.getNextControlDevice(v, i)
+                        # nextControlDeviceIdx = world.getNextControlDevice(v, i)
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
-                                                     timeStep=simulationParameters.timeStep,
-                                                     timeGap=world.estimateGap(v, nextControlDeviceIdx, i, 1))
+                                                     timeStep=simulationParameters.timeStep)
+                                                     # timeGap=world.estimateGap(v, nextControlDeviceIdx, i, 1))
 
     world.duplicateLastVelocities()
 

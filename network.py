@@ -706,8 +706,8 @@ class World:
         if user.timeInterval is not None:
             if instant in list(user.timeInterval):
                 currentLane = user.getCurvilinearPositionAtInstant(instant)[2]
-                if self.getAlignmentById(currentLane).connectedControlDevicesIndices is not None:
-                    return self.getAlignmentById(currentLane).connectedControlDevicesIndices[0]
+                if self.getAlignmentById(currentLane).controlDeviceIndices is not None:
+                    return self.getAlignmentById(currentLane).controlDeviceIndices[0]
                 else:
                     return None
             else:

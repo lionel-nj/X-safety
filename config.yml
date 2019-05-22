@@ -1,5 +1,5 @@
 !!python/object:simulation.Simulation
-duration: 500
+duration: 200
 interactionDistance: 25
 minimumTimeHeadway: 500
 timeStep: 0.1
