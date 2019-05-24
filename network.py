@@ -2,6 +2,7 @@ import itertools
 
 from trafficintelligence import utils, moving
 
+import agents
 # import moving
 import toolkit
 
@@ -152,6 +153,16 @@ class Alignment:
 class ControlDevice:
     """class for control deveices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
+
+    # stop : rouge tout le temps  + verifier le creneau disponible, si crneau acceptble, passer
+    # greentime = 0
+    # redTime = inf
+
+    # feu : rouge et vert, meme si le creneau disponible esty acceptable ne pas passer
+
+    # yield : vert tout le temps, si le creneau dispo nést pas acceptable, ne pas passer sinon passer.
+    # greentime = inf
+    # redtime = 0
 
     def __init__(self, idx, category, alignmentIdx, redTime=None, greenTime=None, initialState=None):
         import copy
@@ -673,47 +684,57 @@ class World:
         else:
             return None
 
-    def estimateGap(self, user, controlDeviceIdx, instant, threshold):
-        """returns an estimate of the gap at T intersection, based on the speed of the incoming vehicle,
-        and the distance remaining between the center of the intersection"""
-        comingUser = self.checkTraffic(user, instant)
-        if controlDeviceIdx is not None:
-            if comingUser is None:
-                return float('inf')
-            else:
-                if self.getIntersectionCP(comingUser.curvilinearPositions.lanes[instant - comingUser.getFirstInstant()]) - threshold <= comingUser.getCurvilinearPositionAtInstant(instant)[0] <= self.getIntersectionCP(comingUser.curvilinearPositions.lanes[instant - comingUser.getFirstInstant()]):
-                    G = self.graph
-                    G.add_node('comingUserCP')
+    # def estimateGap(self, user, controlDeviceIdx, instant, threshold):
+    #     """returns an estimate of the gap at T intersection, based on the speed of the incoming vehicle,
+    #     and the distance remaining between the center of the intersection"""
+    #     comingUser = self.checkTraffic(user, instant)
+    #     if controlDeviceIdx is not None:
+    # #         if comingUser is None:
+    # #             return float('inf')
+    # #         else:
+    # #             if self.getIntersectionCP(self.getControlDeviceById(controlDeviceIdx).alignmentIdx) - threshold <= comingUser.getCurvilinearPositionAtInstant(instant)[0] <= self.getIntersectionCP(self.getControlDeviceById(controlDeviceIdx).alignmentIdx):
+    #                 G = self.graph
+    #                 G.add_node('comingUserCP')
+    # #
+    #                 origin = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[0]
+    #                 target = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[1]
+    #
+    #                 G.add_weighted_edges_from([(origin, 'comingUserCP', self.getUserDistanceOnAlignmentAt(comingUser, instant))])
+    #                 G.add_weighted_edges_from([('comingUserCP', target, self.getIntersectionCP(comingUser.curvilinearPositions.lanes[instant - comingUser.getFirstInstant()]) - self.getUserDistanceOnAlignmentAt(comingUser, instant))])
+    #
+    #                 d = self.distanceAtInstant(comingUser, self.getControlDeviceById(controlDeviceIdx), instant)
+    #                 v = 10*comingUser.getCurvilinearVelocityAtInstant(instant)[0]
+    #                 if v != 0:
+    #                     G.remove_node('comingUserCP')
+    #                     return d/v
+    #                 else:
+    #                     G.remove_node('comingUserCP')
+    #                     return float('inf')
+    #             else:
+    #                 return float('inf')
+    #     else:
+    #         return float('inf')
 
-                    origin = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[0]
-                    target = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[1]
-
-                    G.add_weighted_edges_from([(origin, 'comingUserCP', self.getUserDistanceOnAlignmentAt(comingUser, instant))])
-                    G.add_weighted_edges_from([('comingUserCP', target, self.getIntersectionCP(comingUser.curvilinearPositions.lanes[instant - comingUser.getFirstInstant()]) - self.getUserDistanceOnAlignmentAt(comingUser, instant))])
-
-                    d = self.distanceAtInstant(comingUser, self.getControlDeviceById(controlDeviceIdx), instant)
-                    v = 10*comingUser.getCurvilinearVelocityAtInstant(instant)[0]
-                    if v != 0:
-                        return d/v
-                    else:
-                        return float('inf')
-                else:
-                    return float('inf')
-        else:
-            return float('inf')
-
-    def getNextControlDevice(self, user, instant):
+    def getNextControlDeviceState(self, user, instant, visibilityThreshold):
         if user.timeInterval is not None:
             if instant in list(user.timeInterval):
                 currentLane = user.getCurvilinearPositionAtInstant(instant)[2]
                 if self.getAlignmentById(currentLane).controlDeviceIndices is not None:
-                    return self.getAlignmentById(currentLane).controlDeviceIndices[0]
+
+                    controlDeviceIdx = self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0]).idx
+                    d = self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), instant)
+
+                    if d <= visibilityThreshold:
+                        return self.getAlignmentById(currentLane).controlDeviceIndices[0].state[instant]
+                    else:
+                        return 'forward'
                 else:
-                    return None
+                    return 'forward'
             else:
-                return None
+                return 'forward'
         else:
-            return None
+            return 'forward'
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -754,7 +775,7 @@ class UserInput:
     def initUser(self, userNum, initialCumulatedHeadway):
         """generates a MovingObject on the VehicleInput alignment"""
 
-        obj = moving.MovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
+        obj = agents.NewellMovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
         obj.inSimulation = True
         obj.addNewellAttributes(self.speedDistribution.rvs(),
                                 self.tauDistribution.rvs(),
@@ -764,10 +785,6 @@ class UserInput:
                                 initialCumulatedHeadway,
                                 self.alignmentIdx)
 
-        # if hasattr(self, 'generatedNum'):
-        #     self.generatedNum.append(obj.num)
-        # else:
-        #     self.generatedNum = [obj.num]
         if len(self.alignment.users) > 0:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.alignment.users[-1]

@@ -28,9 +28,9 @@ def run(world, simulationParameters):
     world.users = []
     for i in range(int(np.floor(simulationParameters.duration/simulationParameters.timeStep))):
         print('simulation step {}'.format(i))
-        # if world.controlDevices is not None:
-            # for cd in world.controlDevices:
-                # cd.cycle()
+        if world.controlDevices is not None:
+            for cd in world.controlDevices:
+                cd.cycle()
         userNum = world.initUsers(i, simulationParameters.timeStep, userNum)
 
         for ui in world.userInputs:
@@ -38,7 +38,7 @@ def run(world, simulationParameters):
                 for v in ui.alignment.users:
                     if v.inSimulation:
                         world.getUserCurrentAlignment(v)
-                        # nextControlDeviceIdx = world.getNextControlDevice(v, i)
+                        # nextControlDeviceState = world.getNextControlDeviceState(v, i, simulationParameters.visibilityThreshold)
                         v.updateCurvilinearPositions(method="newell",
                                                      instant=i,
                                                      timeStep=simulationParameters.timeStep)

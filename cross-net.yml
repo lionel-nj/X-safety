@@ -78,8 +78,8 @@ alignments:
   width: null
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
-  - 2
   - 4
+  - 2
   controlDeviceIndices:
     - 0
   idx: 3
@@ -129,9 +129,13 @@ controlDevices:
   - !!python/object:network.ControlDevice
     idx: 0
     category: 3
-    alignmentIdx: 1
+    alignmentIdx: 3
     states:
       - forward
+    redTime: 120
+    greenTime: 70
+    remainingRed: 120
+    remainingGreen: 70
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0
