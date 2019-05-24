@@ -42,7 +42,7 @@ class Interval(object):
 
     def __eq__(self, other):
         return ((self.first == other.first) and (self.last == other.last)) or (
-                    (self.first == other.last) and (self.last == other.first))
+                (self.first == other.last) and (self.last == other.first))
 
     def empty(self):
         return self.first > self.last
@@ -469,8 +469,8 @@ def ppldb2p(qx, qy, p0x, p0y, p1x, p1y):
         #     p1y += 0.0000000001
         # make the calculation
         Y = (-(qx) * (p0y - p1y) - (qy * (p0y - p1y) ** 2) / (p0x - p1x) + p0x ** 2 * (p0y - p1y) / (
-                    p0x - p1x) - p0x * p1x * (p0y - p1y) / (p0x - p1x) - p0y * (p0x - p1x)) / (
-                        p1x - p0x - (p0y - p1y) ** 2 / (p0x - p1x))
+                p0x - p1x) - p0x * p1x * (p0y - p1y) / (p0x - p1x) - p0y * (p0x - p1x)) / (
+                    p1x - p0x - (p0y - p1y) ** 2 / (p0x - p1x))
         X = (-Y * (p1y - p0y) + qx * (p1x - p0x) + qy * (p1y - p0y)) / (p1x - p0x)
     except ZeroDivisionError:
         print('Error: Division by zero in ppldb2p. Please report this error with the full traceback:')
@@ -533,8 +533,8 @@ def getSYfromXY(p, alignments, goodEnoughAlignmentDistance=0.5):
         alignmentDistanceS = alignments[snappedAlignmentIdx].getCumulativeDistance(
             snappedAlignmentLeadingPoint) + subsegmentDistance
         orthogonalAlignmentVector = (
-                    alignments[snappedAlignmentIdx][snappedAlignmentLeadingPoint + 1] - alignments[snappedAlignmentIdx][
-                snappedAlignmentLeadingPoint]).orthogonal()
+                alignments[snappedAlignmentIdx][snappedAlignmentLeadingPoint + 1] - alignments[snappedAlignmentIdx][
+            snappedAlignmentLeadingPoint]).orthogonal()
         offsetVector = p - snappedPoint
         if Point.dot(orthogonalAlignmentVector, offsetVector) < 0:
             minOffsetY = -minOffsetY
@@ -634,7 +634,7 @@ class FlowVector(object):
     @staticmethod
     def similar(f1, f2, maxDistance2, maxDeltavelocity2):
         return (f1.position - f2.position).norm2Squared() < maxDistance2 and (
-                    f1.velocity - f2.velocity).norm2Squared() < maxDeltavelocity2
+                f1.velocity - f2.velocity).norm2Squared() < maxDeltavelocity2
 
 
 def intersection(p1, p2, p3, p4):
@@ -671,7 +671,7 @@ def segmentIntersection(p1, p2, p3, p4):
     '''Returns the intersecting point of the segments [p1, p2] and [p3, p4], None otherwise'''
 
     if (Interval.intersection(Interval(p1.x, p2.x, True), Interval(p3.x, p4.x, True)).empty()) or (
-    Interval.intersection(Interval(p1.y, p2.y, True), Interval(p3.y, p4.y, True)).empty()):
+            Interval.intersection(Interval(p1.y, p2.y, True), Interval(p3.y, p4.y, True)).empty()):
         return None
     else:
         inter = intersection(p1, p2, p3, p4)
@@ -1345,99 +1345,6 @@ class MovingObject(STObject, VideoFilenameAddable):
         inter, self.positions, self.velocities = MovingObject.aggregateTrajectories(self.features,
                                                                                     self.getTimeInterval())
 
-    def addNewellAttributes(self, desiredSpeed, tau, d, criticalGap, initialCumulatedHeadway, initialAlignmentIdx):
-        '''adds attributes necessary for Newell car following model
-        using curvilinear trajectories'''
-        # Newell model parameters
-        self.desiredSpeed = desiredSpeed
-        self.tau = tau
-        self.d = d
-        self.leader = None
-        # other attributes necessary for computation
-        self.initialCumulatedHeadway = initialCumulatedHeadway
-        self.initialAlignmentIdx = initialAlignmentIdx
-        self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
-        self.criticalGap = criticalGap
-    #
-    # def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
-    #                                acceleration=None):
-    #     # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
-    #     '''Update curvilinear position of user at new instant'''
-    #     # TODO changer nextAlignmentIdx pour l'alignment en cours, reflechir pour des control devices
-    #     if method == 'newell':
-    #         if self.curvilinearPositions is None:  # vehicle without positions
-    #             if self.timeAtS0 is None:
-    #                 if self.leader is None:
-    #                     self.timeAtS0 = self.initialCumulatedHeadway
-    #                 elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(
-    #                         -1) > self.d and len(self.leader.curvilinearPositions) >= 2:
-    #                     firstInstantAfterD = self.leader.getLastInstant()
-    #                     while self.leader.existsAtInstant(firstInstantAfterD) and \
-    #                             self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[
-    #                                 0] > self.d:  # find first instant after d
-    #                         firstInstantAfterD -= 1  # if not recorded position before self.d, we extrapolate linearly from first known position
-    #                     leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD - 1)[0]
-    #                     self.timeAtS0 = self.tau + firstInstantAfterD * timeStep - (
-    #                                 self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[
-    #                                     0] - self.d) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
-    #                     if self.timeAtS0 < self.initialCumulatedHeadway:  # obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
-    #                         self.timeAtS0 = self.initialCumulatedHeadway
-    #             elif instant * timeStep > self.timeAtS0:
-    #                 # firstInstant = int(ceil(self.timeAtS0/timeStep))# this first instant is instant by definition
-    #                 leaderInstant = instant - self.tau / timeStep
-    #                 if self.leader is None:
-    #                     s = (timeStep * instant - self.timeAtS0) * self.desiredSpeed
-    #                     self.timeInterval = TimeInterval(instant, instant)
-    #                     self.curvilinearPositions = CurvilinearTrajectory([s], [0.], [self.initialAlignmentIdx])
-    #                     self.curvilinearVelocities = CurvilinearTrajectory()
-    #                 elif self.leader.existsAtInstant(leaderInstant):
-    #                     self.timeInterval = TimeInterval(instant, instant)
-    #                     freeFlowCoord = (instant * timeStep - self.timeAtS0) * self.desiredSpeed
-    #                     # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
-    #                     constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
-    #                     self.curvilinearPositions = CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.],
-    #                                                                       [self.initialAlignmentIdx])
-    #                     self.curvilinearVelocities = CurvilinearTrajectory()
-    #
-    #         else:
-    #             s1 = self.curvilinearPositions.getSCoordAt(-1)
-    #             freeFlowCoord = s1 + self.desiredSpeed * timeStep
-    #
-    #             if self.leader is not None:
-    #                 if not self.leader.inSimulation:
-    #                     self.leader = None
-    #
-    #             if self.leader is None:
-    #                 if self.getLastInstant() < instant:
-    #                     s2 = freeFlowCoord
-    #                     nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
-    #                     if nextAlignment is None:
-    #                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-    #                     else:
-    #                         if nextAlignment:
-    #                             nextAlignmentIdx = nextAlignment.idx
-    #                     if self.inSimulation:
-    #                         self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
-    #
-    #
-    #             else:
-    #                 constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
-    #                                        0] - self.d
-    #                 s2 = min(freeFlowCoord, constrainedCoord)
-    #                 nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
-    #                 if nextAlignment is None:
-    #                     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-    #                 else:
-    #                     nextAlignmentIdx = nextAlignment.idx
-    #                 self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
-    #             if self.inSimulation:
-    #                 if nextAlignment is not None:
-    #                     laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
-    #                 else:
-    #                     laneChange = None
-    #                 self.setLastInstant(instant)
-    #                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
-
     @staticmethod
     def concatenate(obj1, obj2, num=None, newFeatureNum=None, computePositions=False):
         '''Concatenates two objects, whether overlapping temporally or not
@@ -1902,13 +1809,13 @@ class MovingObject(STObject, VideoFilenameAddable):
                     inter = fi.commonTimeInterval(fj)
                     if inter.length() >= minCommonIntervalLength:
                         xi = array(fi.getXCoordinates()[inter.first - fi.getFirstInstant():int(fi.length()) - (
-                                    fi.getLastInstant() - inter.last)])
+                                fi.getLastInstant() - inter.last)])
                         yi = array(fi.getYCoordinates()[inter.first - fi.getFirstInstant():int(fi.length()) - (
-                                    fi.getLastInstant() - inter.last)])
+                                fi.getLastInstant() - inter.last)])
                         xj = array(fj.getXCoordinates()[inter.first - fj.getFirstInstant():int(fj.length()) - (
-                                    fj.getLastInstant() - inter.last)])
+                                fj.getLastInstant() - inter.last)])
                         yj = array(fj.getYCoordinates()[inter.first - fj.getFirstInstant():int(fj.length()) - (
-                                    fj.getLastInstant() - inter.last)])
+                                fj.getLastInstant() - inter.last)])
                         relativePositions[(i, j)] = Point(median(xj - xi), median(yj - yi))
                         relativePositions[(j, i)] = -relativePositions[(i, j)]
 
