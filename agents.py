@@ -4,23 +4,10 @@ from trafficintelligence import moving
 class NewellMovingObject(moving.MovingObject):
 
     def __init__(self, num=None, timeInterval=None, positions=None, velocities=None, geometry=None,
-                 userType=moving.userType2Num['unknown'], nObjects=None, initCurvilinear=False):
-        super(moving.MovingObject, self).__init__(num, timeInterval)
-        if initCurvilinear:
-            self.curvilinearPositions = positions
-            self.curvilinearVelocities = velocities  # third component is (previousAlignmentIdx, newAlignmentIdx) or None if no change
-        else:
-            self.positions = positions
-            self.velocities = velocities
-        self.geometry = geometry
-        self.userType = userType
-        self.setNObjects(nObjects)  # a feature has None for nObjects
-        self.features = None
-
-    def addNewellAttributes(self, desiredSpeed, tau, d, criticalGap, initialCumulatedHeadway, initialAlignmentIdx):
-        '''adds attributes necessary for Newell car following model
-        using curvilinear trajectories'''
-        # Newell model parameters
+                 userType=moving.userType2Num['unknown'], nObjects=None, initCurvilinear=False, desiredSpeed=None,
+                 tau=None, d=None, criticalGap=None, initialCumulatedHeadway=None,
+                 initialAlignmentIdx=None):
+        super().__init__(num, timeInterval, positions, velocities, geometry, userType, nObjects, initCurvilinear)
         self.desiredSpeed = desiredSpeed
         self.tau = tau
         self.d = d
@@ -30,6 +17,7 @@ class NewellMovingObject(moving.MovingObject):
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
         self.criticalGap = criticalGap
+        self.inSimulation = True
 
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):

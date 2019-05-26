@@ -467,7 +467,7 @@ class World:
     def distanceAtInstant(self, user1, user2, instant):
         """"computes the distance between 2 users"""
         import networkx as nx
-        if type(user1) == moving.MovingObject and type(user2) == moving.MovingObject:
+        if type(user1) == agents.NewellMovingObject and type(user2) == moving.MovingObject:
             if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
                 if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                     user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
@@ -513,36 +513,35 @@ class World:
                 else:
                     print('user do not coexist, therefore can not compute distance')
 
-        elif type(user1) == moving.MovingObject and type(user2) == ControlDevice:
+        elif type(user1) == agents.NewellMovingObject and type(user2) == ControlDevice:
             if user1.getFirstInstant() <= instant:
                 user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
-                if user1AlignmentIdx == user2.alignmentIdx:
-                    user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
-                    user1DownstreamDistance = \
-                        self.getAlignmentById(
-                            user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                            -1] - user1UpstreamDistance
+                user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
+                user1DownstreamDistance = \
+                    self.getAlignmentById(
+                        user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
+                        -1] - user1UpstreamDistance
 
-                    G = self.graph
-                    G.add_node('user1')
+                G = self.graph
+                G.add_node('user1')
 
-                    user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
-                    user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
-                    G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
-                    G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+                user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
+                user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
+                G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
+                G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
 
-                    distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
-                                                       weight='weight')
-                    G.remove_node('user1')
+                distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
+                                                   weight='weight')
+                G.remove_node('user1')
 
-                    return distance
-                else:
-                    return print(
+                return distance
+            else:
+                return print(
                         'Can not compute distance between control Device and user because they are not located on the same alignment')
 
-        elif type(user2) == moving.MovingObject and type(user1) == ControlDevice:
+        elif type(user2) == agents.NewellMovingObject and type(user1) == ControlDevice:
             user1, user2 = user2, user1
-            self.distance(user1, user2, instant)
+            self.distanceAtInstant(user1, user2, instant)
 
     def getLinkedAlignments(self, alignmentIdx):
         """return the list of all alignments that are un-directly linked to an alignment"""
@@ -555,24 +554,13 @@ class World:
                     linkedAlignments = linkedAlignments + self.getAlignmentById(el).connectedAlignmentIndices
         return linkedAlignments
 
-    def insertControlDevices(self):
-        """inserts controlDevice on the graph of the network"""
-        G = self.graph
-        for cdIdx, cd in enumerate(self.controlDevices):
-            controlDevice = "cd{}".format(cdIdx)
-            G.add_node(controlDevice)
-            origin = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[0]
-            target = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[1]
-            weight = self.getAlignmentById(cd.alignmentIdx).points.cumulativeDistances[-1]
-            G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
-
-    def startUser(self, userNum):
-        user = self.getUserByNum(userNum)
-        user.state = 'forward'
-
-    def stopUser(self, userNum):
-        user = self.getUserByNum(userNum)
-        user.state = 'stop'
+    # def startUser(self, userNum):
+    #     user = self.getUserByNum(userNum)
+    #     user.state = 'forward'
+    #
+    # def stopUser(self, userNum):
+    #     user = self.getUserByNum(userNum)
+    #     user.state = 'stop'
 
     def checkControlDevicesAtInstant(self, user, t, radius):
         """checks the state of controlDevices within a radius
@@ -651,30 +639,42 @@ class World:
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
         # todo : tester
         _temp = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices
-        for al in self.alignments: # determiner l'alignement sur lequel le traffic adjacent arrive
-            if al.idx != user.curvilinearPositions.lanes[-1]:
-                if set(al.connectedAlignmentIndices) == set(_temp):
-                    return al.idx
+        if _temp != []:
+            for al in self.alignments: # determiner l'alignement sur lequel le traffic adjacent arrive
+                if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
+                    if al.connectedAlignmentIndices is not None:
+                        if _temp is not None:
+                            if set(al.connectedAlignmentIndices) == set(_temp):
+                                return al.idx
+                        else:
+                            return None
+                    else:
+                        return None
+        else:
+            return None
 
     def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""
         if user is not None:
             if user.timeInterval is not None:
                 if instant in list(user.timeInterval):
-                    lane = self.getAlignmentOfIncomingTraffic(user, instant)
-                    intersectionCP = self.getIntersectionCP(lane)
+                    if self.getAlignmentOfIncomingTraffic(user, instant) is not None:
+                        lane = self.getAlignmentOfIncomingTraffic(user, instant)
+                        intersectionCP = self.getIntersectionCP(lane)
 
-                    userList = []
-                    for k in range(len(self.userInputs)):
-                        userList.extend(self.getNotNoneVehiclesInWorld()[k])
-                    incomingUsers = []
-                    for user in userList:
-                        if instant in list(user.timeInterval):
-                            if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
-                                incomingUsers.append(user)
-                    sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
-                    if sortedUserList != []:
-                        return sortedUserList[0]
+                        userList = []
+                        for k in range(len(self.userInputs)):
+                            userList.extend(self.getNotNoneVehiclesInWorld()[k])
+                        incomingUsers = []
+                        for user in userList:
+                            if instant in list(user.timeInterval):
+                                if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
+                                    incomingUsers.append(user)
+                        sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                        if sortedUserList != []:
+                            return sortedUserList[0]
+                        else:
+                            return None
                     else:
                         return None
                 else:
@@ -684,36 +684,29 @@ class World:
         else:
             return None
 
-    # def estimateGap(self, user, controlDeviceIdx, instant, threshold):
-    #     """returns an estimate of the gap at T intersection, based on the speed of the incoming vehicle,
-    #     and the distance remaining between the center of the intersection"""
-    #     comingUser = self.checkTraffic(user, instant)
-    #     if controlDeviceIdx is not None:
-    # #         if comingUser is None:
-    # #             return float('inf')
-    # #         else:
-    # #             if self.getIntersectionCP(self.getControlDeviceById(controlDeviceIdx).alignmentIdx) - threshold <= comingUser.getCurvilinearPositionAtInstant(instant)[0] <= self.getIntersectionCP(self.getControlDeviceById(controlDeviceIdx).alignmentIdx):
-    #                 G = self.graph
-    #                 G.add_node('comingUserCP')
-    # #
-    #                 origin = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[0]
-    #                 target = self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).graphCorrespondance[1]
-    #
-    #                 G.add_weighted_edges_from([(origin, 'comingUserCP', self.getUserDistanceOnAlignmentAt(comingUser, instant))])
-    #                 G.add_weighted_edges_from([('comingUserCP', target, self.getIntersectionCP(comingUser.curvilinearPositions.lanes[instant - comingUser.getFirstInstant()]) - self.getUserDistanceOnAlignmentAt(comingUser, instant))])
-    #
-    #                 d = self.distanceAtInstant(comingUser, self.getControlDeviceById(controlDeviceIdx), instant)
-    #                 v = 10*comingUser.getCurvilinearVelocityAtInstant(instant)[0]
-    #                 if v != 0:
-    #                     G.remove_node('comingUserCP')
-    #                     return d/v
-    #                 else:
-    #                     G.remove_node('comingUserCP')
-    #                     return float('inf')
-    #             else:
-    #                 return float('inf')
-    #     else:
-    #         return float('inf')
+    def estimateGap(self, user, controlDeviceIdx, instant, threshold):
+        """returns an estimate of the gap at T intersection, based on the speed of the incoming vehicle,
+        and the distance remaining between the center of the intersection"""
+        comingUser = self.checkTraffic(user, instant)
+        if controlDeviceIdx is not None:
+            if comingUser is None:
+                return float('inf')
+            else:
+                for al in self.alignments:
+                    if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(self.getControlDeviceById(controlDeviceIdx).alignmentIdx).connectedAlignmentIndices):
+                        alIdx = al.idx
+                        break
+                if self.getIntersectionCP(alIdx) - threshold <= comingUser.getCurvilinearPositionAtInstant(instant)[0] <= self.getIntersectionCP(alIdx):
+                    d = self.distanceAtInstant(comingUser, self.getControlDeviceById(controlDeviceIdx), 1000)
+                    v = 10*comingUser.getCurvilinearVelocityAtInstant(instant)[0]
+                    if v != 0:
+                        return d/v
+                    else:
+                        return float('inf')
+                else:
+                    return float('inf ')
+        else:
+            return float('inf')
 
     def getNextControlDeviceState(self, user, instant, visibilityThreshold):
         if user.timeInterval is not None:
@@ -725,7 +718,7 @@ class World:
                     d = self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), instant)
 
                     if d <= visibilityThreshold:
-                        return self.getAlignmentById(currentLane).controlDeviceIndices[0].state[instant]
+                        return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0]).states[instant]
                     else:
                         return 'forward'
                 else:
@@ -775,15 +768,16 @@ class UserInput:
     def initUser(self, userNum, initialCumulatedHeadway):
         """generates a MovingObject on the VehicleInput alignment"""
 
-        obj = agents.NewellMovingObject(userNum, geometry=self.lengthDistribution.rvs(), initCurvilinear=True)
-        obj.inSimulation = True
-        obj.addNewellAttributes(self.speedDistribution.rvs(),
-                                self.tauDistribution.rvs(),
-                                self.dDistribution.rvs(),
-                                self.gapDistribution.rvs(),
-                                # kj=120 veh/km
-                                initialCumulatedHeadway,
-                                self.alignmentIdx)
+        obj = agents.NewellMovingObject(userNum,
+                                        geometry=self.lengthDistribution.rvs(),
+                                        initCurvilinear=True,
+                                        desiredSpeed=self.speedDistribution.rvs(),
+                                        tau=self.tauDistribution.rvs(),
+                                        d=self.dDistribution.rvs(),
+                                        criticalGap=self.gapDistribution.rvs(),
+                                        # kj=120 veh/km
+                                        initialCumulatedHeadway=initialCumulatedHeadway,
+                                        initialAlignmentIdx=self.alignmentIdx)
 
         if len(self.alignment.users) > 0:
             # obj.leader = self.generatedNum[-1]
