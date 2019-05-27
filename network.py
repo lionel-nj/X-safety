@@ -149,6 +149,18 @@ class Alignment:
         else: # si on reste sur l'alignement
             return None
 
+    def getAlignmentVector(self):
+        #todo : a tester
+        p1 = self.points[0]
+        p2 = self.points[-1]
+        alignmentVector = p2 - p1
+        return alignmentVector
+
+    def getNormedAlignmentVector(self):
+        #todo : a tester
+        normedAlignmentVector = self.getAlignmentVector().normalize()
+        return normedAlignmentVector
+
 
 class ControlDevice:
     """class for control deveices :stop signs, traffic light etc ...
@@ -467,7 +479,7 @@ class World:
     def distanceAtInstant(self, user1, user2, instant):
         """"computes the distance between 2 users"""
         import networkx as nx
-        if type(user1) == agents.NewellMovingObject and type(user2) == moving.MovingObject:
+        if type(user1) == agents.NewellMovingObject and type(user2) == agents.NewellMovingObject:
             if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
                 if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                     user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]

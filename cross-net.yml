@@ -190,7 +190,7 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: norm
-      distributionType: theoric
+      distributionType:
       loc: 8.333333
       scale: 1
     headway: !!python/object:network.Distribution
