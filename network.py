@@ -607,7 +607,8 @@ class World:
     def duplicateLastVelocities(self):
         for user in self.users:
             if user.curvilinearVelocities is not None:
-                user.curvilinearVelocities.duplicateLastPosition()
+                if len(user.curvilinearVelocities) > 1:
+                    user.curvilinearVelocities.duplicateLastPosition()
 
     def prepare(self):
         """"links the alignments, creating a connectedAliognments member to each alignments of self"""
