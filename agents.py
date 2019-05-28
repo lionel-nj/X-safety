@@ -63,10 +63,6 @@ class NewellMovingObject(moving.MovingObject):
                 s1 = self.curvilinearPositions.getSCoordAt(-1)
                 freeFlowCoord = s1 + self.desiredSpeed * timeStep
 
-                if self.leader is not None:
-                    if not self.leader.inSimulation:
-                        self.leader = None
-
                 if self.leader is None:
                     if self.getLastInstant() < instant:
                         s2 = freeFlowCoord
@@ -79,17 +75,26 @@ class NewellMovingObject(moving.MovingObject):
                         if self.inSimulation:
                             self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
 
-
                 else:
-                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
+                    if instant in list(self.leader.timeInterval):
+                        constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
                                            0] - self.d
+                    else:
+                        constrainedCoord = freeFlowCoord
+
                     s2 = min(freeFlowCoord, constrainedCoord)
                     nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+
                     if nextAlignment is None:
                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                     else:
-                        nextAlignmentIdx = nextAlignment.idx
-                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                        if nextAlignment :#type(nextAlignment) == int:
+                            nextAlignmentIdx = nextAlignment.idx
+                    # else:
+                    #     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                    if self.inSimulation:
+                        self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+
                 if self.inSimulation:
                     if nextAlignment is not None:
                         laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)

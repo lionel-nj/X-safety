@@ -140,13 +140,13 @@ class Alignment:
 
     def getNextAlignment(self, user, nextPosition):
         visitedAlignmentsLength = user.visitedAlignmentsLength
-        if visitedAlignmentsLength - nextPosition < 0: # si on est sorti de l'alignement
+        if visitedAlignmentsLength - nextPosition < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                return self.connectedAlignments[0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 user.inSimulation = False
                 return False
-        else: # si on reste sur l'alignement
+        else:  # si on reste sur l'alignement
             return None
 
     def getAlignmentVector(self):
