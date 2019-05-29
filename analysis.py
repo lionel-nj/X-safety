@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 from trafficintelligence import moving, events
 
 import toolkit
@@ -94,3 +95,81 @@ def getInteractionsDuration(world, dmin, inLine=False):
         pass
     else:
         print('error in method name, method name should be "inline" or "crossing"')
+
+
+def timeToCollisionAtInstant(user, t):
+    if user.leader is not None:
+        leader = user.leader
+        x0 = leader.getCurvilinearPositionAtInstant(t)[0]
+        v0 = leader.getCurvilinearVelocityAtInstant(t)[0]
+        x1 = user.getCurvilinearPositionAtInstant(t)[0]
+        v1 = user.getCurvilinearVelocityAtInstant(t)[0]
+        if v1 > v0:
+            ttc = (x0 - x1 - leader.geometry) / (v1 - v0)
+            return ttc
+    else:
+        return None
+
+
+def timeToCollision(user):
+    ttc = []
+    if user.leader is not None:
+        inter = moving.TimeInterval.intersection(user.timeInterval, user.leader.timeInterval)
+        for t in list(inter):
+            if timeToCollisionAtInstant(user, t) is not None:
+                ttc.append(timeToCollisionAtInstant(user, t))
+    return ttc
+
+
+def evaluateModel(paramSet, world, sim):
+    world.userInputs[0].distributions['dn'].degeneratedConstant = paramSet[0]
+    world.userInputs[0].distributions['headway'].degeneratedConstant = paramSet[1]
+    world.userInputs[0].distributions['length'].degeneratedConstant = paramSet[2]
+    world.userInputs[0].distributions['speed'].degeneratedConstant = paramSet[3]
+    world.userInputs[0].distributions['tau'].degeneratedConstant = paramSet[4]
+    seeds = [5]
+    headways = [paramSet[1]]
+
+    interactions = {}
+    usersCount = {}
+
+    for seed in seeds:
+        usersCount[seed] = {}
+        interactions[seed] = {}
+        sim.seed = seed
+
+        for h in headways:
+            interactions[seed][h] = {}
+            world = sim.run(world)
+            usersCount[seed][h] = world.getNotNoneVehiclesInWorld()[0]
+
+            for userNum in range(len(usersCount[seed][h]) - 1):
+                roadUser1 = world.getUserByNum(userNum)
+                roadUser2 = world.getUserByNum(userNum + 1)
+                #                 print(len(roadUser1.curvilinearVelocities), len(roadUser2.curvilinearVelocities))
+                interactions[seed][h][(roadUser1.num, roadUser2.num)] = []
+                i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+                i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1),
+                                    alignment2=world.travelledAlignments(roadUser2))
+
+                interactions[seed][h][(roadUser1.num, roadUser2.num)].append(i)
+    TTC = {}
+    TTCmin = {}
+
+    simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
+    for user in simulatedUsers:
+        ttc = timeToCollision(user)
+        user0 = user.leader
+        if user0 is None:
+            num0 = None
+        else:
+            num0 = user0.num
+
+        TTC[num0, user.num] = ttc
+        if ttc != []:
+            TTCmin[num0, user.num] = min(TTC[num0, user.num])
+
+    n, bins = np.histogram(list(TTCmin.values()))
+    mids = 0.5 * (bins[1:] + bins[:-1])
+    mean = np.average(mids, weights=n)
+    return mean
