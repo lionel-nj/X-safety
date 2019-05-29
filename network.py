@@ -351,7 +351,7 @@ class World:
         users = [[] for _ in range(len(self.userInputs))]
         for ui in self.userInputs:
             for user in ui.alignment.users:
-                if user.timeInterval is not None:
+                if user.timeInterval is not None and len(user.curvilinearVelocities)>0:
                     users[ui.idx].append(user)
         return users
 
