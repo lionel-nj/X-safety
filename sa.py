@@ -7,6 +7,11 @@ import network
 import simulation
 import toolkit
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("nop", help="the number of points tu evaluate for one parameter", type=int)
+
+args = parser.parse_args()
 
 problem = {
     'num_vars': 5,
@@ -18,7 +23,7 @@ problem = {
            [1.5, 3]
           ]}
 
-paramValues = saltelli.sample(problem, 20)
+paramValues = saltelli.sample(problem, args.nop)
 Y = np.zeros([paramValues.shape[0]])
 bar = Bar('Processing', max=paramValues.shape[0])
 
