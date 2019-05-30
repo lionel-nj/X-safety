@@ -1,0 +1,316 @@
+- !!python/object:pandas.core.frame.DataFrame
+  _data: !!python/object/new:pandas.core.internals.managers.BlockManager
+    state: !!python/tuple
+    - &id004
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - &id001 !!python/name:pandas.core.indexes.base.Index 
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - &id002 !!python/name:numpy.ndarray 
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - &id003 !!python/object/apply:numpy.dtype
+              args:
+              - O8
+              - 0
+              - 1
+              state: !!python/tuple
+              - 3
+              - '|'
+              - null
+              - null
+              - null
+              - -1
+              - -1
+              - 63
+            - false
+            - - ST
+              - ST_conf
+          name: null
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 5
+            - *id003
+            - false
+            - - d
+              - headway
+              - length
+              - speed
+              - tau
+          name: null
+    - - &id005 !!python/object/apply:numpy.core.multiarray._reconstruct
+        args:
+        - *id002
+        - !!python/tuple
+          - 0
+        - !!binary |
+          Yg==
+        state: !!python/tuple
+        - 1
+        - !!python/tuple
+          - 2
+          - 5
+        - &id006 !!python/object/apply:numpy.dtype
+          args:
+          - f8
+          - 0
+          - 1
+          state: !!python/tuple
+          - 3
+          - <
+          - null
+          - null
+          - null
+          - -1
+          - -1
+          - 0
+        - false
+        - !!binary |
+          Je76i9ULbD8qvUwpFiTVP/DRKkRVlRI/fWApE8M57z+VeSMikmdtPz7hbtYBy4o/BHFdSNA35T8F
+          z7s9kec1P5Pok7ZoKt4/bfxlXmZPjD8=
+    - - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - *id003
+            - false
+            - - ST
+              - ST_conf
+          name: null
+    - 0.14.1:
+        axes: *id004
+        blocks:
+        - mgr_locs: !!python/object/apply:builtins.slice
+          - 0
+          - 2
+          - 1
+          values: *id005
+  _metadata: &id009 []
+  _typ: dataframe
+- !!python/object:pandas.core.frame.DataFrame
+  _data: !!python/object/new:pandas.core.internals.managers.BlockManager
+    state: !!python/tuple
+    - &id007
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - *id003
+            - false
+            - - S1
+              - S1_conf
+          name: null
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 5
+            - *id003
+            - false
+            - - d
+              - headway
+              - length
+              - speed
+              - tau
+          name: null
+    - - &id008 !!python/object/apply:numpy.core.multiarray._reconstruct
+        args:
+        - *id002
+        - !!python/tuple
+          - 0
+        - !!binary |
+          Yg==
+        state: !!python/tuple
+        - 1
+        - !!python/tuple
+          - 2
+          - 5
+        - *id006
+        - false
+        - !!binary |
+          oBQzBSvwWb+Tk3SShvm4Px1aVr511UW/ndPysBHQ8j/keSUZUYtsv+IFm7SpXJ4/J6zrLnRH0D/y
+          0PQDWT5yP+1fErPrDvA/GzKfR5lymT8=
+    - - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - *id003
+            - false
+            - - S1
+              - S1_conf
+          name: null
+    - 0.14.1:
+        axes: *id007
+        blocks:
+        - mgr_locs: !!python/object/apply:builtins.slice
+          - 0
+          - 2
+          - 1
+          values: *id008
+  _metadata: *id009
+  _typ: dataframe
+- !!python/object:pandas.core.frame.DataFrame
+  _data: !!python/object/new:pandas.core.internals.managers.BlockManager
+    state: !!python/tuple
+    - &id010
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - *id003
+            - false
+            - - S2
+              - S2_conf
+          name: null
+      - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 10
+            - *id003
+            - false
+            - - !!python/tuple
+                - d
+                - headway
+              - !!python/tuple
+                - d
+                - length
+              - !!python/tuple
+                - d
+                - speed
+              - !!python/tuple
+                - d
+                - tau
+              - !!python/tuple
+                - headway
+                - length
+              - !!python/tuple
+                - headway
+                - speed
+              - !!python/tuple
+                - headway
+                - tau
+              - !!python/tuple
+                - length
+                - speed
+              - !!python/tuple
+                - length
+                - tau
+              - !!python/tuple
+                - speed
+                - tau
+          name: null
+    - - &id011 !!python/object/apply:numpy.core.multiarray._reconstruct
+        args:
+        - *id002
+        - !!python/tuple
+          - 0
+        - !!binary |
+          Yg==
+        state: !!python/tuple
+        - 1
+        - !!python/tuple
+          - 2
+          - 10
+        - *id006
+        - false
+        - !!binary |
+          oOmgtky0ZD8budtn0axuPwDzz0Zz1X4/oqhmszuxbz8nt3SbccFnP8DMxwEjQb4/QK7SNpDNJT8A
+          bGqkg7xsv9jFHE5clEM/ICISY1d2zL/GFTPyG2SsP3JMA9xFVaw/7vIOZrZwsT8YS8McdYesP69m
+          5o8MqdA/BZ920dtA8z8slPvDKXvQP7AJ8LfHeJA/C42EkPfEdj/m0jQMj9IAQA==
+    - - !!python/object/apply:pandas.core.indexes.base._new_Index
+        - *id001
+        - data: !!python/object/apply:numpy.core.multiarray._reconstruct
+            args:
+            - *id002
+            - !!python/tuple
+              - 0
+            - !!binary |
+              Yg==
+            state: !!python/tuple
+            - 1
+            - !!python/tuple
+              - 2
+            - *id003
+            - false
+            - - S2
+              - S2_conf
+          name: null
+    - 0.14.1:
+        axes: *id010
+        blocks:
+        - mgr_locs: !!python/object/apply:builtins.slice
+          - 0
+          - 2
+          - 1
+          values: *id011
+  _metadata: *id009
+  _typ: dataframe
