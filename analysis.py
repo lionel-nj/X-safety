@@ -126,7 +126,6 @@ def evaluateModel(paramSet, world, sim):
     world.userInputs[0].distributions['headway'].loc = paramSet[1]
     world.userInputs[0].distributions['length'].loc = paramSet[2]
     world.userInputs[0].distributions['speed'].loc = paramSet[3]
-    world.userInputs[0].distributions['tau'].loc = paramSet[4]
     seeds = [5]
     headways = [paramSet[1]]
 
