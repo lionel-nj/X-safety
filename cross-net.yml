@@ -125,17 +125,8 @@ alignments:
     - - 0
       - 1000.0
   width: null
-controlDevices:
-  - !!python/object:network.ControlDevice
-    idx: 0
-    category: 3
-    alignmentIdx: 3
-    states:
-      - forward
-    redTime: 120
-    greenTime: 70
-    remainingRed: 120
-    remainingGreen: 70
+controlDevices: null
+
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0
@@ -190,7 +181,7 @@ userInputs:
       cdf: null
       degeneratedConstant: null
       distributionName: norm
-      distributionType:
+      distributionType: theoric
       loc: 8.333333
       scale: 1
     headway: !!python/object:network.Distribution

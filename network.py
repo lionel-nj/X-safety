@@ -166,25 +166,15 @@ class ControlDevice:
     """class for control deveices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
 
-    # stop : rouge tout le temps  + verifier le creneau disponible, si crneau acceptble, passer
-    # greentime = 0
-    # redTime = inf
-
-    # feu : rouge et vert, meme si le creneau disponible esty acceptable ne pas passer
-
-    # yield : vert tout le temps, si le creneau dispo nést pas acceptable, ne pas passer sinon passer.
-    # greentime = inf
-    # redtime = 0
-
     def __init__(self, idx, category, alignmentIdx):#, redTime=None, greenTime=None, initialState=None):
         self.idx = idx
         self.category = category
         self.alignmentIdx = alignmentIdx
 
-
     categories = {1: 'stop',
                   2: 'traffic light',
-                  3: 'yield'}
+                  3: 'yield',
+                  4: 'etc'}
 
     def getCharCategory(self):
         """returns a chain of character describing the category of self"""
@@ -650,7 +640,7 @@ class World:
     def duplicateLastVelocities(self):
         for user in self.users:
             if user.curvilinearVelocities is not None:
-                if len(user.curvilinearVelocities) > 1:
+                if len(user.curvilinearVelocities) > 0:
                     user.curvilinearVelocities.duplicateLastPosition()
 
     def prepare(self):
@@ -691,48 +681,33 @@ class World:
                     intersectionCP += self.getAlignmentById(al.idx).points.cumulativeDistances[-1]
         return intersectionCP
 
-    def getAlignmentOfIncomingTraffic(self, user, instant):
+    def getIncommingTrafficAlignmentIdx(self, user, instant):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-        # todo : tester
         _temp = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices
-        if _temp != []:
+        if _temp is not None:
             for al in self.alignments: # determiner l'alignement sur lequel le traffic adjacent arrive
                 if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
                     if al.connectedAlignmentIndices is not None:
-                        if _temp is not None:
-                            if set(al.connectedAlignmentIndices) == set(_temp):
-                                return al.idx
-                        else:
-                            return None
-                    else:
-                        return None
-        else:
-            return None
+                        if set(al.connectedAlignmentIndices) == set(_temp):
+                            return al.idx
 
     def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""
-        if user is not None:
-            if user.timeInterval is not None:
-                if instant in list(user.timeInterval):
-                    if self.getAlignmentOfIncomingTraffic(user, instant) is not None:
-                        lane = self.getAlignmentOfIncomingTraffic(user, instant)
-                        intersectionCP = self.getIntersectionCP(lane)
-
-                        userList = []
-                        for k in range(len(self.userInputs)):
-                            userList.extend(self.getNotNoneVehiclesInWorld()[k])
-                        incomingUsers = []
-                        for user in userList:
-                            if instant in list(user.timeInterval):
-                                if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
-                                    incomingUsers.append(user)
-                        sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
-                        if sortedUserList != []:
-                            return sortedUserList[0]
-                        else:
-                            return None
-                    else:
-                        return None
+        if instant in list(user.timeInterval):
+            if self.getIncommingTrafficAlignmentIdx(user, instant) is not None:
+                lane = self.getIncommingTrafficAlignmentIdx(user, instant)
+                intersectionCP = self.getIntersectionCP(lane)
+                userList = []
+                for k in range(len(self.userInputs)):
+                    userList.extend(self.getNotNoneVehiclesInWorld()[k])
+                incomingUsers = []
+                for user in userList:
+                    if instant in list(user.timeInterval):
+                        if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
+                            incomingUsers.append(user)
+                sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                if sortedUserList != []:
+                    return sortedUserList[0]
                 else:
                     return None
             else:
@@ -740,29 +715,36 @@ class World:
         else:
             return None
 
-    def estimateGap(self, user, controlDeviceIdx, instant, threshold):
-        """returns an estimate of the gap at T intersection, based on the speed of the incoming vehicle,
+    def estimateGap(self, user, instant, threshold, timeStep):
+        # todo : verifier
+        """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
-        comingUser = self.checkTraffic(user, instant)
-        if controlDeviceIdx is not None:
+        if user.timeInterval is not None:
+            comingUser = self.checkTraffic(user, instant)
             if comingUser is None:
                 return float('inf')
             else:
                 for al in self.alignments:
-                    if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(self.getControlDeviceById(controlDeviceIdx).alignmentIdx).connectedAlignmentIndices):
-                        alIdx = al.idx
-                        break
-                if self.getIntersectionCP(alIdx) - threshold <= comingUser.getCurvilinearPositionAtInstant(instant)[0] <= self.getIntersectionCP(alIdx):
-                    d = self.distanceAtInstant(comingUser, self.getControlDeviceById(controlDeviceIdx), 1000)
-                    v = 10*comingUser.getCurvilinearVelocityAtInstant(instant)[0]
-                    if v != 0:
-                        return d/v
-                    else:
-                        return float('inf')
+                    if al.idx != comingUser.getCurvilinearPositionsAtIntant(instant)[2]:
+                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(comingUser.getCurvilinearPositionsAtIntant(instant)[2]).connectedAlignmentIndices):
+                            alIdx = al.idx
+                            if self.travelledAlignmentsDistanceAtInstant(user) - threshold - comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
+                                d = self.travelledAlignmentsDistanceAtInstant(comingUser) - comingUser.getCurvilinearPositionAtInstant(instant)[0]
+                                v = comingUser.getCurvilinearVelocityAtInstant(instant)[0]/timeStep
+                                if v != 0:
+                                    return d/v
+                                else:
+                                    return float('inf')
                 else:
                     return float('inf ')
         else:
             return float('inf')
+
+    def travelledAlignmentsDistanceAtInstant(self, user):
+        s = 0
+        for al in self.travelledAlignments(user):
+            s += al.points.cumulativeDistances[-1]
+        return s
 
     def getNextControlDeviceState(self, user, instant, visibilityThreshold):
         if user.timeInterval is not None:
@@ -786,6 +768,34 @@ class World:
 
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
+
+    def userHasStopped(self, user, cdIdx, distance):
+        # todo : verifier
+        cd = self.getControlDeviceById(cdIdx)
+        if user.curvilinearVelocities[-1] == 0:
+            stopInstant = len(user.curvilinearVelocities) + user.timeInterval.first
+            if self.distanceAtInstant(user, cd, stopInstant) < distance:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    @staticmethod
+    def isGapAcceptable(user, gap):
+        if user.criticalGap < gap:
+            return True
+        else:
+            return False
+
+    def isClearingTimeAcceptable(self, user, timeStep):
+        v = user.curvilinearVelocities[-1][0]/timeStep
+        d = self.getAlignmentById(user.curvilinearPositions[-1][2]).connectedAlignments[2].width + user.geometry
+        clearingTime = d/v
+        if clearingTime < user.supposedAmberTime:
+            return True
+        else:
+            return False
 
 
 class UserInput:

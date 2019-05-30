@@ -1,5 +1,4 @@
 import numpy as np
-from SALib.analyze import sobol
 from SALib.sample import saltelli
 
 import analysis
@@ -17,14 +16,21 @@ problem = dict(num_vars=5,
                        [1.5, 3]
                        ])
 paramValues = saltelli.sample(problem, 1)
-Y = np.zeros([paramValues.shape[0]])
+
+TTC = np.zeros([paramValues.shape[0]])
+PET = np.zeros([paramValues.shape[0]])
+collisionNumber = np.zeros([paramValues.shape[0]])
+minDistanceAtCrossing = np.zeros([paramValues.shape[0]])
 
 for i, X in enumerate(paramValues):
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
-    Y[i] = analysis.evaluateModel(X, world, sim)
+    simOutput = analysis.evaluateModel(X, world, sim)
+    TTC[i] = simOutput[0]
+    PET[i] = simOutput[1]
+    collisionNumber[i] = simOutput[2]
+    minDistanceAtCrossing[i] = simOutput[3]
 
-Si = sobol.analyze(problem, Y, print_to_console=False)
-
-toolkit.saveYaml('outputData/sensitivity-analysis/sobolindicators.yml', Si)
+toolkit.saveYaml('outputData/sensitivity-analysis/simulationlOutput.yml', simOutput)
+# Si = sobol.analyze(problem, TTC, print_to_console=False)
 toolkit.callWhenDone()

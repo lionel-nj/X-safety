@@ -153,10 +153,11 @@ def evaluateModel(paramSet, world, sim):
                                     alignment2=world.travelledAlignments(roadUser2))
 
                 interactions[seed][h][(roadUser1.num, roadUser2.num)].append(i)
+    simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
+
     TTC = {}
     TTCmin = {}
 
-    simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
     for user in simulatedUsers:
         ttc = timeToCollision(user)
         user0 = user.leader
@@ -171,5 +172,6 @@ def evaluateModel(paramSet, world, sim):
 
     n, bins = np.histogram(list(TTCmin.values()))
     mids = 0.5 * (bins[1:] + bins[:-1])
-    mean = np.average(mids, weights=n)
-    return mean
+    meanTTCmin = np.average(mids, weights=n)
+
+    return meanTTCmin, meanPET, meanCollisionNumber, meanMinDistanceAtCrossing
