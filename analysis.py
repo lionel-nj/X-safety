@@ -174,4 +174,4 @@ def evaluateModel(paramSet, world, sim):
     mids = 0.5 * (bins[1:] + bins[:-1])
     meanTTCmin = np.average(mids, weights=n)
 
-    return meanTTCmin, meanPET, meanCollisionNumber, meanMinDistanceAtCrossing
+    return meanTTCmin#, meanPET, meanCollisionNumber, meanMinDistanceAtCrossing

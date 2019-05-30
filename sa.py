@@ -1,6 +1,7 @@
 import numpy as np
 from SALib.sample import saltelli
 from progress.bar import Bar
+
 import analysis
 import network
 import simulation
@@ -28,10 +29,10 @@ for i, X in enumerate(paramValues):
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
     simOutput = analysis.evaluateModel(X, world, sim)
-    TTC[i] = simOutput[0]
-    PET[i] = simOutput[1]
-    collisionNumber[i] = simOutput[2]
-    minDistanceAtCrossing[i] = simOutput[3]
+    TTC[i] = simOutput#[0]
+    # PET[i] = simOutput[1]
+    # collisionNumber[i] = simOutput[2]
+    # minDistanceAtCrossing[i] = simOutput[3]
 
 toolkit.saveYaml('outputData/sensitivity-analysis/simulationlOutput.yml', simOutput)
 # Si = sobol.analyze(problem, TTC, print_to_console=False)

@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 import toolkit
@@ -75,15 +74,14 @@ class Simulation(object):
         world.duplicateLastVelocities()
 
         # display
-        '''
-        plt.figure()
-        for ui in world.userInputs:
-            for v in ui.alignment.users:
-                if v.timeInterval is not None:
-                    v.plotCurvilinearPositions()
-            plt.xlabel('time(s/100)')
-            plt.ylabel('longitudinal coordinate (m)')
-            plt.show()'''
+        # plt.figure()
+        # for ui in world.userInputs:
+        #     for v in ui.alignment.users:
+        #         if v.timeInterval is not None:
+        #             v.plotCurvilinearPositions()
+        #     plt.xlabel('time(s/100)')
+        #     plt.ylabel('longitudinal coordinate (m)')
+        #     plt.show()
         return world
 
 
