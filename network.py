@@ -629,9 +629,9 @@ class World:
                         else:
                             user.state = 'forward'
 
-    def travelledAlignments(self, user):
+    def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
-        alignments = list(set(user.curvilinearPositions.lanes))
+        alignments = list(set(user.curvilinearPositions.lanes[:instant - user.timeInterval.first]))
         travelledAlignments = []
         for alIndices in alignments:
             travelledAlignments.append(self.getAlignmentById(alIndices).points)
@@ -725,12 +725,14 @@ class World:
                 return float('inf')
             else:
                 for al in self.alignments:
-                    if al.idx != comingUser.getCurvilinearPositionsAtIntant(instant)[2]:
-                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(comingUser.getCurvilinearPositionsAtIntant(instant)[2]).connectedAlignmentIndices):
-                            alIdx = al.idx
-                            if self.travelledAlignmentsDistanceAtInstant(user) - threshold - comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
-                                d = self.travelledAlignmentsDistanceAtInstant(comingUser) - comingUser.getCurvilinearPositionAtInstant(instant)[0]
+                    if al.idx != comingUser.getCurvilinearPositionAtInstant(instant)[2]:
+                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices):
+                            if self.travelledAlignmentsDistanceAtInstant(user, instant) - threshold - comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
+                                print(comingUser.num)
+                                d = self.travelledAlignmentsDistanceAtInstant(comingUser, instant) - comingUser.getCurvilinearPositionAtInstant(instant)[0]
+                                print(d)
                                 v = comingUser.getCurvilinearVelocityAtInstant(instant)[0]/timeStep
+                                print(v)
                                 if v != 0:
                                     return d/v
                                 else:
@@ -740,10 +742,10 @@ class World:
         else:
             return float('inf')
 
-    def travelledAlignmentsDistanceAtInstant(self, user):
+    def travelledAlignmentsDistanceAtInstant(self, user, instant):
         s = 0
-        for al in self.travelledAlignments(user):
-            s += al.points.cumulativeDistances[-1]
+        for al in self.travelledAlignments(user, instant):
+            s += al.cumulativeDistances[-1]
         return s
 
     def getNextControlDeviceState(self, user, instant, visibilityThreshold):
