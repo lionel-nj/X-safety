@@ -1,3 +1,5 @@
+import argparse
+
 import numpy as np
 from SALib.sample import saltelli
 from progress.bar import Bar
@@ -7,6 +9,11 @@ import network
 import simulation
 import toolkit
 
+parser = argparse.ArgumentParser()
+parser.add_argument("nop", type=int, help="number of points for a parameter")
+args = parser.parse_args()
+
+
 problem = dict(num_vars=4,
                names=['d', 'headway', 'length', 'speed'],
                bounds=[[7.33, 9.33],
@@ -14,7 +21,7 @@ problem = dict(num_vars=4,
                        [6, 8],
                        [11, 17]
                        ])
-paramValues = saltelli.sample(problem, 1)
+paramValues = saltelli.sample(problem, args.nop)
 
 TTC = np.zeros([paramValues.shape[0]])
 PET = np.zeros([paramValues.shape[0]])
