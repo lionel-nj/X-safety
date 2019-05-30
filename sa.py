@@ -28,8 +28,7 @@ for i, X in enumerate(paramValues):
     sim = simulation.Simulation.load('config.yml')
     Y[i] = analysis.evaluateModel(X, world, sim)
 
-Si = sobol.analyze(problem, Y, print_to_console=False)
 
-toolkit.saveYaml('outputData/sensitivity-analysis/sobolindicators.yml', Si.to_df())
+toolkit.saveYaml('outputData/sensitivity-analysis/modelOutputs.yml', Y)
 toolkit.callWhenDone()
 bar.finish()
