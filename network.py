@@ -176,21 +176,11 @@ class ControlDevice:
     # greentime = inf
     # redtime = 0
 
-    def __init__(self, idx, category, alignmentIdx, redTime=None, greenTime=None, initialState=None):
-        import copy
+    def __init__(self, idx, category, alignmentIdx):#, redTime=None, greenTime=None, initialState=None):
         self.idx = idx
-        self.initialState = initialState
         self.category = category
         self.alignmentIdx = alignmentIdx
-        if self.category == 1:
-            self.greenTime = 0
-            self.redTime = float('inf')
-        else:
-            self.greenTime = greenTime
-            self.redTime = redTime
-        self.remainingRed = copy.deepcopy(redTime)
-        self.remainingGreen = copy.deepcopy(greenTime)
-        self.states = [self.initialState]
+
 
     categories = {1: 'stop',
                   2: 'traffic light',
@@ -200,33 +190,86 @@ class ControlDevice:
         """returns a chain of character describing the category of self"""
         return self.categories[self.category]
 
-    def switch(self):
-        """ swith state to next state in the sequence """
-        if self.states[-1] == 'stop':
-            self.states.append('forward')
-        else:
-            self.states.append('stop')
-
-    def getStateAt(self, t):
+    def getStateAtInstant(self, t):
         """ returns art for the current color """
         return self.states[t]
 
+
+class TrafficLight(ControlDevice):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState, category=2):
+        import copy
+        super().__init__(idx, category, alignmentIdx)
+        self.redTime = redTime
+        self.greenTime = greenTime
+        self.amberTime = amberTime
+        self.initialState = initialState
+        self.states = [self.initialState]
+        self.remainingRed = copy.deepcopy(redTime)
+        self.remainingAmber = copy.deepcopy(amberTime)
+        self.remainingGreen = copy.deepcopy(greenTime)
+
+    def switch(self):
+        """ swith state to next state in the sequence """
+        if self.states[-1] == 'red':
+            self.states.append('green')
+        elif self.states[-1] == 'amber':
+            self.states.append('red')
+        else:
+            self.states.append('amber')
+
     def cycle(self):
         """ displays the current state for a TrafficLight object for the duration of state"""
-        if self.states[-1] == 'forward':
+        if self.states[-1] == 'green':
             if self.remainingGreen > 1:
                 self.remainingGreen -= 1
-                self.states.append('forward')
+                self.states.append('green')
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime
-        else:
+        elif self.states[-1] == 'red':
             if self.remainingRed > 1:
                 self.remainingRed -= 1
-                self.states.append('stop')
+                self.states.append('red')
             else:
                 self.switch()
                 self.remainingRed = self.redTime
+        else:
+            if self.remainingAmber > 1:
+                self.remainingAmber -= 1
+                self.states.append('amber')
+            else:
+                self.switch()
+                self.remainingAmber = self.amberTime
+
+
+class StopSign(ControlDevice):
+    def __init__(self, idx, alignmentIdx, category=1, initialState='red'):
+        super().__init__(idx, category, alignmentIdx)
+        self.initialState = initialState
+        self.states = [self.initialState]
+
+    def cycle(self):
+        pass
+
+
+class Yield(ControlDevice):
+    def __init__(self, idx, alignmentIdx, category=3, initialState='green'):
+        super().__init__(idx, category, alignmentIdx)
+        self.initialState = initialState
+        self.states = [self.initialState]
+
+    def cycle(self):
+        pass
+#
+#
+# class ETC(ControlDevice):
+#     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
+#         super().__init__(idx, category, alignmentIdx)
+#         self.initialState = initialState
+#         self.states = [self.initialState]
+#
+#     def cycle(self):
+#         pass
 
 
 class World:
@@ -589,7 +632,7 @@ class World:
                                                                                                 self.getControlDeviceById(
                                                                                                     controlDeviceIdx),
                                                                                                 t - 1) < radius:
-                            if self.getControlDeviceById(controlDeviceIdx).getStateAt(t) == 'stop':
+                            if self.getControlDeviceById(controlDeviceIdx).getStateAtInstant(t) == 'stop':
                                 user.state = 'stop'
                             else:
                                 user.state = 'forward'
@@ -740,6 +783,9 @@ class World:
                 return 'forward'
         else:
             return 'forward'
+
+    def getControlDeviceCategory(self, cdIdx):
+        return self.getControlDeviceById(cdIdx).category
 
 
 class UserInput:
