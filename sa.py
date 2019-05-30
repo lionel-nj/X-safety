@@ -7,14 +7,12 @@ import network
 import simulation
 import toolkit
 
-problem = dict(num_vars=5,
-               names=['d', 'headway', 'length', 'speed', 'tau'],
+problem = dict(num_vars=4,
+               names=['d', 'headway', 'length', 'speed'],
                bounds=[[7.33, 9.33],
-                       [2.0001633772214027,
-                        6.936204757259126],
+                       [0.5, 1.9],
                        [6, 8],
-                       [11, 17],
-                       [1.5, 3]
+                       [11, 17]
                        ])
 paramValues = saltelli.sample(problem, 1)
 

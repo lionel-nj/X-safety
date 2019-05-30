@@ -122,11 +122,11 @@ def timeToCollision(user):
 
 
 def evaluateModel(paramSet, world, sim):
-    world.userInputs[0].distributions['dn'].degeneratedConstant = paramSet[0]
-    world.userInputs[0].distributions['headway'].degeneratedConstant = paramSet[1]
-    world.userInputs[0].distributions['length'].degeneratedConstant = paramSet[2]
-    world.userInputs[0].distributions['speed'].degeneratedConstant = paramSet[3]
-    world.userInputs[0].distributions['tau'].degeneratedConstant = paramSet[4]
+    world.userInputs[0].distributions['dn'].loc = paramSet[0]
+    world.userInputs[0].distributions['headway'].loc = paramSet[1]
+    world.userInputs[0].distributions['length'].loc = paramSet[2]
+    world.userInputs[0].distributions['speed'].loc = paramSet[3]
+    world.userInputs[0].distributions['tau'].loc = paramSet[4]
     seeds = [5]
     headways = [paramSet[1]]
 
