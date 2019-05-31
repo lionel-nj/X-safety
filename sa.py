@@ -39,7 +39,7 @@ for i, X in enumerate(paramValues):
     # collisionNumber[i] = simOutput[2]
     # minDistanceAtCrossing[i] = simOutput[3]
 
-toolkit.saveYaml('outputData/sensitivity-analysis/simulationlOutput.yml', simOutput)
+toolkit.saveYaml('outputData/sensitivity-analysis/simulationlOutput.yml', simOutput.to_df())
 # Si = sobol.analyze(problem, TTC, print_to_console=False)
 toolkit.callWhenDone()
 bar.finish()
