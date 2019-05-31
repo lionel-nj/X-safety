@@ -643,11 +643,18 @@ class World:
 
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
-        alignments = list(set(user.curvilinearPositions.lanes[:instant - user.timeInterval.first]))
-        travelledAlignments = []
-        for alIndices in alignments:
-            travelledAlignments.append(self.getAlignmentById(alIndices).points)
-        return travelledAlignments
+        if instant is not None:
+            alignments = list(set(user.curvilinearPositions.lanes[:instant - user.timeInterval.first]))
+            travelledAlignments = []
+            for alIndices in alignments:
+                travelledAlignments.append(self.getAlignmentById(alIndices).points)
+            return travelledAlignments
+        else:
+            alignments = list(set(user.curvilinearPositions.lanes))
+            travelledAlignments = []
+            for alIndices in alignments:
+                travelledAlignments.append(self.getAlignmentById(alIndices).points)
+            return travelledAlignments
 
     def duplicateLastVelocities(self):
         for user in self.users:
@@ -776,7 +783,7 @@ class World:
     def userHasStoppedAt(self, user, cdIdx, distance, instant):
         # todo : verifier
         cd = self.getControlDeviceById(cdIdx)
-        if 0 in user.curvilinearVelocities.positions:
+        if 0 in user.curvilinearVelocities.positions[0]:
             stopInstants = [index for index, value in enumerate(user.curvilinearVelocities.positions[:instant + user.timeInterval.first]) if value == 0]
             lastStopInstant = max(stopInstants)
             if self.distanceAtInstant(user, cd, lastStopInstant) < distance:
