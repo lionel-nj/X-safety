@@ -30,7 +30,6 @@ minDistanceAtCrossing = np.zeros([paramValues.shape[0]])
 bar = Bar('Processing', max=paramValues.shape[0])
 
 for i, X in enumerate(paramValues):
-    bar.next()
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
     simOutput = analysis.evaluateModel(X, world, sim)
@@ -38,8 +37,9 @@ for i, X in enumerate(paramValues):
     # PET[i] = simOutput[1]
     # collisionNumber[i] = simOutput[2]
     # minDistanceAtCrossing[i] = simOutput[3]
+    bar.next()
 
-toolkit.saveYaml('outputData/sensitivity-analysis/simulationlOutput.yml', simOutput)
+toolkit.saveYaml('outputData/sensitivity-analysis/simulationOutput.yml', simOutput)
 # Si = sobol.analyze(problem, TTC, print_to_console=False)
 toolkit.callWhenDone()
 bar.finish()

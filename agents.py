@@ -18,12 +18,13 @@ class NewellMovingObject(moving.MovingObject):
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
         self.criticalGap = criticalGap
         self.inSimulation = True
+        self.go = True
 
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
-        # TODO changer nextAlignmentIdx pour l'alignment en cours, reflechir pour des control devices
+        # TODO reflechir pour des control devices
         if method == 'newell':
             if self.curvilinearPositions is None:  # vehicle without positions
                 if self.timeAtS0 is None:
@@ -73,7 +74,10 @@ class NewellMovingObject(moving.MovingObject):
                             if nextAlignment:
                                 nextAlignmentIdx = nextAlignment.idx
                         if self.inSimulation:
-                            self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
+                            if self.go:
+                                self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
+                            else:
+                                self.curvilinearPositions.duplicateLastPosition()
 
                 else:
                     if instant in list(self.leader.timeInterval):
@@ -81,19 +85,24 @@ class NewellMovingObject(moving.MovingObject):
                                            0] - self.d
                     else:
                         constrainedCoord = freeFlowCoord
-
-                    s2 = min(freeFlowCoord, constrainedCoord)
+                    if self.go:
+                        s2 = min(freeFlowCoord, constrainedCoord)
+                    else:
+                        s2 = self.getCurvilinearPositions(instant-1)[0]
                     nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
 
                     if nextAlignment is None:
                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                     else:
-                        if nextAlignment :#type(nextAlignment) == int:
+                        if nextAlignment:
                             nextAlignmentIdx = nextAlignment.idx
                     # else:
                     #     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                     if self.inSimulation:
-                        self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                        if self.go:
+                            self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                        else:
+                            self.curvilinearPositions.duplicateLastPosition()
 
                 if self.inSimulation:
                     if nextAlignment is not None:

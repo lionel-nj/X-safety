@@ -11,19 +11,17 @@ class Simulation(object):
         'm',
         'sec',
         'N/A'
-            ]
-    duration: 500
-    interactionDistance: 25
-    minimumTimeHeadway: 500
-    timeStep: 0.1
-    seed: 45
+    ]
 
-    def __init__(self, duration, timeStep, interactionDistance, minimumTimeHeadway, seed):
+    def __init__(self, duration, timeStep, interactionDistance, minimumTimeHeadway, seed, visibilityThreshold,
+                 threshold):
         self.duration = duration
         self.timeStep = timeStep
         self.interactionDistance = interactionDistance
         self.minimumTimeHeadway = minimumTimeHeadway
         self.seed = seed
+        self.visibilityThreshold = visibilityThreshold
+        self.threshold = threshold
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -69,10 +67,11 @@ class Simulation(object):
                             nextControlDeviceIdx = world.getNextControlDevice(user, i, self.visibilityThreshold).idx
                         except:
                             nextControlDeviceIdx = None
-                        world.userHasToStop(user, nextControlDeviceIdx, self.visibilityThreshold, i, self.threshold, self.timeStep)
+                        world.userHasToStop(user, nextControlDeviceIdx, self.visibilityThreshold, i, self.threshold,
+                                            self.timeStep)
                         user.updateCurvilinearPositions(method="newell",
-                                                     instant=i,
-                                                     timeStep=self.timeStep)
+                                                        instant=i,
+                                                        timeStep=self.timeStep)
 
         world.duplicateLastVelocities()
 
