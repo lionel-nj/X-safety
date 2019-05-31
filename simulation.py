@@ -65,8 +65,11 @@ class Simulation(object):
                 for user in ui.alignment.users:
                     if user.inSimulation:
                         world.getUserCurrentAlignment(user)
-                        nextControlDevice = world.getNextControlDevice(user, i, self.visibilityThreshold)
-                        world.hasToStop(user, nextControlDevice.idx, self.visibilityThreshold, i, self.threshold, self.timeStep)
+                        try:
+                            nextControlDeviceIdx = world.getNextControlDevice(user, i, self.visibilityThreshold).idx
+                        except:
+                            nextControlDeviceIdx = None
+                        world.userHasToStop(user, nextControlDeviceIdx, self.visibilityThreshold, i, self.threshold, self.timeStep)
                         user.updateCurvilinearPositions(method="newell",
                                                      instant=i,
                                                      timeStep=self.timeStep)

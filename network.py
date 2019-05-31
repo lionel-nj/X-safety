@@ -740,11 +740,8 @@ class World:
                     if al.idx != comingUser.getCurvilinearPositionAtInstant(instant)[2]:
                         if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices):
                             if self.travelledAlignmentsDistanceAtInstant(user, instant) - threshold - comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
-                                print(comingUser.num)
                                 d = self.travelledAlignmentsDistanceAtInstant(comingUser, instant) - comingUser.getCurvilinearPositionAtInstant(instant)[0]
-                                print(d)
                                 v = comingUser.getCurvilinearVelocityAtInstant(instant)[0]/timeStep
-                                print(v)
                                 if v != 0:
                                     return d/v
                                 else:
@@ -773,7 +770,6 @@ class World:
                     if d <= visibilityThreshold:
                         return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0])
 
-
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
 
@@ -792,35 +788,37 @@ class World:
 
     def userHasToStop(self, user, cdIdx, distance, instant, threshold, timeStep):
         # todo : verifier
-        controlDevice = self.getControlDeviceById(cdIdx)
-        if controlDevice.category == 1:  # stop
-            if self.userHasStoppedAt(user, cdIdx, distance, instant):
+        if cdIdx is not None:
+            controlDevice = self.getControlDeviceById(cdIdx)
+            if controlDevice.category == 1:  # stop
+                if self.userHasStoppedAt(user, cdIdx, distance, instant):
+                    gap = self.estimateGap(user, instant, threshold, timeStep)
+                    if self.isGapAcceptable(user, gap):
+                        user.go = True
+                    else:
+                        user.go = False
+                else:
+                    user.go = True
+
+            elif controlDevice.category == 2:  # feu tricolore
+                if controlDevice.getStateAtInstant == 'green':
+                    user.go = True
+                elif controlDevice.getStateAtInstant == 'amber':
+                    if self.isClearingTimeAcceptable(user, instant):
+                        user.go = True
+                    else:
+                        user.go = False
+                else:
+                    user.go = False
+
+            elif controlDevice.category == 3:  # cedez le passage
                 gap = self.estimateGap(user, instant, threshold, timeStep)
                 if self.isGapAcceptable(user, gap):
                     user.go = True
                 else:
                     user.go = False
-            else:
-                user.go = True
-
-        elif controlDevice.category == 2:  # feu tricolore
-            if controlDevice.getStateAtInstant == 'green':
-                user.go = True
-            elif controlDevice.getStateAtInstant == 'amber':
-                if self.isClearingTimeAcceptable(user, instant):
-                    user.go = True
-                else:
-                    user.go = False
-            else:
-                user.go = False
-
-        elif controlDevice.category == 3:  # cedez le passage
-            gap = self.estimateGap(user, instant, threshold, timeStep)
-            if self.isGapAcceptable(user, gap):
-                user.go = True
-            else:
-                user.go = False
-
+        else:
+            user.go = True
         # todo : verifier
 
 
