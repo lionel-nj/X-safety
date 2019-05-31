@@ -62,12 +62,12 @@ class Simulation(object):
 
             for ui in world.userInputs:
                 # if ui.alignment.users is not None:
-                for v in ui.alignment.users:
-                    if v.inSimulation:
-                        world.getUserCurrentAlignment(v)
-                        # nextControlDeiceState = world.getNextControlDeviceState(v, i, self.visibilityThreshold)
-                        # world.getTimeGap(v, i)
-                        v.updateCurvilinearPositions(method="newell",
+                for user in ui.alignment.users:
+                    if user.inSimulation:
+                        world.getUserCurrentAlignment(user)
+                        nextControlDevice = world.getNextControlDevice(user, i, self.visibilityThreshold)
+                        world.hasToStop(user, nextControlDevice.idx, self.visibilityThreshold, i, self.threshold, self.timeStep)
+                        user.updateCurvilinearPositions(method="newell",
                                                      instant=i,
                                                      timeStep=self.timeStep)
 
@@ -76,9 +76,9 @@ class Simulation(object):
         # display
         # plt.figure()
         # for ui in world.userInputs:
-        #     for v in ui.alignment.users:
-        #         if v.timeInterval is not None:
-        #             v.plotCurvilinearPositions()
+        #     for user in ui.alignment.users:
+        #         if user.timeInterval is not None:
+        #             user.plotCurvilinearPositions()
         #     plt.xlabel('time(s/100)')
         #     plt.ylabel('longitudinal coordinate (m)')
         #     plt.show()

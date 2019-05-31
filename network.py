@@ -166,7 +166,7 @@ class ControlDevice:
     """class for control deveices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
 
-    def __init__(self, idx, category, alignmentIdx):#, redTime=None, greenTime=None, initialState=None):
+    def __init__(self, idx, category, alignmentIdx):
         self.idx = idx
         self.category = category
         self.alignmentIdx = alignmentIdx
@@ -180,14 +180,11 @@ class ControlDevice:
         """returns a chain of character describing the category of self"""
         return self.categories[self.category]
 
-    def getStateAtInstant(self, t):
-        """ returns art for the current color """
-        return self.states[t]
-
 
 class TrafficLight(ControlDevice):
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState, category=2):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
         import copy
+        category = 2
         super().__init__(idx, category, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
@@ -198,25 +195,29 @@ class TrafficLight(ControlDevice):
         self.remainingAmber = copy.deepcopy(amberTime)
         self.remainingGreen = copy.deepcopy(greenTime)
 
+    def getStateAtInstant(self, t):
+        """ returns art for the current color """
+        return self.states[t]
+
     def switch(self):
         """ swith state to next state in the sequence """
-        if self.states[-1] == 'red':
+        if self.getStateAtInstant(-1) == 'red':
             self.states.append('green')
-        elif self.states[-1] == 'amber':
+        elif self.getStateAtInstant(-1) == 'amber':
             self.states.append('red')
         else:
-            self.states.append('amber')
+            self.getStateAtInstant.append('amber')
 
     def cycle(self):
         """ displays the current state for a TrafficLight object for the duration of state"""
-        if self.states[-1] == 'green':
+        if self.getStateAtInstant(-1) == 'green':
             if self.remainingGreen > 1:
                 self.remainingGreen -= 1
                 self.states.append('green')
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime
-        elif self.states[-1] == 'red':
+        elif self.getStateAtInstant(-1) == 'red':
             if self.remainingRed > 1:
                 self.remainingRed -= 1
                 self.states.append('red')
@@ -233,24 +234,33 @@ class TrafficLight(ControlDevice):
 
 
 class StopSign(ControlDevice):
-    def __init__(self, idx, alignmentIdx, category=1, initialState='red'):
+    def __init__(self, idx, alignmentIdx):
+        initialState = 'red'
+        category = 1
         super().__init__(idx, category, alignmentIdx)
         self.initialState = initialState
-        self.states = [self.initialState]
 
     def cycle(self):
         pass
+
+    def getStateAtInstant(self, t=None):
+        return self.initialState
+
 
 
 class Yield(ControlDevice):
-    def __init__(self, idx, alignmentIdx, category=3, initialState='green'):
+    def __init__(self, idx, alignmentIdx):
+        initialState = 'green'
+        category = 3
         super().__init__(idx, category, alignmentIdx)
         self.initialState = initialState
-        self.states = [self.initialState]
 
     def cycle(self):
         pass
-#
+
+    def getStateAtInstant(self, t=None):
+        return self.initialState
+
 #
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
@@ -260,6 +270,8 @@ class Yield(ControlDevice):
 #
 #     def cycle(self):
 #         pass
+#     def getStateAtInstant(self, t):
+        # pass
 
 
 class World:
@@ -681,7 +693,7 @@ class World:
                     intersectionCP += self.getAlignmentById(al.idx).points.cumulativeDistances[-1]
         return intersectionCP
 
-    def getIncommingTrafficAlignmentIdx(self, user, instant):
+    def getIncomingTrafficAlignmentIdx(self, user, instant):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
         _temp = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices
         if _temp is not None:
@@ -691,11 +703,11 @@ class World:
                         if set(al.connectedAlignmentIndices) == set(_temp):
                             return al.idx
 
-    def checkTraffic(self, user, instant):
+    def checkTraffic(self, user, instant):      
         """"returns the closest user to cross the intersection in the adjacent alignments"""
         if instant in list(user.timeInterval):
-            if self.getIncommingTrafficAlignmentIdx(user, instant) is not None:
-                lane = self.getIncommingTrafficAlignmentIdx(user, instant)
+            if self.getIncomingTrafficAlignmentIdx(user, instant) is not None:
+                lane = self.getIncomingTrafficAlignmentIdx(user, instant)
                 intersectionCP = self.getIntersectionCP(lane)
                 userList = []
                 for k in range(len(self.userInputs)):
@@ -748,7 +760,8 @@ class World:
             s += al.cumulativeDistances[-1]
         return s
 
-    def getNextControlDeviceState(self, user, instant, visibilityThreshold):
+    def getNextControlDevice(self, user, instant, visibilityThreshold):
+        # todo  : a verifier
         if user.timeInterval is not None:
             if instant in list(user.timeInterval):
                 currentLane = user.getCurvilinearPositionAtInstant(instant)[2]
@@ -758,30 +771,58 @@ class World:
                     d = self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), instant)
 
                     if d <= visibilityThreshold:
-                        return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0]).states[instant]
-                    else:
-                        return 'forward'
-                else:
-                    return 'forward'
-            else:
-                return 'forward'
-        else:
-            return 'forward'
+                        return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0])
+
 
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
 
-    def userHasStopped(self, user, cdIdx, distance):
+    def userHasStoppedAt(self, user, cdIdx, distance, instant):
         # todo : verifier
         cd = self.getControlDeviceById(cdIdx)
-        if user.curvilinearVelocities[-1] == 0:
-            stopInstant = len(user.curvilinearVelocities) + user.timeInterval.first
-            if self.distanceAtInstant(user, cd, stopInstant) < distance:
+        if 0 in user.curvilinearVelocities.positions:
+            stopInstants = [index for index, value in enumerate(user.curvilinearVelocities.positions[:instant + user.timeInterval.first]) if value == 0]
+            lastStopInstant = max(stopInstants)
+            if self.distanceAtInstant(user, cd, lastStopInstant) < distance:
                 return True
             else:
                 return False
         else:
             return False
+
+    def userHasToStop(self, user, cdIdx, distance, instant, threshold, timeStep):
+        # todo : verifier
+        controlDevice = self.getControlDeviceById(cdIdx)
+        if controlDevice.category == 1:  # stop
+            if self.userHasStoppedAt(user, cdIdx, distance, instant):
+                gap = self.estimateGap(user, instant, threshold, timeStep)
+                if self.isGapAcceptable(user, gap):
+                    user.go = True
+                else:
+                    user.go = False
+            else:
+                user.go = True
+
+        elif controlDevice.category == 2:  # feu tricolore
+            if controlDevice.getStateAtInstant == 'green':
+                user.go = True
+            elif controlDevice.getStateAtInstant == 'amber':
+                if self.isClearingTimeAcceptable(user, instant):
+                    user.go = True
+                else:
+                    user.go = False
+            else:
+                user.go = False
+
+        elif controlDevice.category == 3:  # cedez le passage
+            gap = self.estimateGap(user, instant, threshold, timeStep)
+            if self.isGapAcceptable(user, gap):
+                user.go = True
+            else:
+                user.go = False
+
+        # todo : verifier
+
 
     @staticmethod
     def isGapAcceptable(user, gap):
@@ -791,6 +832,7 @@ class World:
             return False
 
     def isClearingTimeAcceptable(self, user, timeStep):
+        # todo : a verifier
         v = user.curvilinearVelocities[-1][0]/timeStep
         d = self.getAlignmentById(user.curvilinearPositions[-1][2]).connectedAlignments[2].width + user.geometry
         clearingTime = d/v
