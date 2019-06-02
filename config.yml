@@ -4,5 +4,5 @@ interactionDistance: 25
 minimumTimeHeadway: 500
 timeStep: 0.1
 seed: 5
-visibilityThreshold: 30
-threshold: 30
+visibilityThreshold: 10
+threshold: 10

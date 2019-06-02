@@ -77,6 +77,7 @@ class NewellMovingObject(moving.MovingObject):
                             if self.go:
                                 self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                             else:
+                                s2 = s1
                                 self.curvilinearPositions.duplicateLastPosition()
 
                 else:
@@ -88,7 +89,7 @@ class NewellMovingObject(moving.MovingObject):
                     if self.go:
                         s2 = min(freeFlowCoord, constrainedCoord)
                     else:
-                        s2 = self.getCurvilinearPositions(instant-1)[0]
+                        s2 = s1
                     nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
 
                     if nextAlignment is None:
@@ -102,6 +103,7 @@ class NewellMovingObject(moving.MovingObject):
                         if self.go:
                             self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
                         else:
+                            s2 = s1
                             self.curvilinearPositions.duplicateLastPosition()
 
                 if self.inSimulation:

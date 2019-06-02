@@ -347,7 +347,7 @@ class World:
                     if cd.idx == idx:
                         return cd
         except:
-            print('controlDeviceIdx does not match any existing alignment')
+            print('controlDeviceIdx does not match any existing control device')
             return None
 
     def getUserInputById(self, idx):
@@ -570,7 +570,7 @@ class World:
                 else:
                     print('user do not coexist, therefore can not compute distance')
 
-        elif type(user1) == agents.NewellMovingObject and type(user2) == ControlDevice:
+        elif type(user1) == agents.NewellMovingObject and type(user2) != agents.NewellMovingObject:
             if user1.getFirstInstant() <= instant:
                 user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                 user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
@@ -773,9 +773,11 @@ class World:
 
                     controlDeviceIdx = self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0]).idx
                     d = self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), instant)
-
-                    if d <= visibilityThreshold:
-                        return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0])
+                    if d is not None:
+                        if d <= visibilityThreshold:
+                            return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0])
+                    else:
+                        return None
 
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
@@ -784,7 +786,7 @@ class World:
         # todo : verifier
         cd = self.getControlDeviceById(cdIdx)
         if 0 in user.curvilinearVelocities.positions[0]:
-            stopInstants = [index for index, value in enumerate(user.curvilinearVelocities.positions[:instant + user.timeInterval.first]) if value == 0]
+            stopInstants = [index for index, value in enumerate(user.curvilinearVelocities.positions[0][:instant + user.timeInterval.first]) if value == 0]
             lastStopInstant = max(stopInstants)
             if self.distanceAtInstant(user, cd, lastStopInstant) < distance:
                 return True
@@ -805,7 +807,7 @@ class World:
                     else:
                         user.go = False
                 else:
-                    user.go = True
+                    user.go = False
 
             elif controlDevice.category == 2:  # feu tricolore
                 if controlDevice.getStateAtInstant == 'green':
