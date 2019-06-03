@@ -200,6 +200,10 @@ def drawBoxPlot(data, edgeColor, fillColor):
         patch.set(facecolor=fillColor)
 
 
+def groupOnCriterion(itemList, crit):
+    out = list(list(g) for k, g in itertools.groupby(itemList, lambda item: item <= crit) if k)
+    return out
+
 if __name__ == "__main__":
     import doctest
 

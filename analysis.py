@@ -121,39 +121,33 @@ def timeToCollision(user):
     return ttc
 
 
-def evaluateModel(paramSet, world, sim):
-    world.userInputs[0].distributions['dn'].loc = paramSet[0]
-    world.userInputs[0].distributions['headway'].loc = paramSet[1]
-    world.userInputs[0].distributions['length'].loc = paramSet[2]
-    world.userInputs[0].distributions['speed'].loc = paramSet[3]
-    seeds = [5]
-    headways = [paramSet[1]]
-
+def evaluateModel(world, sim, nRep):
+    seeds = [k for k in range(0, nRep)]
     interactions = {}
     usersCount = {}
 
     for seed in seeds:
+
         usersCount[seed] = {}
         interactions[seed] = {}
         sim.seed = seed
+        interactions[seed] = {}
+        world = sim.run(world)
+        usersCount[seed] = world.getNotNoneVehiclesInWorld()[0]
 
-        for h in headways:
-            interactions[seed][h] = {}
-            world = sim.run(world)
-            usersCount[seed][h] = world.getNotNoneVehiclesInWorld()[0]
+        for userNum in range(len(usersCount[seed]) - 1):
+            roadUser1 = world.getUserByNum(userNum)
+            roadUser2 = world.getUserByNum(userNum + 1)
+            #                 print(len(roadUser1.curvilinearVelocities), len(roadUser2.curvilinearVelocities))
+            interactions[seed][(roadUser1.num, roadUser2.num)] = []
+            i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+            i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1, None),
+                                alignment2=world.travelledAlignments(roadUser2, None))
 
-            for userNum in range(len(usersCount[seed][h]) - 1):
-                roadUser1 = world.getUserByNum(userNum)
-                roadUser2 = world.getUserByNum(userNum + 1)
-                #                 print(len(roadUser1.curvilinearVelocities), len(roadUser2.curvilinearVelocities))
-                interactions[seed][h][(roadUser1.num, roadUser2.num)] = []
-                i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
-                i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1, None),
-                                    alignment2=world.travelledAlignments(roadUser2, None))
-
-                interactions[seed][h][(roadUser1.num, roadUser2.num)].append(i)
+            interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
     simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
 
+    ### TTC sur un lien ###
     TTC = {}
     TTCmin = {}
 
@@ -173,4 +167,51 @@ def evaluateModel(paramSet, world, sim):
     mids = 0.5 * (bins[1:] + bins[:-1])
     meanTTCmin = np.average(mids, weights=n)
 
-    return meanTTCmin#, meanPET, meanCollisionNumber, meanMinDistanceAtCrossing
+    ### distances minimales sur un lien ###
+
+    minDistance = {}  # liste des distances minimales pour chaque repetition de simulation
+    for seed in seeds:
+        minDistance[seed] = []
+        for inter in interactions[seed]:
+            minDistance[seed].append(abs(min(interactions[seed][inter].indicators['Distance'].values.values())))
+        minDistance[seed] = np.mean( minDistance[seed])
+
+    ### distances moyennes sur un lien ###
+
+    meanDistance = {}  # liste des distances minimales pour chaque repetition de simulation
+    for seed in seeds:
+        meanDistance[seed] = []
+        for inter in interactions[seed]:
+            meanDistance[seed].append(abs(np.mean(interactions[seed][inter].indicators['Distance'].values.values())))
+        meanDistance[seed] = np.mean( minDistance[seed])
+
+    ### nombre de vehicules generes pour chaque replication ###
+    # usersCount
+
+    ### nombre de conflits quand d<5, 10, 15 ###
+
+    conflictNumber5 = {}
+    number = []
+    for seed in seeds:
+        for inter in interactions[seed]:
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 5)))
+        conflictNumber5[seed] = np.mean(number)
+    meanConflictNumber5 = np.mean(conflictNumber5.values.values())
+
+    conflictNumber10 = {}
+    number = []
+    for seed in seeds:
+        for inter in interactions[seed]:
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 10)))
+        conflictNumber10[seed] = np.mean(number)
+    meanConflictNumber10 = np.mean(conflictNumber10.values.values())
+
+    conflictNumber15 = {}
+    number = []
+    for seed in seeds:
+        for inter in interactions[seed]:
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 15)))
+        conflictNumber15[seed] = np.mean(number)
+    meanConflictNumber15 = np.mean(conflictNumber15.values.values())
+
+    return meanTTCmin, minDistance, meanDistance, usersCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15
