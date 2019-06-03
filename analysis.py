@@ -159,7 +159,8 @@ def evaluateModel(world, sim, k):
 
         TTC[num0, user.num] = ttc
         if ttc != []:
-            TTCmin[num0, user.num] = min(TTC[num0, user.num])
+            if min(TTC[num0, user.num]) <30:
+                TTCmin[num0, user.num] = min(TTC[num0, user.num])
 
     n, bins = np.histogram(list(TTCmin.values()))
     mids = 0.5 * (bins[1:] + bins[:-1])
