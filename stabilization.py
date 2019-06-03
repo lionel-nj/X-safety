@@ -1,7 +1,6 @@
 import argparse
 
 import numpy as np
-from progress.bar import Bar
 
 import analysis
 import network
@@ -22,8 +21,7 @@ meanConflictNumber10 = np.zeros([args.rep])
 meanConflictNumber15 = np.zeros([args.rep])
 
 
-bar = Bar('Processing', max=np.zeros([args.rep]))
-
+print('Processing')
 for k in range(0, args.rep):
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
@@ -37,8 +35,6 @@ for k in range(0, args.rep):
     meanConflictNumber10[k] = simOutput[5]
     meanConflictNumber15[k] = simOutput[6]
 
-    bar.next()
-
 toolkit.saveYaml('outputData/stabilization-data/TTC-values.yml', TTC)
 toolkit.saveYaml('outputData/stabilization-data/minDistance-values.yml', minDistance)
 toolkit.saveYaml('outputData/stabilization-data/meanDistance-values.yml', meanDistance)
@@ -47,8 +43,4 @@ toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber5-values.yml',
 toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber10-values.yml', meanConflictNumber10)
 toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber15-values.yml', meanConflictNumber15)
 
-
-
 toolkit.callWhenDone()
-bar.finish()
-
