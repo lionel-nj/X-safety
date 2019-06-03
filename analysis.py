@@ -173,7 +173,7 @@ def evaluateModel(world, sim, nRep):
     for seed in seeds:
         minDistance[seed] = []
         for inter in interactions[seed]:
-            minDistance[seed].append(abs(min(interactions[seed][inter].indicators['Distance'].values.values())))
+            minDistance[seed].append(abs(min(interactions[seed][inter][0].indicators['Distance'].values.values())))
         minDistance[seed] = np.mean( minDistance[seed])
 
     ### distances moyennes sur un lien ###
@@ -182,7 +182,7 @@ def evaluateModel(world, sim, nRep):
     for seed in seeds:
         meanDistance[seed] = []
         for inter in interactions[seed]:
-            meanDistance[seed].append(abs(np.mean(interactions[seed][inter].indicators['Distance'].values.values())))
+            meanDistance[seed].append(abs(np.mean(interactions[seed][inter][0].indicators['Distance'].values.values())))
         meanDistance[seed] = np.mean( minDistance[seed])
 
     ### nombre de vehicules generes pour chaque replication ###
@@ -194,7 +194,7 @@ def evaluateModel(world, sim, nRep):
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 5)))
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 5)))
         conflictNumber5[seed] = np.mean(number)
     meanConflictNumber5 = np.mean(conflictNumber5.values.values())
 
@@ -202,7 +202,7 @@ def evaluateModel(world, sim, nRep):
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 10)))
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 10)))
         conflictNumber10[seed] = np.mean(number)
     meanConflictNumber10 = np.mean(conflictNumber10.values.values())
 
@@ -210,7 +210,7 @@ def evaluateModel(world, sim, nRep):
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter].indicators['Distance'].values.values(), 15)))
+            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 15)))
         conflictNumber15[seed] = np.mean(number)
     meanConflictNumber15 = np.mean(conflictNumber15.values.values())
 
