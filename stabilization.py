@@ -27,7 +27,7 @@ bar = Bar('Processing', max=np.zeros([args.rep]))
 for k in range(1, args.rep):
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
-    simOutput = analysis.evaluateModel(sim, world, k)
+    simOutput = analysis.evaluateModel(world, sim, k)
 
     TTC[k] = simOutput[0]
     minDistance[k] = simOutput[1]
