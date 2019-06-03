@@ -21,8 +21,8 @@ meanConflictNumber10 = np.zeros([args.rep])
 meanConflictNumber15 = np.zeros([args.rep])
 
 
-print('Processing')
 for k in range(0, args.rep):
+    print('Processing: ' + str(k) + '/{}'.format(k))
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
     simOutput = analysis.evaluateModel(world, sim, k)
