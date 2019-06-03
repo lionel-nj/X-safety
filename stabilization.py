@@ -15,6 +15,7 @@ args = parser.parse_args()
 
 TTC = np.zeros([args.rep])
 minDistance = np.zeros([args.rep])
+meanDistance = np.zeros([args.rep])
 userCount = np.zeros([args.rep])
 meanConflictNumber5 = np.zeros([args.rep])
 meanConflictNumber10 = np.zeros([args.rep])
@@ -29,12 +30,12 @@ for k in range(1, args.rep):
     simOutput = analysis.evaluateModel(sim, world, k)
 
     TTC[k] = simOutput[0]
-    minDistance = simOutput[1]
-    meanDistance = simOutput[2]
-    userCount = simOutput[3]
-    meanConflictNumber5 = simOutput[4]
-    meanConflictNumber10 = simOutput[5]
-    meanConflictNumber15 = simOutput[6]
+    minDistance[k] = simOutput[1]
+    meanDistance[k] = simOutput[2]
+    userCount[k] = simOutput[3]
+    meanConflictNumber5[k] = simOutput[4]
+    meanConflictNumber10[k] = simOutput[5]
+    meanConflictNumber15[k] = simOutput[6]
 
     bar.next()
 
