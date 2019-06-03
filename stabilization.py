@@ -14,9 +14,9 @@ args = parser.parse_args()
 
 
 TTC = np.zeros([args.rep])
+userCount = np.zeros([args.rep])
 minDistance = np.zeros([args.rep])
 meanDistance = np.zeros([args.rep])
-userCount = np.zeros([args.rep])
 meanConflictNumber5 = np.zeros([args.rep])
 meanConflictNumber10 = np.zeros([args.rep])
 meanConflictNumber15 = np.zeros([args.rep])
@@ -24,7 +24,7 @@ meanConflictNumber15 = np.zeros([args.rep])
 
 bar = Bar('Processing', max=np.zeros([args.rep]))
 
-for k in range(1, args.rep):
+for k in range(0, args.rep):
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
     simOutput = analysis.evaluateModel(world, sim, k)

@@ -121,17 +121,15 @@ def timeToCollision(user):
     return ttc
 
 
-def evaluateModel(world, sim, nRep):
-    seeds = [k for k in range(0, nRep)]
+def evaluateModel(world, sim, k):
+    seeds = [k]
     interactions = {}
     usersCount = {}
 
     for seed in seeds:
 
-        usersCount[seed] = {}
         interactions[seed] = {}
         sim.seed = seed
-        interactions[seed] = {}
         world = sim.run(world)
         usersCount[seed] = world.getNotNoneVehiclesInWorld()[0]
 
@@ -173,8 +171,8 @@ def evaluateModel(world, sim, nRep):
     for seed in seeds:
         minDistance[seed] = []
         for inter in interactions[seed]:
-            minDistance[seed].append(abs(min(interactions[seed][inter][0].indicators['Distance'].values.values())))
-        minDistance[seed] = np.mean( minDistance[seed])
+            minDistance[seed].append(min(interactions[seed][inter][0].indicators['Distance'].values.values()))
+        minDistance[seed] = np.mean(minDistance[seed])
 
     ### distances moyennes sur un lien ###
 
@@ -182,8 +180,8 @@ def evaluateModel(world, sim, nRep):
     for seed in seeds:
         meanDistance[seed] = []
         for inter in interactions[seed]:
-            meanDistance[seed].append(abs(np.mean(interactions[seed][inter][0].indicators['Distance'].values.values())))
-        meanDistance[seed] = np.mean( minDistance[seed])
+            meanDistance[seed].append(np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
+        meanDistance[seed] = np.mean(meanDistance[seed])
 
     ### nombre de vehicules generes pour chaque replication ###
     # usersCount
@@ -195,23 +193,21 @@ def evaluateModel(world, sim, nRep):
     for seed in seeds:
         for inter in interactions[seed]:
             number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 5)))
-        conflictNumber5[seed] = np.mean(number)
-    meanConflictNumber5 = np.mean(conflictNumber5.values.values())
+        conflictNumber5[seed] = np.sum(number)
 
     conflictNumber10 = {}
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
             number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 10)))
-        conflictNumber10[seed] = np.mean(number)
-    meanConflictNumber10 = np.mean(conflictNumber10.values.values())
+        conflictNumber10[seed] = np.sum(number)
 
     conflictNumber15 = {}
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
             number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 15)))
-        conflictNumber15[seed] = np.mean(number)
-    meanConflictNumber15 = np.mean(conflictNumber15.values.values())
+        conflictNumber15[seed] = np.sum(number)
 
-    return meanTTCmin, minDistance, meanDistance, usersCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15
+    return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
+           list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
