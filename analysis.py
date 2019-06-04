@@ -226,3 +226,4 @@ def plotVariations(indicatorValues, fileName):
         meanValues.append(np.mean(indicatorValues[:k+1]))
     plt.plot(nRep, meanValues)
     plt.savefig(fileName)
+

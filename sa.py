@@ -16,13 +16,13 @@ parser.add_argument("--duration", type=int, help="duration in seconds of each ex
 args = parser.parse_args()
 
 problem = dict(num_vars=4,
-               names=['d', 'headway', 'length', 'speed'],#, 'tau'],
+               names=['d', 'headway', 'length', 'speed', 'tau'],
                bounds=[[7.33, 9.33],
                        [0.5, 1.9],
                        [6, 8],
                        [11, 17],
+                       [1.5, 2.5],
                        ])
-                       # [1.5, 2.5],
 paramValues = saltelli.sample(problem, args.nop, seed=0)
 
 _ttc = [0] * paramValues.shape[0]
