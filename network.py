@@ -105,12 +105,6 @@ class Alignment:
         else:
             self.vehicles = [user]
 
-    def getUserByNum(self, num):
-        """returns a specific user by its id=num"""
-        for v in self.vehicles:
-            if v.num == num:
-                return v
-
     def isReachableFrom(self, other):
         """returns boolean, True if an alignment is reachable from another one"""
         if other.connectedAlignmentIndices is not None:
@@ -247,7 +241,6 @@ class StopSign(ControlDevice):
         return self.initialState
 
 
-
 class Yield(ControlDevice):
     def __init__(self, idx, alignmentIdx):
         initialState = 'green'
@@ -371,12 +364,6 @@ class World:
             userNums.append(user.num)
         idx = userNums.index(userNum)
         return self.users[idx]
-
-    def getUserByAlignmentIdAndNum(self, alignmentIdx, num):
-        """returns an user given its num and alignment"""
-        for user in self.getAlignmentById(alignmentIdx).vehicles:
-            if user.num == num:
-                return user
 
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users on their respective alignments """
@@ -828,8 +815,6 @@ class World:
                     user.go = False
         else:
             user.go = True
-        # todo : verifier
-
 
     @staticmethod
     def isGapAcceptable(user, gap):

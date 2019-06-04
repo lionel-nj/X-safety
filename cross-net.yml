@@ -125,7 +125,12 @@ alignments:
     - - 0
       - 1000.0
   width: null
-controlDevices: null
+controlDevices:
+- !!python/object:network.StopSign
+  alignmentIdx: 3
+  category: 1
+  idx: 0
+  initialState: red
 
 userInputs:
 - !!python/object:network.UserInput
