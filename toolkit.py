@@ -204,6 +204,18 @@ def groupOnCriterion(itemList, crit):
     out = list(list(g) for k, g in itertools.groupby(itemList, lambda item: item <= crit) if k)
     return out
 
+
+def notNoneMean(items):
+    temp = []
+    for el in items:
+        if el is not None:
+            temp.append(el)
+        if temp != []:
+            return np.mean(temp)
+        else:
+            return -1
+
+
 if __name__ == "__main__":
     import doctest
 

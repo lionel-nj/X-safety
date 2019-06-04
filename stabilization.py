@@ -8,7 +8,9 @@ import simulation
 import toolkit
 
 parser = argparse.ArgumentParser()
-parser.add_argument("rep", type=int, help="number of replications")
+parser.add_argument("--rep", type=int, help="number of replications")
+parser.add_argument("--duration", type=int, help="duration of each experiment in seconds")
+
 args = parser.parse_args()
 
 
@@ -25,6 +27,7 @@ for k in range(0, args.rep):
     print('Processing: ' + str(k) + '/{}'.format(k))
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
+    sim.duration = args.duration
     simOutput = analysis.evaluateModel(world, sim, k)
 
     TTC[k] = simOutput[0]

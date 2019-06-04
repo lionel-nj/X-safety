@@ -52,7 +52,7 @@ class Simulation(object):
         userNum = 0
         world.users = []
         for i in range(int(np.floor(self.duration / self.timeStep))):
-            print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
+            # print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
             if world.controlDevices is not None:
                 for cd in world.controlDevices:
                     cd.cycle()

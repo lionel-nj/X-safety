@@ -122,6 +122,7 @@ def timeToCollision(user):
 
 
 def evaluateModel(world, sim, k):
+
     seeds = [k]
     interactions = {}
     usersCount = {}
@@ -164,7 +165,10 @@ def evaluateModel(world, sim, k):
 
     n, bins = np.histogram(list(TTCmin.values()))
     mids = 0.5 * (bins[1:] + bins[:-1])
-    meanTTCmin = np.average(mids, weights=n)
+    if sum(n) != 0:
+        meanTTCmin = np.average(mids, weights=n)
+    else:
+        meanTTCmin = None
 
     ### distances minimales sur un lien ###
 
