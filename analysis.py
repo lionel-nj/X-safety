@@ -212,3 +212,13 @@ def evaluateModel(world, sim, k):
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
+
+
+def plotVariations(indicatorValues, fileName):
+    plt.close('all')
+    nRep = [k for k in range(1, len(indicatorValues) + 1)]
+    meanValues = [indicatorValues[0]]
+    for k in range(1, len(indicatorValues)):
+        meanValues.append(np.mean(indicatorValues[:k+1]))
+    plt.plot(nRep, meanValues)
+    plt.savefig(fileName)
