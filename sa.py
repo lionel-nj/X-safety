@@ -15,7 +15,7 @@ parser.add_argument("--duration", type=int, help="duration in seconds of each ex
 
 args = parser.parse_args()
 
-problem = dict(num_vars=4,
+problem = dict(num_vars=5,
                names=['d', 'headway', 'length', 'speed', 'tau'],
                bounds=[[7.33, 9.33],
                        [0.5, 1.9],
@@ -43,7 +43,7 @@ for i, X in enumerate(paramValues):
     world.userInputs[0].distributions['headway'].loc = X[1]
     world.userInputs[0].distributions['length'].loc = X[2]
     world.userInputs[0].distributions['speed'].loc = X[3]
-    # world.userInputs[0].distributions['tau'].loc = X[4]
+    world.userInputs[0].distributions['tau'].loc = X[4]
 
     ttc = []
     userCount = []
