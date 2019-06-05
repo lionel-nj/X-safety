@@ -67,7 +67,7 @@ class NewellMovingObject(moving.MovingObject):
                 if self.leader is None:
                     if self.getLastInstant() < instant:
                         s2 = freeFlowCoord
-                        nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                        nextAlignment = self.currentAlignment.getNextAlignment(self, s2) ### suffisant
                         if nextAlignment is None:
                             nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                         else:

@@ -17,7 +17,8 @@ def getDistanceValuesBetweenUsers(world, roadUser1, roadUser2, plot=False):
     """script to get distance between a pair of vehicles"""
     if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
         i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
-        i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1), alignment2=world.travelledAlignments(roadUser2))
+        i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1),
+                            alignment2=world.travelledAlignments(roadUser2))
         if plot:
             plt.plot(i.indicators['Distance'].values.keys(), list(i.indicators['Distance'].values.values()))
         return list(i.indicators['Distance'].values.values())
@@ -28,8 +29,9 @@ def getMinDistanceBetweenEachPairCF(world):
     minDistances = []
     for ui in world.userInputs:
         for k in range(len(ui.alignment.users) - 1):
-            if getDistanceValuesBetweenUsers(world, ui.alignment.users[k], ui.alignment.users[k+1]):
-                minDistances.append(min(getDistanceValuesBetweenUsers(world, ui.alignment.users[k], ui.alignment.users[k+1])))
+            if getDistanceValuesBetweenUsers(world, ui.alignment.users[k], ui.alignment.users[k + 1]):
+                minDistances.append(
+                    min(getDistanceValuesBetweenUsers(world, ui.alignment.users[k], ui.alignment.users[k + 1])))
     return minDistances
 
 
@@ -72,9 +74,11 @@ def getInteractionsDuration(world, dmin, inLine=False):
             # pour chaque vehicule présent : sauf le dernier
             for h in range(0, len(ui.alignment.users) - 1):
                 # si les deux vehicules sont générés
-                if ui.alignment.users[h].timeInterval is not None and ui.alignment.users[h+1].timeInterval is not None:
+                if ui.alignment.users[h].timeInterval is not None and ui.alignment.users[
+                    h + 1].timeInterval is not None:
                     # recuperer l'intervalle de coexistence des vehicules
-                    inter = moving.TimeInterval.intersection(ui.alignment.users[h].timeInterval, ui.alignment.users[h+1].timeInterval)
+                    inter = moving.TimeInterval.intersection(ui.alignment.users[h].timeInterval,
+                                                             ui.alignment.users[h + 1].timeInterval)
                     # initialiser resultat(paire de vehicules concernées : leader.num, follower.num)
                     result[(ui.alignment.users[h].num, ui.alignment.users[h + 1].num)] = []
                     # pour chaque instant de l'intervalle de coexistence
@@ -122,7 +126,6 @@ def timeToCollision(user):
 
 
 def evaluateModel(world, sim, k):
-
     seeds = [k]
     interactions = {}
     usersCount = {}
@@ -131,7 +134,7 @@ def evaluateModel(world, sim, k):
 
         interactions[seed] = {}
         sim.seed = seed
-        world = sim.run(world)
+        sim.run(world)
         usersCount[seed] = world.getNotNoneVehiclesInWorld()[0]
 
         for userNum in range(len(usersCount[seed]) - 1):
@@ -160,7 +163,7 @@ def evaluateModel(world, sim, k):
 
         TTC[num0, user.num] = ttc
         if ttc != []:
-            if min(TTC[num0, user.num]) <30:
+            if min(TTC[num0, user.num]) < 30:
                 TTCmin[num0, user.num] = min(TTC[num0, user.num])
 
     n, bins = np.histogram(list(TTCmin.values()))
@@ -185,7 +188,8 @@ def evaluateModel(world, sim, k):
     for seed in seeds:
         meanDistance[seed] = []
         for inter in interactions[seed]:
-            meanDistance[seed].append(np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
+            meanDistance[seed].append(
+                np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
         meanDistance[seed] = np.mean(meanDistance[seed])
 
     ### nombre de vehicules generes pour chaque replication ###
@@ -197,21 +201,24 @@ def evaluateModel(world, sim, k):
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 5)))
+            number.append(
+                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 5)))
         conflictNumber5[seed] = np.sum(number)
 
     conflictNumber10 = {}
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 10)))
+            number.append(
+                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 10)))
         conflictNumber10[seed] = np.sum(number)
 
     conflictNumber15 = {}
     number = []
     for seed in seeds:
         for inter in interactions[seed]:
-            number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 15)))
+            number.append(
+                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 15)))
         conflictNumber15[seed] = np.sum(number)
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
@@ -223,7 +230,33 @@ def plotVariations(indicatorValues, fileName):
     nRep = [k for k in range(1, len(indicatorValues) + 1)]
     meanValues = [indicatorValues[0]]
     for k in range(1, len(indicatorValues)):
-        meanValues.append(np.mean(indicatorValues[:k+1]))
+        meanValues.append(np.mean(indicatorValues[:k + 1]))
     plt.plot(nRep, meanValues)
     plt.savefig(fileName)
 
+
+class AnalysisZone:
+    def __init__(self, world, area):
+        self.center = world.getIntersectionXYcoords()  # moving.Point
+        if self.center is None:
+            self.center = world.userInputs[0].alignment.points[-1]
+        self.minAlignment = []
+        self.maxAlignment = []
+        self.area = area
+        for al in world.alignments:
+            if al.connectedAlignmentIndices is not None:# and len(al.connectedAlignmentIndices) > 1:
+                self.minAlignment.append([al.points.cumulativeDistances[-1] - self.area**.5, al.idx])
+            else:#if al.connectedAlignmentIndices is None:
+                self.maxAlignment.append([self.minAlignment[-1][0] + 2*(self.area**.5), al.idx])
+
+    def userInAnalysisZone(self, user, t):
+        rep = False
+        if t in list(user.timeInterval):
+            cp = user.getCurvilinearPositionAtInstant(t)
+            for minVal, maxVal in zip(self.minAlignment, self.maxAlignment):
+                if (minVal[0] <= cp[0] <= maxVal[0]) and (cp[2] == minVal[1] or cp[2] == maxVal[1]):  # or (self.minAlignment[1] <= cp <= self.maxAlignment[1]):
+                    rep = True
+                    break
+            return rep
+        else:
+            return rep

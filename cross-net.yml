@@ -29,40 +29,12 @@ alignments:
       - 0.0
   width: null
 - !!python/object:network.Alignment
-  connectedAlignmentIndices:
-  - 2
-  - 4
+  connectedAlignmentIndices: null
   controlDeviceIndices: null
   idx: 1
   graphCorrespondance:
     - 1
     - 2
-  movementProportions:
-    - 1
-    - 0
-  points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 100.0
-    - 400.0
-    distances:
-    - 100.0
-    - 300.0
-    positions:
-    - - 400.0
-      - 500.0
-      - 800.0
-    - - 0.0
-      - 0.0
-      - 0.0
-  width: null
-- !!python/object:network.Alignment
-  connectedAlignmentIndices: null
-  controlDeviceIndices: null
-  idx: 2
-  graphCorrespondance:
-    - 2
-    - 3
   movementProportions: null
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
@@ -82,10 +54,10 @@ alignments:
   - 2
   controlDeviceIndices:
     - 0
-  idx: 3
+  idx: 2
   graphCorrespondance:
-    - 4
-    - 2
+    - 3
+    - 1
   movementProportions:
     - 0
     - 1
@@ -110,8 +82,8 @@ alignments:
   controlDeviceIndices: null
   idx: 4
   graphCorrespondance:
-    - 2
-    - 5
+    - 1
+    - 4
   movementProportions: null
   points: !!python/object:trafficintelligence.moving.Trajectory
     cumulativeDistances:
@@ -127,7 +99,7 @@ alignments:
   width: null
 controlDevices:
 - !!python/object:network.StopSign
-  alignmentIdx: 3
+  alignmentIdx: 2
   category: 1
   idx: 0
   initialState: red
@@ -180,7 +152,7 @@ userInputs:
       scale: 2
   idx: 0
 - !!python/object:network.UserInput
-  alignmentIdx: 3
+  alignmentIdx: 2
   distributions:
     dn: !!python/object:network.Distribution
       cdf: null

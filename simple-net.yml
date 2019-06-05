@@ -29,9 +29,7 @@ alignments:
       - 0.0
   width: null
 - !!python/object:network.Alignment
-  connectedAlignmentIndices:
-  - 2
-  - 4
+  connectedAlignmentIndices: null
   controlDeviceIndices: null
   idx: 1
   graphCorrespondance:
@@ -56,75 +54,7 @@ alignments:
       - 0.0
       - 0.0
   width: null
-- !!python/object:network.Alignment
-  connectedAlignmentIndices: null
-  controlDeviceIndices: null
-  idx: 2
-  graphCorrespondance:
-    - 2
-    - 3
-  movementProportions: null
-  points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 1000.0
-    distances:
-    - 1000.0
-    positions:
-    - - 800.0
-      - 1800.0
-    - - 0.0
-      - 0.0
-  width: null
-- !!python/object:network.Alignment
-  connectedAlignmentIndices:
-  - 2
-  - 4
-  controlDeviceIndices:
-    - 0
-  idx: 3
-  graphCorrespondance:
-    - 4
-    - 2
-  movementProportions:
-    - 0
-    - 1
-  points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 200.0
-    - 400.0
-    distances:
-    - 200.0
-    - 2000
-    positions:
-    - - 800.0
-      - 800.0
-      - 800.0
-    - - -400.0
-      - -200.0
-      - 0.0
-  width: null
-- !!python/object:network.Alignment
-  connectedAlignmentIndices: null
-  controlDeviceIndices: null
-  idx: 4
-  graphCorrespondance:
-    - 2
-    - 5
-  movementProportions: null
-  points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 15000.0
-    distances:
-    - 15000.0
-    positions:
-    - - 800.0
-      - 800.0
-    - - 0
-      - 15000.0
-  width: null
+
 controlDevices: null
 userInputs:
 - !!python/object:network.UserInput
@@ -173,3 +103,4 @@ userInputs:
       loc: 6
       scale: 2
   idx: 0
+

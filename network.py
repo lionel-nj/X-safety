@@ -833,6 +833,16 @@ class World:
         else:
             return False
 
+    def getIntersectionXYcoords(self):
+        for al in self.alignments:
+            if al.connectedAlignmentIndices is not None and len(al.connectedAlignmentIndices) > 1:
+                break
+        try:
+            intersection = al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
+                                                      self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
+            return intersection[0]
+        except:
+            return None
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
