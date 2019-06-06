@@ -1,6 +1,7 @@
 import argparse
 
 import numpy as np
+import pandas
 from SALib.sample import saltelli
 
 import analysis
@@ -88,13 +89,11 @@ for i in range(paramValues.shape[0]):
     conflict10[i] = toolkit.notNoneMean(_conflict10[i])
     conflict15[i] = toolkit.notNoneMean(_conflict15[i])
 
-toolkit.saveYaml('outputData/sensitivity-analysis/ttc.yml', ttc)
-toolkit.saveYaml('outputData/sensitivity-analysis/mindistance.yml', minDistance)
-toolkit.saveYaml('outputData/sensitivity-analysis/meandistance.yml', meanDistance)
-toolkit.saveYaml('outputData/sensitivity-analysis/usercount.yml', userCount)
-toolkit.saveYaml('outputData/sensitivity-analysis/conflict5.yml', conflict5)
-toolkit.saveYaml('outputData/sensitivity-analysis/conflict10.yml', conflict10)
-toolkit.saveYaml('outputData/sensitivity-analysis/conflict15.yml', conflict15)
+data = pandas.DataFrame(data=[ttc, minDistance, meanDistance, userCount, conflict5, conflict10, conflict15],
+                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15'])
+
+data.to_csv('outputData/sensivity-analysis/data.csv')
+
 
 # Si = sobol.analyze(problem, _ttc, print_to_console=False)
 toolkit.callWhenDone()
