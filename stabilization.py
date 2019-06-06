@@ -1,7 +1,5 @@
 import argparse
 
-import numpy as np
-
 import analysis
 import network
 import simulation
@@ -14,13 +12,13 @@ parser.add_argument("--duration", type=int, help="duration of each experiment in
 args = parser.parse_args()
 
 
-TTC = np.zeros([args.rep])
-userCount = np.zeros([args.rep])
-minDistance = np.zeros([args.rep])
-meanDistance = np.zeros([args.rep])
-meanConflictNumber5 = np.zeros([args.rep])
-meanConflictNumber10 = np.zeros([args.rep])
-meanConflictNumber15 = np.zeros([args.rep])
+TTC = {}#np.zeros([args.rep])
+userCount = {}# np.zeros([args.rep])
+minDistance = {}#np.zeros([args.rep])
+meanDistance = {}#np.zeros([args.rep])
+meanConflictNumber5 = {}#np.zeros([args.rep])
+meanConflictNumber10 = {}#np.zeros([args.rep])
+meanConflictNumber15 = {}#np.zeros([args.rep])
 
 for k in range(args.rep, 4*args.rep, 3):
     print('Processing: ' + str(k) + '/{}'.format(k))

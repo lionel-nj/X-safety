@@ -143,8 +143,9 @@ def evaluateModel(world, sim, k):
             #                 print(len(roadUser1.curvilinearVelocities), len(roadUser2.curvilinearVelocities))
             interactions[seed][(roadUser1.num, roadUser2.num)] = []
             i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
-            i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1, None),
-                                alignment2=world.travelledAlignments(roadUser2, None))
+            i.computeDistance(world)
+            # i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1, None),
+            #                     alignment2=world.travelledAlignments(roadUser2, None))
 
             interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
     simulatedUsers = world.getNotNoneVehiclesInWorld()[0]

@@ -202,6 +202,13 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         else:
             return False
 
+    def computeDistance(self, world):
+        distances = {}
+        for instant in self.timeInterval:
+            if self.useCurvilinear:
+                distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant) - self.roadUser1.geometry
+        self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
+
     def computeIndicators(self, world=None, alignment1=None, alignment2=None):
         '''Computes the collision course cosine only if the cosine is positive'''
         collisionCourseDotProducts = {}  # [0]*int(self.timeInterval.length())
