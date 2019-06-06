@@ -1,5 +1,7 @@
 import argparse
 
+import pandas
+
 import analysis
 import network
 import simulation
@@ -21,7 +23,7 @@ meanConflictNumber10 = {}#np.zeros([args.rep])
 meanConflictNumber15 = {}#np.zeros([args.rep])
 
 for k in range(args.rep, 4*args.rep, 3):
-    print('Processing: ' + str(k) + '/{}'.format(k))
+    print('Processing: ' + str(k) + '/{}'.format(4*args.rep/3))
     world = network.World.load('simple-net.yml')
     sim = simulation.Simulation.load('config.yml')
     sim.duration = args.duration
@@ -35,12 +37,8 @@ for k in range(args.rep, 4*args.rep, 3):
     meanConflictNumber10[k] = simOutput[5]
     meanConflictNumber15[k] = simOutput[6]
 
-toolkit.saveYaml('outputData/stabilization-data/TTC-values.yml', TTC)
-toolkit.saveYaml('outputData/stabilization-data/minDistance-values.yml', minDistance)
-toolkit.saveYaml('outputData/stabilization-data/meanDistance-values.yml', meanDistance)
-toolkit.saveYaml('outputData/stabilization-data/userCount-values.yml', userCount)
-toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber5-values.yml', meanConflictNumber5)
-toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber10-values.yml', meanConflictNumber10)
-toolkit.saveYaml('outputData/stabilization-data/meanConflictNumber15-values.yml', meanConflictNumber15)
+data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15],
+                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15'])
 
+data.to_csv('outputData/stabilization-data/data.csv')
 toolkit.callWhenDone()

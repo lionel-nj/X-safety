@@ -148,13 +148,13 @@ def evaluateModel(world, sim, k):
             #                     alignment2=world.travelledAlignments(roadUser2, None))
 
             interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
-    simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
+    # simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
 
     ### TTC sur un lien ###
     TTC = {}
     TTCmin = {}
 
-    for user in simulatedUsers:
+    for user in usersCount[seed]:
         ttc = timeToCollision(user)
         user0 = user.leader
         if user0 is None:
