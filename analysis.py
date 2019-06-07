@@ -240,11 +240,6 @@ def evaluateModel(world, sim, k, zoneArea=None):
     else:
         meanTTCmin = None
 
-    ### distances minimales sur un lien ###
-
-    ### nombre de vehicules generes pour chaque replication ###
-    # usersCount
-
     ### nombre de conflits quand d<5, 10, 15 ###
     minDistance = getDistance('min', interactions, seed)
     meanDistance = getDistance('mean', interactions, seed)
