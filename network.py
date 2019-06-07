@@ -145,12 +145,12 @@ class Alignment:
                 else:
                     user.go = True
 
-                return self.connectedAlignments[
-                    0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                return self.connectedAlignments[0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 user.inSimulation = False
                 return self
         else:  # si on reste sur l'alignement
+            user.go = True
             return self
 
     # def getAlignmentVector(self):

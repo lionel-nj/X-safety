@@ -85,13 +85,8 @@ class NewellMovingObject(moving.MovingObject):
                         s2 = min(freeFlowCoord, constrainedCoord)
                     else:
                         s2 = s1
-                    nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                    nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
 
-                    if nextAlignment is None:
-                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                    else:
-                        if nextAlignment:
-                            nextAlignmentIdx = nextAlignment.idx
                     if self.inSimulation:
                         if self.go:
                             s2 = min(freeFlowCoord, constrainedCoord)
