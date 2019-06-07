@@ -134,26 +134,37 @@ class Alignment:
 
     def getNextAlignment(self, user, nextPosition):
         visitedAlignmentsLength = user.visitedAlignmentsLength
-        if visitedAlignmentsLength - nextPosition < 0:  # si on est sorti de l'alignement
+        deltap = visitedAlignmentsLength - nextPosition
+        if deltap <= 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                return self.connectedAlignments[0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                cd = self.controlDevice
+                if cd is not None:
+                    if cd.category == 1:  # si c'est un stop
+                        cd.user = user
+                        cd.permissionToGo(user)
+                else:
+                    user.go = True
+
+                return self.connectedAlignments[
+                    0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 user.inSimulation = False
-                return False
+                return self
         else:  # si on reste sur l'alignement
-            return None
+            return self
 
-    def getAlignmentVector(self):
-        #todo : a tester
-        p1 = self.points[0]
-        p2 = self.points[-1]
-        alignmentVector = p2 - p1
-        return alignmentVector
-
-    def getNormedAlignmentVector(self):
-        #todo : a tester
-        normedAlignmentVector = self.getAlignmentVector().normalize()
-        return normedAlignmentVector
+    # def getAlignmentVector(self):
+    #     #todo : a tester
+    #     p1 = self.points[0]
+    #     p2 = self.points[-1]
+    #     alignmentVector = p2 - p1
+    #     return alignmentVector
+    #
+    # def getNormedAlignmentVector(self):
+    #     #todo : a tester
+    #     normedAlignmentVector = self.getAlignmentVector().normalize()
+    #     return normedAlignmentVector
+    # def getControlDevice(self, cdIdx):
 
 
 class ControlDevice:
@@ -226,19 +237,32 @@ class TrafficLight(ControlDevice):
                 self.switch()
                 self.remainingAmber = self.amberTime
 
+    def permissionToGo(self, user):
+        pass
+
 
 class StopSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
-        initialState = 'red'
         category = 1
         super().__init__(idx, category, alignmentIdx)
-        self.initialState = initialState
+        self.user = None
 
     def cycle(self):
         pass
 
     def getStateAtInstant(self, t=None):
-        return self.initialState
+        pass
+
+    def permissionToGo(self, user):
+        # print(self.user.num)
+        if self.userTimeAtStop < self.timeAtStop:
+            self.userTimeAtStop += self.timeStep
+            # user.controlDevice = self
+            user.go = False
+        else:
+            user.go = True
+            self.user = None
+            self.userTimeAtStop = 0
 
 
 class Yield(ControlDevice):
@@ -254,6 +278,7 @@ class Yield(ControlDevice):
     def getStateAtInstant(self, t=None):
         return self.initialState
 
+
 #
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
@@ -264,7 +289,7 @@ class Yield(ControlDevice):
 #     def cycle(self):
 #         pass
 #     def getStateAtInstant(self, t):
-        # pass
+# pass
 
 
 class World:
@@ -366,12 +391,16 @@ class World:
         return self.users[idx]
 
     def initUsers(self, i, timeStep, userNum):
-        """Initializes new users on their respective alignments """
+        """Initializes new users """
         for ui in self.userInputs:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
                 if i <= h / timeStep < i + 1:
                     self.users.append(ui.initUser(userNum, h))
+                    # if len(self.users) > 1:
+                    #     self.users[-1].leader = self.users[-2]
+                    # else:
+                    #     self.users[-1].leader = None
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)
@@ -382,27 +411,10 @@ class World:
         """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
         users = [[] for _ in range(len(self.userInputs))]
         for ui in self.userInputs:
-            for user in ui.alignment.users:
-                if user.timeInterval is not None and len(user.curvilinearVelocities)>0:
+            for user in ui.users:
+                if user.timeInterval is not None and len(user.curvilinearVelocities) > 0:
                     users[ui.idx].append(user)
         return users
-
-    def getSimulatedUsers(self):
-        """returns all vehicles that could not be computed, kind of the reciprocate of the method
-        getNotNoneVehicleInWorld"""
-        # TODO a verifier pour plusieurs alignments comportant des vehicules
-        self.simulatedUsers = []
-        for idx, al in enumerate(self.alignments):
-            self.simulatedUsers.append([])
-            for user in al.vehicles:
-                if user is not None and user.timeInterval is not None:
-                    if user.getCurvilinearPositionAt(-1)[0] > self.getVisitedAlignmentsCumulatedDistance(
-                            user):  # sum(self.getAlignmentById(al.idx].points.distances):
-                        self.simulatedUsers[idx].append([user.num, None])
-                        for instant, cp in enumerate(user.curvilinearPositions):
-                            if cp[0] > sum(al.points.distances):
-                                self.simulatedUsers[-1][-1][-1] = instant
-                                break
 
     def getVisitedAlignmentsCumulatedDistance(self, user):
         """returns total length of the alignment the user had been assigned to """
@@ -448,34 +460,6 @@ class World:
             else:
                 s = 0
         return s
-
-    def moveUserToAlignment(self, user):
-        """replaces every chunk of user.curvilinearPosition in the right alignment.vehicles
-        returns Boolean = True, if the user's trajectory has been chunked"""
-        laneChange, laneChangeInstants, changesList = user.changedAlignment()
-        if laneChange:
-            for alignmentChange, inter in zip(changesList, laneChangeInstants):
-                self.getAlignmentById(alignmentChange[-1]).addUserToAlignment(user.getObjectInTimeInterval(
-                    moving.TimeInterval(inter.first + user.getFirstInstant(), inter.last + user.getFirstInstant())))
-            return True
-
-    def assignUserToCorrespondingAlignment(self):
-        """assigns an user to its corresponding alignment"""
-        for user in self.users:
-            if user.curvilinearPositions is not None:
-                CP = user.curvilinearPositions[-1]
-                al = self.getAlignmentById(CP[2])
-                if user.num in al.getUsersNum():
-                    pass
-                else:
-                    if user.leader is not None:
-                        user.leader = self.getUserByNum(user.leader.num)
-                    al.vehicles.append(user)
-                    if len(user.curvilinearPositions) > 2:
-                        previousAl = self.getAlignmentById(user.curvilinearPositions.lanes[-2])
-                    else:
-                        previousAl = self.getAlignmentById(user.initialAlignmentIdx)
-                    previousAl.vehicles.remove(user)
 
     def isFirstGeneratedUser(self, user):
         """determines if an user is the first one that has been computed"""
@@ -550,7 +534,8 @@ class World:
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
 
-                        distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight') - user1.geometry
+                        distance = nx.shortest_path_length(G, source='user1', target='user2',
+                                                           weight='weight') - user1.geometry
                         G.remove_node('user1')
                         G.remove_node('user2')
                         return distance
@@ -581,7 +566,7 @@ class World:
                 return distance
             else:
                 return print(
-                        'Can not compute distance between control Device and user because they are not located on the same alignment')
+                    'Can not compute distance between control Device and user because they are not located on the same alignment')
 
         elif type(user2) == agents.NewellMovingObject and type(user1) == ControlDevice:
             user1, user2 = user2, user1
@@ -597,14 +582,6 @@ class World:
                 if self.getAlignmentById(el).connectedAlignmentIndices:
                     linkedAlignments = linkedAlignments + self.getAlignmentById(el).connectedAlignmentIndices
         return linkedAlignments
-
-    # def startUser(self, userNum):
-    #     user = self.getUserByNum(userNum)
-    #     user.state = 'forward'
-    #
-    # def stopUser(self, userNum):
-    #     user = self.getUserByNum(userNum)
-    #     user.state = 'stop'
 
     def checkControlDevicesAtInstant(self, user, t, radius):
         """checks the state of controlDevices within a radius
@@ -650,7 +627,17 @@ class World:
                     user.curvilinearVelocities.duplicateLastPosition()
 
     def prepare(self):
-        """"links the alignments, creating a connectedAliognments member to each alignments of self"""
+        """"links the alignments, creating a connectedAlignments member to each alignments of self
+        creates am empty user list for each user input,
+
+        links a controlDevice to its alignment, if an alignment has no control Device assigns None"""
+        for cd in self.controlDevices:
+            if cd.category == 1:
+                cd.timeAtStop = self.timeAtStop
+                cd.userTimeAtStop = 0
+                cd.timeStep = self.timeStep
+                cd.user = None
+
         for al in self.alignments:
             al.connectedAlignments = []
             if al.connectedAlignmentIndices is not None:
@@ -658,6 +645,15 @@ class World:
                     al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
             else:
                 al.connectedAlignments = None
+
+            for cd in self.controlDevices:
+                if al.idx == cd.alignmentIdx:
+                    al.controlDevice = cd
+                else:
+                    al.controlDevice = None
+
+        for ui in self.userInputs:
+            ui.users = []
 
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings + test
@@ -691,13 +687,12 @@ class World:
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
         _temp = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices
         if _temp is not None:
-            for al in self.alignments: # determiner l'alignement sur lequel le traffic adjacent arrive
+            for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
                 if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
                     if al.connectedAlignmentIndices is not None:
-                        if set(al.connectedAlignmentIndices) == set(_temp):
-                            return al.idx
+                        return al.idx
 
-    def checkTraffic(self, user, instant):      
+    def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""
         if instant in list(user.timeInterval):
             if self.getIncomingTrafficAlignmentIdx(user, instant) is not None:
@@ -709,9 +704,11 @@ class World:
                 incomingUsers = []
                 for user in userList:
                     if instant in list(user.timeInterval):
-                        if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
+                        if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(
+                                user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
                             incomingUsers.append(user)
-                sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0],
+                                        reverse=True)
                 if sortedUserList != []:
                     return sortedUserList[0]
                 else:
@@ -732,12 +729,15 @@ class World:
             else:
                 for al in self.alignments:
                     if al.idx != comingUser.getCurvilinearPositionAtInstant(instant)[2]:
-                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(comingUser.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices):
-                            if self.travelledAlignmentsDistanceAtInstant(user, instant) - threshold - comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
-                                d = self.travelledAlignmentsDistanceAtInstant(comingUser, instant) - comingUser.getCurvilinearPositionAtInstant(instant)[0]
-                                v = comingUser.getCurvilinearVelocityAtInstant(instant)[0]/timeStep
+                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(
+                                comingUser.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices):
+                            if self.travelledAlignmentsDistanceAtInstant(user, instant) - threshold - \
+                                    comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
+                                d = self.travelledAlignmentsDistanceAtInstant(comingUser, instant) - \
+                                    comingUser.getCurvilinearPositionAtInstant(instant)[0]
+                                v = comingUser.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
                                 if v != 0:
-                                    return d/v
+                                    return d / v
                                 else:
                                     return float('inf')
                 else:
@@ -751,70 +751,8 @@ class World:
             s += al.cumulativeDistances[-1]
         return s
 
-    def getNextControlDevice(self, user, instant, visibilityThreshold):
-        # todo  : a verifier
-        if user.timeInterval is not None:
-            if instant in list(user.timeInterval):
-                currentLane = user.getCurvilinearPositionAtInstant(instant)[2]
-                if self.getAlignmentById(currentLane).controlDeviceIndices is not None:
-
-                    controlDeviceIdx = self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0]).idx
-                    d = self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx), instant)
-                    if d is not None:
-                        if d <= visibilityThreshold:
-                            return self.getControlDeviceById(self.getAlignmentById(currentLane).controlDeviceIndices[0])
-                    else:
-                        return None
-
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
-
-    def userHasStoppedAt(self, user, cdIdx, distance, instant):
-        # todo : verifier
-        cd = self.getControlDeviceById(cdIdx)
-        if 0 in user.curvilinearVelocities.positions[0]:
-            stopInstants = [index for index, value in enumerate(user.curvilinearVelocities.positions[0][:instant + user.timeInterval.first]) if value == 0]
-            lastStopInstant = max(stopInstants)
-            if self.distanceAtInstant(user, cd, lastStopInstant) < distance:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-    def userHasToStop(self, user, cdIdx, distance, instant, threshold, timeStep):
-        # todo : verifier
-        if cdIdx is not None:
-            controlDevice = self.getControlDeviceById(cdIdx)
-            if controlDevice.category == 1:  # stop
-                if self.userHasStoppedAt(user, cdIdx, distance, instant):
-                    gap = self.estimateGap(user, instant, threshold, timeStep)
-                    if self.isGapAcceptable(user, gap):
-                        user.go = True
-                    else:
-                        user.go = False
-                else:
-                    user.go = False
-
-            elif controlDevice.category == 2:  # feu tricolore
-                if controlDevice.getStateAtInstant == 'green':
-                    user.go = True
-                elif controlDevice.getStateAtInstant == 'amber':
-                    if self.isClearingTimeAcceptable(user, instant):
-                        user.go = True
-                    else:
-                        user.go = False
-                else:
-                    user.go = False
-
-            elif controlDevice.category == 3:  # cedez le passage
-                gap = self.estimateGap(user, instant, threshold, timeStep)
-                if self.isGapAcceptable(user, gap):
-                    user.go = True
-                else:
-                    user.go = False
-        else:
-            user.go = True
 
     @staticmethod
     def isGapAcceptable(user, gap):
@@ -825,9 +763,9 @@ class World:
 
     def isClearingTimeAcceptable(self, user, timeStep):
         # todo : a verifier
-        v = user.curvilinearVelocities[-1][0]/timeStep
+        v = user.curvilinearVelocities[-1][0] / timeStep
         d = self.getAlignmentById(user.curvilinearPositions[-1][2]).connectedAlignments[2].width + user.geometry
-        clearingTime = d/v
+        clearingTime = d / v
         if clearingTime < user.supposedAmberTime:
             return True
         else:
@@ -838,11 +776,20 @@ class World:
             if al.connectedAlignmentIndices is not None and len(al.connectedAlignmentIndices) > 1:
                 break
         try:
-            intersection = al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
-                                                      self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
+            intersection = \
+            al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
+                                           self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
             return intersection[0]
         except:
             return None
+
+    def getControlDevicePositionOnAlignment(self, alIdx):
+        al = self.getAlignmentById(alIdx)
+        if al.controlDevice is None:
+            return 0
+        else:
+            return al.points.cumulativeDistances[-1]
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -893,11 +840,10 @@ class UserInput:
                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
                                         initialAlignmentIdx=self.alignmentIdx)
-
-        if len(self.alignment.users) > 0:
+        if len(self.users) > 0:
             # obj.leader = self.generatedNum[-1]
-            obj.leader = self.alignment.users[-1]
-        self.alignment.users.append(obj)
+            obj.leader = self.users[-1]
+        self.users.append(obj)
         return obj
 
     def getUserByNum(self, num):

@@ -101,31 +101,66 @@ def getInteractionsDuration(world, dmin, inLine=False):
         print('error in method name, method name should be "inline" or "crossing"')
 
 
-def timeToCollisionAtInstant(user, t):
-    if user.leader is not None:
-        leader = user.leader
-        x0 = leader.getCurvilinearPositionAtInstant(t)[0]
-        v0 = leader.getCurvilinearVelocityAtInstant(t)[0]
-        x1 = user.getCurvilinearPositionAtInstant(t)[0]
-        v1 = user.getCurvilinearVelocityAtInstant(t)[0]
-        if v1 > v0:
-            ttc = (x0 - x1 - leader.geometry) / (v1 - v0)
-            return ttc
+def timeToCollisionAtInstant(user, t, world):
+    if not world.crossing:
+        if user.leader is not None:
+            leader = user.leader
+            x0 = leader.getCurvilinearPositionAtInstant(t)[0]
+            v0 = leader.getCurvilinearVelocityAtInstant(t)[0]
+            x1 = user.getCurvilinearPositionAtInstant(t)[0]
+            v1 = user.getCurvilinearVelocityAtInstant(t)[0]
+            if v1 > v0:
+                ttc = (x0 - x1 - leader.geometry) / (v1 - v0)
+                return ttc
+        else:
+            return None
     else:
-        return None
+        if user.leader is not None:
+            leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
+            if leaderCP[0] > world.getControlDevicePositionOnAlignment(leaderCP[2]):
+                if world.analysisZone.userInAnalysisZone(user, t):
+                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t)/ (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    adjacentUser = world.checkTraffic(user, t)
+                    if adjacentUser is not None :
+                        if world.analysisZone.userInAnalysisZone(adjacentUser, t):
+                            t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)/ (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            return max(t1, t2)
+                        else:
+                            return None
+                    else:
+                        return None
+                else:
+                    return None
+            else:
+                return None
+        else:
+            t1 = world.distanceAtInstant(user, world.controlDevices[0], t)/user.getCurvilinearVelocityAtInstant(t)[0]
+            adjacentUser = world.checkTraffic(user, t)
+            if adjacentUser is not None:
+                if world.analysisZone.userInAnalysisZone(adjacentUser, t):
+                    t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    return max(t1, t2)
 
-
-def timeToCollision(user):
+def timeToCollision(user, world=None, zoneArea=None):
     ttc = []
-    if user.leader is not None:
-        inter = moving.TimeInterval.intersection(user.timeInterval, user.leader.timeInterval)
-        for t in list(inter):
-            if timeToCollisionAtInstant(user, t) is not None:
-                ttc.append(timeToCollisionAtInstant(user, t))
-    return ttc
+    if world is not None and zoneArea is not None:
+        analysisZone = AnalysisZone(world, zoneArea)
+        world.analysisZone = analysisZone
+        if user.leader is not None:
+            inter = moving.TimeInterval.intersection(user.timeInterval, user.leader.timeInterval)
+            for t in list(inter):
+                if analysisZone.userInAnalysisZone(user, t):
+                    if len(world.alignments) > 2:
+                        world.crossing = True
+                    else:
+                        world.crossing = False
+                    if timeToCollisionAtInstant(user, t, world) is not None:
+                        ttc.append(timeToCollisionAtInstant(user, t, world))
 
+        return ttc
 
-def evaluateModel(world, sim, k):
+# def conflictNumber()
+def evaluateModel(world, sim, k, zoneArea=None):
     seeds = [k]
     interactions = {}
     usersCount = {}
@@ -155,7 +190,7 @@ def evaluateModel(world, sim, k):
     TTCmin = {}
 
     for user in usersCount[seed]:
-        ttc = timeToCollision(user)
+        ttc = timeToCollision(user, world, zoneArea)
         user0 = user.leader
         if user0 is None:
             num0 = None
@@ -226,14 +261,24 @@ def evaluateModel(world, sim, k):
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
 
 
-def plotVariations(indicatorValues, fileName):
+def plotVariations(indicatorValues, fileName, figName):
     plt.close('all')
     nRep = [k for k in range(1, len(indicatorValues) + 1)]
     meanValues = [indicatorValues[0]]
     for k in range(1, len(indicatorValues)):
         meanValues.append(np.mean(indicatorValues[:k + 1]))
     plt.plot(nRep, meanValues)
+    plt.title(figName)
     plt.savefig(fileName)
+
+
+def rms(indicatorValues):
+    s = 0
+    for el in indicatorValues:
+        s += el**2
+    s /= len(indicatorValues)
+    s = s**.5
+    return s
 
 
 class AnalysisZone:
@@ -245,12 +290,13 @@ class AnalysisZone:
         self.maxAlignment = []
         self.area = area
         for al in world.alignments:
-            if al.connectedAlignmentIndices is not None:# and len(al.connectedAlignmentIndices) > 1:
+            if al.connectedAlignmentIndices is not None:
                 self.minAlignment.append([al.points.cumulativeDistances[-1] - self.area**.5, al.idx])
-            else:#if al.connectedAlignmentIndices is None:
+            else:
                 self.maxAlignment.append([self.minAlignment[-1][0] + 2*(self.area**.5), al.idx])
 
     def userInAnalysisZone(self, user, t):
+        """determines if a user is inside a predetermined analysis zone"""
         rep = False
         if t in list(user.timeInterval):
             cp = user.getCurvilinearPositionAtInstant(t)

@@ -50,8 +50,8 @@ alignments:
   width: null
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
-  - 4
-  - 2
+  - 3
+  - 1
   controlDeviceIndices:
     - 0
   idx: 2
@@ -80,7 +80,7 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices: null
   controlDeviceIndices: null
-  idx: 4
+  idx: 3
   graphCorrespondance:
     - 1
     - 4
@@ -198,4 +198,4 @@ userInputs:
       scale: 2
   idx: 1
 
-
+timeAtStop: 4

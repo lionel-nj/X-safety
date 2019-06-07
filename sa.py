@@ -24,7 +24,7 @@ problem = dict(num_vars=5,
                        [11, 17],
                        [1.5, 2.5],
                        ])
-paramValues = saltelli.sample(problem, args.nop, seed=0)
+paramValues = saltelli.sample(problem, 10, seed=0)
 
 _ttc = [0] * paramValues.shape[0]
 _userCount = [0] * paramValues.shape[0]

@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 import toolkit
@@ -44,10 +45,11 @@ class Simulation(object):
             ui.generateHeadways(self.duration)
 
         # suggestion, a voir si c'est le plus pratique
-        for al in world.alignments:
-            al.users = []
+        # for al in world.alignments:
+        #     al.users = []
 
         world.getGraph()
+        world.timeStep = self.timeStep
         world.prepare()
         userNum = 0
         world.users = []
@@ -56,34 +58,32 @@ class Simulation(object):
             if world.controlDevices is not None:
                 for cd in world.controlDevices:
                     cd.cycle()
+                    # if cd.user is not None:
+                    #     print(cd.user.num)
+                    # else:
+                    #     print(None)
             userNum = world.initUsers(i, self.timeStep, userNum)
 
-            for ui in world.userInputs:
-                # if ui.alignment.users is not None:
-                for user in ui.alignment.users:
-                    if user.inSimulation:
-                        world.getUserCurrentAlignment(user)
-                        try:
-                            nextControlDeviceIdx = world.getNextControlDevice(user, i, self.visibilityThreshold).idx
-                        except:
-                            nextControlDeviceIdx = None
-                        world.userHasToStop(user, nextControlDeviceIdx, self.visibilityThreshold, i, self.threshold,
-                                            self.timeStep)
-                        user.updateCurvilinearPositions(method="newell",
-                                                        instant=i,
-                                                        timeStep=self.timeStep)
+            for u in world.users:
+                if u.inSimulation:# in world.users:
+                    world.getUserCurrentAlignment(u)
+                    u.updateCurvilinearPositions(method="newell",
+                                                    instant=i,
+                                                    timeStep=self.timeStep)
+                    # if world.controlDevices[0].user is not None:
+                    #     print(world.controlDevices[0].user.num, world.controlDevices[0].userTimeAtStop)
 
         world.duplicateLastVelocities()
 
         # display
-        # plt.figure()
-        # for ui in world.userInputs:
-        #     for user in ui.alignment.users:
-        #         if user.timeInterval is not None:
-        #             user.plotCurvilinearPositions()
-        #     plt.xlabel('time(s/100)')
-        #     plt.ylabel('longitudinal coordinate (m)')
-        #     plt.show()
+        plt.figure()
+        for ui in world.userInputs:
+            for u in ui.users:
+                if u.timeInterval is not None:
+                    u.plotCurvilinearPositions()
+            plt.xlabel('time(s/100)')
+            plt.ylabel('longitudinal coordinate (m)')
+            plt.show()
         return world
 
 
