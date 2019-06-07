@@ -262,7 +262,6 @@ def evaluateModel(world, sim, k, zoneArea=None):
 
 
 def plotVariations(indicatorValues, fileName, figName):
-    plt.close('all')
     nRep = [k for k in range(1, len(indicatorValues) + 1)]
     meanValues = [indicatorValues[0]]
     for k in range(1, len(indicatorValues)):
@@ -270,6 +269,7 @@ def plotVariations(indicatorValues, fileName, figName):
     plt.plot(nRep, meanValues)
     plt.title(figName)
     plt.savefig(fileName)
+    plt.close('all')
 
 
 def rms(indicatorValues):
