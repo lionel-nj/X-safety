@@ -698,19 +698,22 @@ class World:
             if self.getIncomingTrafficAlignmentIdx(user, instant) is not None:
                 lane = self.getIncomingTrafficAlignmentIdx(user, instant)
                 intersectionCP = self.getIntersectionCP(lane)
-                userList = []
-                for k in range(len(self.userInputs)):
-                    userList.extend(self.getNotNoneVehiclesInWorld()[k])
-                incomingUsers = []
-                for user in userList:
-                    if instant in list(user.timeInterval):
-                        if user.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP and lane in set(
-                                user.curvilinearPositions.lanes[:(instant - user.getFirstInstant())]):
-                            incomingUsers.append(user)
-                sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0],
-                                        reverse=True)
-                if sortedUserList != []:
-                    return sortedUserList[0]
+                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[-1]
+                if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
+                    worldUserList = []
+                    for ui in self.userInputs:
+                        worldUserList.append(self.getNotNoneVehiclesInWorld()[ui.idx])
+                    adjacentUsers = worldUserList[self.getIncomingTrafficAlignmentIdx(user, instant)]
+                    incomingUsers = []
+                    for adUser in adjacentUsers:
+                        if instant in list(adUser.timeInterval):
+                            if adUser.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP:
+                                incomingUsers.append(user)
+                    sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                    if sortedUserList != []:
+                        return sortedUserList[0]
+                    else:
+                        return None
                 else:
                     return None
             else:

@@ -159,7 +159,38 @@ def timeToCollision(user, world=None, zoneArea=None):
 
         return ttc
 
-# def conflictNumber()
+
+def countConflict(threshold, interactions, seeds):
+    conflictNumber = {}
+    number = []
+    for seed in seeds:
+        for inter in interactions[seed]:
+            number.append(
+                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
+                                             threshold)))
+        conflictNumber[seed] = np.sum(number)
+    return conflictNumber
+
+
+def getDistance(val, interactions, seeds):
+    distance = {}  # liste des distances minimales pour chaque repetition de simulation
+    if val == 'min':
+        for seed in seeds:
+            distance[seed] = []
+            for inter in interactions[seed]:
+                distance[seed].append(min(interactions[seed][inter][0].indicators['Distance'].values.values()))
+            distance[seed] = np.mean(distance[seed])
+
+    if val == 'mean':
+        for seed in seeds:
+            distance[seed] = []
+            for inter in interactions[seed]:
+                distance[seed].append(np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
+            distance[seed] = np.mean(distance[seed])
+
+    return distance
+
+
 def evaluateModel(world, sim, k, zoneArea=None):
     seeds = [k]
     interactions = {}
@@ -211,51 +242,15 @@ def evaluateModel(world, sim, k, zoneArea=None):
 
     ### distances minimales sur un lien ###
 
-    minDistance = {}  # liste des distances minimales pour chaque repetition de simulation
-    for seed in seeds:
-        minDistance[seed] = []
-        for inter in interactions[seed]:
-            minDistance[seed].append(min(interactions[seed][inter][0].indicators['Distance'].values.values()))
-        minDistance[seed] = np.mean(minDistance[seed])
-
-    ### distances moyennes sur un lien ###
-
-    meanDistance = {}  # liste des distances minimales pour chaque repetition de simulation
-    for seed in seeds:
-        meanDistance[seed] = []
-        for inter in interactions[seed]:
-            meanDistance[seed].append(
-                np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
-        meanDistance[seed] = np.mean(meanDistance[seed])
-
     ### nombre de vehicules generes pour chaque replication ###
     # usersCount
 
     ### nombre de conflits quand d<5, 10, 15 ###
-
-    conflictNumber5 = {}
-    number = []
-    for seed in seeds:
-        for inter in interactions[seed]:
-            number.append(
-                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 5)))
-        conflictNumber5[seed] = np.sum(number)
-
-    conflictNumber10 = {}
-    number = []
-    for seed in seeds:
-        for inter in interactions[seed]:
-            number.append(
-                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 10)))
-        conflictNumber10[seed] = np.sum(number)
-
-    conflictNumber15 = {}
-    number = []
-    for seed in seeds:
-        for inter in interactions[seed]:
-            number.append(
-                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), 15)))
-        conflictNumber15[seed] = np.sum(number)
+    minDistance = getDistance('min', interactions, seed)
+    meanDistance = getDistance('mean', interactions, seed)
+    conflictNumber5 = countConflict(5, interactions, seeds)
+    conflictNumber10 = countConflict(10, interactions, seeds)
+    conflictNumber15 = countConflict(15, interactions, seeds)
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
