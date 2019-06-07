@@ -195,7 +195,6 @@ def evaluateModel(world, sim, k, zoneArea=None):
     seeds = [k]
     interactions = {}
     usersCount = {}
-
     for seed in seeds:
 
         interactions[seed] = {}
@@ -214,6 +213,12 @@ def evaluateModel(world, sim, k, zoneArea=None):
             #                     alignment2=world.travelledAlignments(roadUser2, None))
 
             interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
+            for t in list(roadUser1.timeInterval):
+                if world.checkTraffic(roadUser1, t) is not None:
+                    i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=world.checkTraffic(roadUser1, t).num)
+                    i.computeDistance(world)
+                    interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
+
     # simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
 
     ### TTC sur un lien ###

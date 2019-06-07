@@ -279,7 +279,6 @@ class Yield(ControlDevice):
         return self.initialState
 
 
-#
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
 #         super().__init__(idx, category, alignmentIdx)
