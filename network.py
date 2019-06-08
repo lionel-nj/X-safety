@@ -724,7 +724,6 @@ class World:
 
 
     def estimateGap(self, user, instant):
-        # todo : verifier
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
         if user.timeInterval is not None:

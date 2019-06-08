@@ -187,7 +187,6 @@ def countConflict(distance, interactions, analysisZone):
 
 
 def postEncroachmentTimeAtInstant(user, t, world):
-    # todo : a verifier
     if len(world.alignments) > 2:
         if user.leader is not None:
             leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
@@ -198,8 +197,8 @@ def postEncroachmentTimeAtInstant(user, t, world):
                     adjacentUser = user.comingUser
                     if adjacentUser is not None:
                         if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                            t2 = (adjacentUser.gemotry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
-                            return t2 - t1
+                            t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            return abs(t2 - t1)
 
         else:
             t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / user.getCurvilinearVelocityAtInstant(t)[0]
@@ -207,14 +206,13 @@ def postEncroachmentTimeAtInstant(user, t, world):
             adjacentUser = user.comingUser
             if adjacentUser is not None:
                 if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                    t2 = (adjacentUser.geomettry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
-                    return t2 - t1
+                    t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    return abs(t2 - t1)
     else:
         return None
 
 
 def postEncroachmentTime(user, world):
-    # todo : a verifier
     pet = []
     for t in list(user.timeInterval):
         if world.analysisZone.userInAnalysisZone(user, t):
@@ -306,6 +304,26 @@ def evaluateModel(world, sim, k, zoneArea=None):
     else:
         meanTTCmin = None
 
+    if len(world.alignments) > 2:
+        PET = {}
+        PETmin = {}
+        for user in usersCount[seed]:
+            pet = postEncroachmentTime(user, world)
+
+            PET[user.num] = pet
+            if pet != []:
+                if min(PET[user.num]) < 30:
+                    PETmin[user.num] = min(PET[user.num])
+
+        _n, _bins = np.histogram(list(PETmin.values()))
+        _mids = 0.5 * (_bins[1:] + _bins[:-1])
+        if sum(_n) != 0:
+            meanPETmin = np.average(_mids, weights=_n)
+        else:
+            meanPETmin = None
+    else:
+        meanPETmin = None
+
     ### nombre de conflits quand d<5, 10, 15 ###
     minDistance = getDistance('min', interactions, seeds)
     meanDistance = getDistance('mean', interactions, seeds)
@@ -314,7 +332,7 @@ def evaluateModel(world, sim, k, zoneArea=None):
     conflictNumber15 = countConflict(15, interactions, world.analysisZone)
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
-           list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
+           list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0], meanPETmin
 
 
 def plotVariations(indicatorValues, fileName, figName):
