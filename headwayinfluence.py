@@ -37,7 +37,7 @@ for k in range(0, args.rep):
     simOutput = analysis.evaluateModel(world, sim, k, args.area)
 
     TTC[k] = simOutput[0]
-    minDistance[k] = simOutpuaht[1]
+    minDistance[k] = simOutput[1]
     meanDistance[k] = simOutput[2]
     userCount[k] = simOutput[3]
     meanConflictNumber5[k] = simOutput[4]
