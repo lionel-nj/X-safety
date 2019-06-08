@@ -10,7 +10,7 @@ import toolkit
 parser = argparse.ArgumentParser()
 parser.add_argument("--rep", type=int, help="number of replications")
 parser.add_argument("--area", type=int, help="analysis zone area")
-parser.add_argument("--headway", type=int, help="mean headway")
+parser.add_argument("--headway", type=float, help="mean headway")
 parser.add_argument("--duration", type=int, help="duration of each experiment in seconds")
 parser.add_argument("--cross", type=int, help="world has intersection or no?")
 
@@ -37,7 +37,7 @@ for k in range(0, args.rep):
     simOutput = analysis.evaluateModel(world, sim, k, args.area)
 
     TTC[k] = simOutput[0]
-    minDistance[k] = simOutput[1]
+    minDistance[k] = simOutpuaht[1]
     meanDistance[k] = simOutput[2]
     userCount[k] = simOutput[3]
     meanConflictNumber5[k] = simOutput[4]
