@@ -23,8 +23,8 @@ meanConflictNumber10 = {}
 meanConflictNumber15 = {}
 
 for k in range(0, args.rep):
-    world = network.load('cross-net.yml')
-    sim = simulation.load('config.yml')
+    world = network.World.load('cross-net.yml')
+    sim = simulation.Simulation.load('config.yml')
     sim.duration = args.duration
     simOutput = analysis.evaluateModel(world, sim, k, args.area)
 
@@ -37,8 +37,8 @@ for k in range(0, args.rep):
     meanConflictNumber15[k] = simOutput[6]
     PET[k] = simOutput[7]
 
-data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15],
-                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15'])
+data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15, PET],
+                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15', 'PET(min)'])
 
 data.to_csv('outputData/zone-influence/data{}m2.csv'.format(args.area))
 toolkit.callWhenDone()
