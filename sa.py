@@ -24,7 +24,7 @@ problem = dict(num_vars=5,
                        [11, 17],
                        [1.5, 2.5],
                        ])
-paramValues = saltelli.sample(problem, 10, seed=0)
+paramValues = saltelli.sample(problem, args.rep, seed=0)
 
 _ttc = [0] * paramValues.shape[0]
 _userCount = [0] * paramValues.shape[0]
@@ -92,7 +92,7 @@ for i in range(paramValues.shape[0]):
 data = pandas.DataFrame(data=[ttc, minDistance, meanDistance, userCount, conflict5, conflict10, conflict15],
                         index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15'])
 
-data.to_csv('outputData/sensivity-analysis/data.csv')
+data.to_csv('outputData/sensitivity-analysis/data.csv')
 
 
 # Si = sobol.analyze(problem, _ttc, print_to_console=False)

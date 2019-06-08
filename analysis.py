@@ -102,7 +102,7 @@ def getInteractionsDuration(world, dmin, inLine=False):
 
 
 def timeToCollisionAtInstant(user, t, world):
-    if not world.crossing:
+    if len(world.alignments) < 3:
         if user.leader is not None:
             leader = user.leader
             x0 = leader.getCurvilinearPositionAtInstant(t)[0]
@@ -112,64 +112,115 @@ def timeToCollisionAtInstant(user, t, world):
             if v1 > v0:
                 ttc = (x0 - x1 - leader.geometry) / (v1 - v0)
                 return ttc
-        else:
-            return None
+        # else:
+        #     return None
     else:
         if user.leader is not None:
             leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
             if leaderCP[0] > world.getControlDevicePositionOnAlignment(leaderCP[2]):
                 if world.analysisZone.userInAnalysisZone(user, t):
-                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t)/ (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
-                    adjacentUser = world.checkTraffic(user, t)
-                    if adjacentUser is not None :
+                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    world.checkTraffic(user, t)
+                    adjacentUser = user.comingUser
+                    if adjacentUser is not None:
                         if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                            t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)/ (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
                             return max(t1, t2)
-                        else:
-                            return None
-                    else:
-                        return None
-                else:
-                    return None
-            else:
-                return None
+            #             else:
+            #                 return None
+            #         else:
+            #             return None
+            #     else:
+            #         return None
+            # else:
+            #     return None
         else:
-            t1 = world.distanceAtInstant(user, world.controlDevices[0], t)/user.getCurvilinearVelocityAtInstant(t)[0]
-            adjacentUser = world.checkTraffic(user, t)
+            t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / user.getCurvilinearVelocityAtInstant(t)[0]
+            world.checkTraffic(user, t)
+            adjacentUser = user.comingUser
             if adjacentUser is not None:
                 if world.analysisZone.userInAnalysisZone(adjacentUser, t):
                     t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
                     return max(t1, t2)
 
-def timeToCollision(user, world=None, zoneArea=None):
-    ttc = []
-    if world is not None and zoneArea is not None:
-        analysisZone = AnalysisZone(world, zoneArea)
-        world.analysisZone = analysisZone
-        if user.leader is not None:
-            inter = moving.TimeInterval.intersection(user.timeInterval, user.leader.timeInterval)
-            for t in list(inter):
-                if analysisZone.userInAnalysisZone(user, t):
-                    if len(world.alignments) > 2:
-                        world.crossing = True
-                    else:
-                        world.crossing = False
-                    if timeToCollisionAtInstant(user, t, world) is not None:
-                        ttc.append(timeToCollisionAtInstant(user, t, world))
 
+def timeToCollision(user, world):
+    ttc = []
+    if user.leader is not None:
+        inter = moving.TimeInterval.intersection(user.timeInterval, user.leader.timeInterval)
+        for t in list(inter):
+            if world.analysisZone is not None:
+                if world.analysisZone.userInAnalysisZone(user, t):
+                    if len(world.alignments) > 2:
+                        if timeToCollisionAtInstant(user, t, world) is not None:
+                            ttc.append(timeToCollisionAtInstant(user, t, world))
+            else:
+                if timeToCollisionAtInstant(user, t, world) is not None:
+                    ttc.append(timeToCollisionAtInstant(user, t, world))
+        return ttc
+    else:
         return ttc
 
 
-def countConflict(threshold, interactions, seeds):
+def countConflict(distance, interactions, analysisZone):
     conflictNumber = {}
     number = []
-    for seed in seeds:
+    for seed in interactions:
         for inter in interactions[seed]:
-            number.append(
-                len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
-                                             threshold)))
+            if analysisZone is not None:
+                timeInterval = moving.TimeInterval.intersection(analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1),
+                                                                analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2))
+                if timeInterval is not None:
+                # if analysisZone.userInAnalysisZone(inter.roadUser1, ) and analysisZone.userInAnalysisZone(inter.roadUser2, ):
+                    val = interactions[seed][inter][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
+                    # print(val)
+                    if not (None in val):
+                        number.append(len(toolkit.groupOnCriterion(val, distance)))
+
+                        # len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
+                        #                          distance)))
+            else:
+                number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), distance)))
+
         conflictNumber[seed] = np.sum(number)
     return conflictNumber
+
+
+def postEncroachmentTimeAtInstant(user, t, world):
+    # todo : a verifier
+    if len(world.alignments) > 2:
+        if user.leader is not None:
+            leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
+            if leaderCP[0] > world.getControlDevicePositionOnAlignment(leaderCP[2]):
+                if world.analysisZone.userInAnalysisZone(user, t):
+                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    world.checkTraffic(user, t)
+                    adjacentUser = user.comingUser
+                    if adjacentUser is not None:
+                        if world.analysisZone.userInAnalysisZone(adjacentUser, t):
+                            t2 = (adjacentUser.gemotry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            return t2 - t1
+
+        else:
+            t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / user.getCurvilinearVelocityAtInstant(t)[0]
+            world.checkTraffic(user, t)
+            adjacentUser = user.comingUser
+            if adjacentUser is not None:
+                if world.analysisZone.userInAnalysisZone(adjacentUser, t):
+                    t2 = (adjacentUser.geomettry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    return t2 - t1
+    else:
+        return None
+
+
+def postEncroachmentTime(user, world):
+    # todo : a verifier
+    pet = []
+    for t in list(user.timeInterval):
+        if world.analysisZone.userInAnalysisZone(user, t):
+            if timeToCollisionAtInstant(user, t, world) is not None:
+                pet.append(postEncroachmentTimeAtInstant(user, t, world))
+    return pet
 
 
 def getDistance(val, interactions, seeds):
@@ -195,6 +246,11 @@ def evaluateModel(world, sim, k, zoneArea=None):
     seeds = [k]
     interactions = {}
     usersCount = {}
+    if zoneArea is not None:
+        world.analysisZone = AnalysisZone(world, zoneArea)
+    else:
+        world.analysisZone = None
+
     for seed in seeds:
 
         interactions[seed] = {}
@@ -203,21 +259,26 @@ def evaluateModel(world, sim, k, zoneArea=None):
         usersCount[seed] = world.getNotNoneVehiclesInWorld()[0]
 
         for userNum in range(len(usersCount[seed]) - 1):
-            roadUser1 = world.getUserByNum(userNum)
-            roadUser2 = world.getUserByNum(userNum + 1)
-            #                 print(len(roadUser1.curvilinearVelocities), len(roadUser2.curvilinearVelocities))
+            roadUser1 = world.getUserByNum(usersCount[seed][userNum].num)
+            roadUser2 = world.getUserByNum(usersCount[seed][userNum + 1].num)
             interactions[seed][(roadUser1.num, roadUser2.num)] = []
             i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
             i.computeDistance(world)
-            # i.computeIndicators(world=world, alignment1=world.travelledAlignments(roadUser1, None),
-            #                     alignment2=world.travelledAlignments(roadUser2, None))
-
             interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
-            for t in list(roadUser1.timeInterval):
-                if world.checkTraffic(roadUser1, t) is not None:
-                    i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=world.checkTraffic(roadUser1, t).num)
-                    i.computeDistance(world)
-                    interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
+
+            t = roadUser1.timeInterval.first
+            while t in list(roadUser1.timeInterval):
+                world.checkTraffic(roadUser1, t)
+                if roadUser1.comingUser is not None:
+                    roadUser2 = roadUser1.comingUser
+                    print(roadUser1.num, roadUser2.num)
+                    interactions[seed][(roadUser1.num, roadUser2.num)] = []
+                    j = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+                    j.computeDistance(world)
+                    interactions[seed][(roadUser1.num, roadUser2.num)].append(j)
+                    t = roadUser1.timeInterval.last + 5
+                else:
+                    t += 1
 
     # simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
 
@@ -226,7 +287,7 @@ def evaluateModel(world, sim, k, zoneArea=None):
     TTCmin = {}
 
     for user in usersCount[seed]:
-        ttc = timeToCollision(user, world, zoneArea)
+        ttc = timeToCollision(user, world)
         user0 = user.leader
         if user0 is None:
             num0 = None
@@ -235,7 +296,7 @@ def evaluateModel(world, sim, k, zoneArea=None):
 
         TTC[num0, user.num] = ttc
         if ttc != []:
-            if min(TTC[num0, user.num]) < 30:
+            if min(TTC[num0, user.num]) < 300:
                 TTCmin[num0, user.num] = min(TTC[num0, user.num])
 
     n, bins = np.histogram(list(TTCmin.values()))
@@ -246,11 +307,11 @@ def evaluateModel(world, sim, k, zoneArea=None):
         meanTTCmin = None
 
     ### nombre de conflits quand d<5, 10, 15 ###
-    minDistance = getDistance('min', interactions, seed)
-    meanDistance = getDistance('mean', interactions, seed)
-    conflictNumber5 = countConflict(5, interactions, seeds)
-    conflictNumber10 = countConflict(10, interactions, seeds)
-    conflictNumber15 = countConflict(15, interactions, seeds)
+    minDistance = getDistance('min', interactions, seeds)
+    meanDistance = getDistance('mean', interactions, seeds)
+    conflictNumber5 = countConflict(5, interactions, world.analysisZone)
+    conflictNumber10 = countConflict(10, interactions, world.analysisZone)
+    conflictNumber15 = countConflict(15, interactions, world.analysisZone)
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0]
@@ -303,3 +364,14 @@ class AnalysisZone:
         else:
             return rep
 
+    def getUserTimeIntervalInAZ(self, user):
+        first = 0
+        for t in list(user.timeInterval):
+            if self.userInAnalysisZone(user, t):
+                first = t
+                break
+        while self.userInAnalysisZone(user, t):
+            t += 1
+        last = t-1
+
+        return moving.TimeInterval(first=first, last=last)

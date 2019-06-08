@@ -153,7 +153,7 @@ class Alignment:
             user.go = True
             return self
 
-    # def getAlignmentVector(self):
+   # def getAlignmentVector(self):
     #     #todo : a tester
     #     p1 = self.points[0]
     #     p2 = self.points[-1]
@@ -258,7 +258,7 @@ class StopSign(ControlDevice):
         if self.userTimeAtStop < self.timeAtStop:
             self.userTimeAtStop += self.timeStep
             # user.controlDevice = self
-            user.go = False
+            user.go = True
         else:
             user.go = True
             self.user = None
@@ -500,7 +500,11 @@ class World:
                     user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                     user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
 
-                    if user1AlignmentIdx == user2AlignmentIdx:
+                    # if self.getAlignmentById(user2AlignmentIdx).connectedAlignmentIndices[0] is not None:
+                    #     pass
+                    # else:
+
+                    if user1AlignmentIdx == user2AlignmentIdx:#) or (user2AlignmentIdx == self.getAlignmentById(user1AlignmentIdx).connectedAlignmentIndices[0]):
                         return abs(
                             self.getUserDistanceOnAlignmentAt(user1, instant) - self.getUserDistanceOnAlignmentAt(user2,
                                                                                                                   instant) - user1.geometry)
@@ -582,28 +586,6 @@ class World:
                     linkedAlignments = linkedAlignments + self.getAlignmentById(el).connectedAlignmentIndices
         return linkedAlignments
 
-    def checkControlDevicesAtInstant(self, user, t, radius):
-        """checks the state of controlDevices within a radius
-        if controlDevice.state[t] == forward, user.state = forward, else user.state = stop"""
-        if user.timeInterval is not None:
-            if t - user.getFirstInstant() >= 0:
-                # print(t - user.getFirstInstant())
-                # print(user.curvilinearPositions)
-                al = self.getAlignmentById(user.curvilinearPositions.lanes[t - self.getFirstInstant() - 1])
-                if al.controlDeviceIndices:
-                    for controlDeviceIdx in al.controlDeviceIndices:
-                        if self.distanceAtInstant(user, self.getControlDeviceById(controlDeviceIdx),
-                                                  t - 1) is not None and self.distanceAtInstant(user,
-                                                                                                self.getControlDeviceById(
-                                                                                                    controlDeviceIdx),
-                                                                                                t - 1) < radius:
-                            if self.getControlDeviceById(controlDeviceIdx).getStateAtInstant(t) == 'stop':
-                                user.state = 'stop'
-                            else:
-                                user.state = 'forward'
-                        else:
-                            user.state = 'forward'
-
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
         if instant is not None:
@@ -630,12 +612,13 @@ class World:
         creates am empty user list for each user input,
 
         links a controlDevice to its alignment, if an alignment has no control Device assigns None"""
-        for cd in self.controlDevices:
-            if cd.category == 1:
-                cd.timeAtStop = self.timeAtStop
-                cd.userTimeAtStop = 0
-                cd.timeStep = self.timeStep
-                cd.user = None
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                if cd.category == 1:
+                    cd.timeAtStop = self.timeAtStop
+                    cd.userTimeAtStop = 0
+                    cd.timeStep = self.timeStep
+                    cd.user = None
 
         for al in self.alignments:
             al.connectedAlignments = []
@@ -644,12 +627,14 @@ class World:
                     al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
             else:
                 al.connectedAlignments = None
-
-            for cd in self.controlDevices:
-                if al.idx == cd.alignmentIdx:
-                    al.controlDevice = cd
-                else:
-                    al.controlDevice = None
+            if self.controlDevices is not None:
+                for cd in self.controlDevices:
+                    if al.idx == cd.alignmentIdx:
+                        al.controlDevice = cd
+                    else:
+                        al.controlDevice = None
+            else:
+                al.controlDevice = None
 
         for ui in self.userInputs:
             ui.users = []
@@ -698,52 +683,61 @@ class World:
                 lane = self.getIncomingTrafficAlignmentIdx(user, instant)
                 intersectionCP = self.getIntersectionCP(lane)
                 userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[-1]
-                if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
+                if user.leader is not None:
+                    if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
+                        worldUserList = []
+                        for k in range(len(self.userInputs)):
+                            worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
+                        for ui in self.userInputs:
+                            if ui.alignmentIdx == self.getIncomingTrafficAlignmentIdx(user, instant):
+                                uiIdx = ui.idx
+                                break
+                        adjacentUsers = worldUserList[uiIdx]
+                        incomingUsers = []
+                        for adUser in adjacentUsers:
+                            if instant in list(adUser.timeInterval):
+                                if adUser.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP:
+                                    incomingUsers.append(adUser)
+                        sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                        if sortedUserList != []:
+                            user.comingUser = sortedUserList[0]
+                    else:
+                        user.comingUser = None
+                else:
                     worldUserList = []
+                    for k in range(len(self.userInputs)):
+                        worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
                     for ui in self.userInputs:
-                        worldUserList.append(self.getNotNoneVehiclesInWorld()[ui.idx])
-                    adjacentUsers = worldUserList[self.getIncomingTrafficAlignmentIdx(user, instant)]
+                        if ui.alignmentIdx == self.getIncomingTrafficAlignmentIdx(user, instant):
+                            uiIdx = ui.idx
+                            break
+                    adjacentUsers = worldUserList[uiIdx]
                     incomingUsers = []
                     for adUser in adjacentUsers:
                         if instant in list(adUser.timeInterval):
                             if adUser.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP:
-                                incomingUsers.append(user)
-                    sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                                incomingUsers.append(adUser)
+                    sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0],
+                                            reverse=True)
                     if sortedUserList != []:
-                        return sortedUserList[0]
-                    else:
-                        return None
-                else:
-                    return None
-            else:
-                return None
-        else:
-            return None
+                        user.comingUser = sortedUserList[0]
 
-    def estimateGap(self, user, instant, threshold, timeStep):
+
+    def estimateGap(self, user, instant):
         # todo : verifier
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
         if user.timeInterval is not None:
-            comingUser = self.checkTraffic(user, instant)
-            if comingUser is None:
+            self.checkTraffic(user, instant)
+            if user.comingUser is None:
                 return float('inf')
             else:
-                for al in self.alignments:
-                    if al.idx != comingUser.getCurvilinearPositionAtInstant(instant)[2]:
-                        if set(al.connectedAlignmentIndices) == set(self.getAlignmentById(
-                                comingUser.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices):
-                            if self.travelledAlignmentsDistanceAtInstant(user, instant) - threshold - \
-                                    comingUser.getCurvilinearPositionAtInstant(instant)[0] > 0:
-                                d = self.travelledAlignmentsDistanceAtInstant(comingUser, instant) - \
-                                    comingUser.getCurvilinearPositionAtInstant(instant)[0]
-                                v = comingUser.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
-                                if v != 0:
-                                    return d / v
-                                else:
-                                    return float('inf')
+                v = user.comingUser.getCurvilinearVelocityAtInstant(instant)[0] / self.timeStep
+                if v != 0:
+                    d = self.distanceAtInstant(user.comingUser, self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).controlDevice, instant)
+                    return d / v
                 else:
-                    return float('inf ')
+                    return float('inf')
         else:
             return float('inf')
 
@@ -756,12 +750,11 @@ class World:
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
 
-    @staticmethod
-    def isGapAcceptable(user, gap):
-        if user.criticalGap < gap:
-            return True
-        else:
-            return False
+    # def isGapAcceptable(self, user, instant):
+    #     if user.criticalGap < self.estimateGap(user, instant):
+    #         user.acceptGap = True
+    #     else:
+    #         user.acceptGap = False
 
     def isClearingTimeAcceptable(self, user, timeStep):
         # todo : a verifier

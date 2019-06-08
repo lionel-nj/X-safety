@@ -19,6 +19,7 @@ class NewellMovingObject(moving.MovingObject):
         self.criticalGap = criticalGap
         self.inSimulation = True
         self.go = True
+        self.comingUser = None
 
     def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None,
                                    acceleration=None):
@@ -68,8 +69,9 @@ class NewellMovingObject(moving.MovingObject):
                     if self.getLastInstant() < instant:
                         s2 = freeFlowCoord
                         nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
+                        # self.currentAlignment.isGapAcceptable(self, instant)
                         if self.inSimulation:
-                            if self.go:
+                            if self.go:# and self.acceptGap:
                                 self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                             else:
                                 s2 = s1
@@ -81,14 +83,14 @@ class NewellMovingObject(moving.MovingObject):
                                            0] - self.d
                     else:
                         constrainedCoord = freeFlowCoord
-                    if self.go:
+                    if self.go :#and self.acceptGap:
                         s2 = min(freeFlowCoord, constrainedCoord)
                     else:
                         s2 = s1
                     nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
 
                     if self.inSimulation:
-                        if self.go:
+                        if self.go :#and self.acceptGap:
                             s2 = min(freeFlowCoord, constrainedCoord)
                             self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
                         else:
