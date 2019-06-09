@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from trafficintelligence import moving, events
+from trafficintelligence import moving, events, utils
 
 import toolkit
 
@@ -383,13 +383,16 @@ class AnalysisZone:
             return rep
 
     def getUserTimeIntervalInAZ(self, user):
-        first = 0
-        for t in list(user.timeInterval):
-            if self.userInAnalysisZone(user, t):
-                first = t
-                break
-        while self.userInAnalysisZone(user, t):
-            t += 1
-        last = t-1
+        indices = []
+        userLanes = utils._set(user.curvilinearPositions.lanes)
+        for lane in userLanes:
+            for x in self.minAlignment:
+                if x[1] == lane:
+                    indices.append(np.argmax(np.array(user.curvilinearPositions.positions[0]) > x[0]))
+            for x in self.maxAlignment:
+                if x[1] == lane:
+                    indices.append(np.argmin(np.array(user.curvilinearPositions.positions[0]) <= x[0]))
 
-        return moving.TimeInterval(first=first, last=last)
+        return moving.TimeInterval(first=indices[0] + user.getFirstInstant(),
+                                   last=indices[1] + user.getFirstInstant() - 1)
+
