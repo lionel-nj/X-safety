@@ -784,6 +784,12 @@ class World:
         else:
             return al.points.cumulativeDistances[-1]
 
+    def assignValue(self, args):
+        self.userInputs[0].distributions['headway'].scale = args.headway - 1
+        self.userInputs[0].distributions['speed'].loc = args.speed
+        self.userInputs[0].distributions['dn'].loc = args.dn
+        self.userInputs[0].distributions['tau'].loc = args.tau
+        self.userInputs[0].distributions['length'].loc = args.l
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
