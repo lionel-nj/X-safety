@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from trafficintelligence import moving, events
+from trafficintelligence import moving, events, utils
 
 import toolkit
 
@@ -119,12 +119,14 @@ def timeToCollisionAtInstant(user, t, world):
             leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
             if leaderCP[0] > world.getControlDevicePositionOnAlignment(leaderCP[2]):
                 if world.analysisZone.userInAnalysisZone(user, t):
-                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (
+                                user.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                     world.checkTraffic(user, t)
                     adjacentUser = user.comingUser
                     if adjacentUser is not None:
                         if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                            t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (
+                                        adjacentUser.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                             return max(t1, t2)
             #             else:
             #                 return None
@@ -140,7 +142,8 @@ def timeToCollisionAtInstant(user, t, world):
             adjacentUser = user.comingUser
             if adjacentUser is not None:
                 if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                    t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (
+                                adjacentUser.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                     return max(t1, t2)
 
 
@@ -168,10 +171,15 @@ def countConflict(distance, interactions, analysisZone):
     for seed in interactions:
         for inter in interactions[seed]:
             if analysisZone is not None:
-                timeInterval = moving.TimeInterval.intersection(analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1),
-                                                                analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2))
+                if (analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1) is not None and
+                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2)):
+                    timeInterval = moving.TimeInterval.intersection(
+                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1),
+                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2))
+                else:
+                    timeInterval = None
                 if timeInterval is not None:
-                # if analysisZone.userInAnalysisZone(inter.roadUser1, ) and analysisZone.userInAnalysisZone(inter.roadUser2, ):
+                    # if analysisZone.userInAnalysisZone(inter.roadUser1, ) and analysisZone.userInAnalysisZone(inter.roadUser2, ):
                     val = interactions[seed][inter][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
                     # print(val)
                     if not (None in val):
@@ -180,7 +188,9 @@ def countConflict(distance, interactions, analysisZone):
                         # len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
                         #                          distance)))
             else:
-                number.append(len(toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(), distance)))
+                number.append(len(
+                    toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
+                                             distance)))
 
         conflictNumber[seed] = np.sum(number)
     return conflictNumber
@@ -192,12 +202,15 @@ def postEncroachmentTimeAtInstant(user, t, world):
             leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
             if leaderCP[0] > world.getControlDevicePositionOnAlignment(leaderCP[2]):
                 if world.analysisZone.userInAnalysisZone(user, t):
-                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (user.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / (
+                                user.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                     world.checkTraffic(user, t)
                     adjacentUser = user.comingUser
                     if adjacentUser is not None:
                         if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                            t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                            t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0],
+                                                                                  t)) / (
+                                             adjacentUser.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                             return abs(t2 - t1)
 
         else:
@@ -206,7 +219,8 @@ def postEncroachmentTimeAtInstant(user, t, world):
             adjacentUser = user.comingUser
             if adjacentUser is not None:
                 if world.analysisZone.userInAnalysisZone(adjacentUser, t):
-                    t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (adjacentUser.getCurvilinearVelocityAtInstant(t)[0]/world.timeStep)
+                    t2 = (adjacentUser.geometry + world.distanceAtInstant(adjacentUser, world.controlDevices[0], t)) / (
+                                adjacentUser.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                     return abs(t2 - t1)
     else:
         return None
@@ -234,7 +248,8 @@ def getDistance(val, interactions, seeds):
         for seed in seeds:
             distance[seed] = []
             for inter in interactions[seed]:
-                distance[seed].append(np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
+                distance[seed].append(
+                    np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
             distance[seed] = np.mean(distance[seed])
 
     return distance
@@ -332,7 +347,8 @@ def evaluateModel(world, sim, k, zoneArea=None):
     conflictNumber15 = countConflict(15, interactions, world.analysisZone)
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
-           list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[0], meanPETmin
+           list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[
+               0], meanPETmin
 
 
 def plotVariations(indicatorValues, fileName, figName):
@@ -349,9 +365,9 @@ def plotVariations(indicatorValues, fileName, figName):
 def rms(indicatorValues):
     s = 0
     for el in indicatorValues:
-        s += el**2
+        s += el ** 2
     s /= len(indicatorValues)
-    s = s**.5
+    s = s ** .5
     return s
 
 
@@ -365,9 +381,9 @@ class AnalysisZone:
         self.area = area
         for al in world.alignments:
             if al.connectedAlignmentIndices is not None:
-                self.minAlignment.append([al.points.cumulativeDistances[-1] - self.area**.5, al.idx])
+                self.minAlignment.append([al.points.cumulativeDistances[-1] - self.area ** .5, al.idx])
             else:
-                self.maxAlignment.append([self.minAlignment[-1][0] + 2*(self.area**.5), al.idx])
+                self.maxAlignment.append([self.minAlignment[-1][0] + 2 * (self.area ** .5), al.idx])
 
     def userInAnalysisZone(self, user, t):
         """determines if a user is inside a predetermined analysis zone"""
@@ -383,13 +399,25 @@ class AnalysisZone:
             return rep
 
     def getUserTimeIntervalInAZ(self, user):
-        first = 0
-        for t in list(user.timeInterval):
-            if self.userInAnalysisZone(user, t):
-                first = t
-                break
-        while self.userInAnalysisZone(user, t):
-            t += 1
-        last = t-1
-        return moving.TimeInterval(first=first, last=last)
+        timeInterval = moving.TimeInterval()
+        userLanes = utils._set(user.curvilinearPositions.lanes)
+        for lane in userLanes:
+            for x in self.minAlignment:
+                if x[1] == lane:
+                    if np.argmax(np.array(user.curvilinearPositions.positions[0]) > x[0]) != 0:
+                        timeInterval.first = np.argmax(
+                            np.array(user.curvilinearPositions.positions[0]) > x[0]) + user.getFirstInstant()
+                        # indices.append(np.argmax(np.array(user.curvilinearPositions.positions[0]) > x[0]))
+            for x in self.maxAlignment:
+                if x[1] == lane:
+                    if np.argmin(np.array(user.curvilinearPositions.positions[0]) <= x[0]) != 0:
+                        timeInterval.last = np.argmin(
+                            np.array(user.curvilinearPositions.positions[0]) <= x[0]) + user.getFirstInstant() - 1
+                    # indices.append(np.argmin(np.array(user.curvilinearPositions.positions[0]) <= x[0]))
+        if timeInterval.last == -1:
+            if timeInterval.first == 0:
+                timeInterval = None
+            else:
+                timeInterval.last = user.getLastInstant()
 
+        return timeInterval
