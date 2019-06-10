@@ -41,7 +41,7 @@ for i, X in enumerate(paramValues):
     sim.duration = args.duration
 
     world.userInputs[0].distributions['dn'].loc = X[0]
-    world.userInputs[0].distributions['headway'].loc = X[1]
+    world.userInputs[0].distributions['headway'].scale = X[1]
     world.userInputs[0].distributions['length'].loc = X[2]
     world.userInputs[0].distributions['speed'].loc = X[3]
     world.userInputs[0].distributions['tau'].loc = X[4]
