@@ -25,7 +25,7 @@ meanConflictNumber15 = {}
 for k in range(0, args.rep):
     world = network.World.load('cross-net.yml')
     for ui in world.userInputs:
-        ui.distributions['headway'].loc = 1
+        ui.distributions['headway'].scale = 1
     sim = simulation.Simulation.load('config.yml')
     sim.duration = args.duration
     simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, zoneArea=args.area, file='zi')
