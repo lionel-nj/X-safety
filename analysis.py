@@ -371,20 +371,11 @@ def plotVariations(indicatorValues, fileName, figName):
     plt.close('all')
 
 
-def rms(indicatorValues):
-    s = 0
-    for el in indicatorValues:
-        s += el ** 2
-    s /= len(indicatorValues)
-    s = s ** .5
-    return s
-
-
 class AnalysisZone:
     def __init__(self, world, area):
         self.center = world.getIntersectionXYcoords()  # moving.Point
         if self.center is None:
-            self.center = world.userInputs[0].alignment.points[-1]
+            self.center = world.getAlignmentById(world.userInputs[0].alignmentIdx).points[-1]
         self.minAlignment = []
         self.maxAlignment = []
         self.area = area
