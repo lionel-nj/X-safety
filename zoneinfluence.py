@@ -26,7 +26,7 @@ for k in range(0, args.rep):
     world = network.World.load('cross-net.yml')
     sim = simulation.Simulation.load('config.yml')
     sim.duration = args.duration
-    simOutput = analysis.evaluateModel(world, sim, k, args.area)
+    simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, zoneArea=args.area, file='zi')
 
     TTC[k] = simOutput[0]
     minDistance[k] = simOutput[1]

@@ -55,7 +55,7 @@ for i, X in enumerate(paramValues):
     meanDistance = []
 
     for k in range(0, args.rep):
-        simOutput = analysis.evaluateModel(world, sim, k)
+        simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, file='sa')
         ttc.append(simOutput[0])
         minDistance.append(simOutput[1])
         meanDistance.append(simOutput[2])

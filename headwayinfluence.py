@@ -34,7 +34,7 @@ for k in range(0, args.rep):
         world.userInputs[0].distributions['headway'].scale = args.headway - 1
     sim = simulation.Simulation.load('config.yml')
     sim.duration = args.duration
-    simOutput = analysis.evaluateModel(world, sim, k, args.area)
+    simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, zoneArea=args.area, file='hi')
 
     TTC[k] = simOutput[0]
     minDistance[k] = simOutput[1]

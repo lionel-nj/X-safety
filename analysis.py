@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas
 from trafficintelligence import moving, events, utils
 
 import toolkit
@@ -172,7 +173,7 @@ def countConflict(distance, interactions, analysisZone):
         for inter in interactions[seed]:
             if analysisZone is not None:
                 if (analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1) is not None and
-                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2)):
+                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2) is not None):
                     timeInterval = moving.TimeInterval.intersection(
                         analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1),
                         analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2))
@@ -255,7 +256,7 @@ def getDistance(val, interactions, seeds):
     return distance
 
 
-def evaluateModel(world, sim, k, zoneArea=None):
+def evaluateModel(world, sim, k, file, zoneArea=None):
     seeds = [k]
     interactions = {}
     usersCount = {}
@@ -345,6 +346,14 @@ def evaluateModel(world, sim, k, zoneArea=None):
     conflictNumber5 = countConflict(5, interactions, world.analysisZone)
     conflictNumber10 = countConflict(10, interactions, world.analysisZone)
     conflictNumber15 = countConflict(15, interactions, world.analysisZone)
+
+    data = pandas.DataFrame(data=[meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0],
+                                  len(usersCount[seed]), list(conflictNumber5.values())[0],
+                                  list(conflictNumber10.values())[0], list(conflictNumber15.values())[0], meanPETmin],
+                            index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5',
+                                   'meanConflictNumber10', 'meanConflictNumber15', 'pet (min)'])
+
+    data.to_csv('outputData/evaluations/{}-data-k={}-area{}.csv'.format(file, k, zoneArea))
 
     return meanTTCmin, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[
