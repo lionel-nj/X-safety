@@ -28,4 +28,4 @@ pet = simOutput[-1]
 data = pandas.DataFrame(data=[ttc, pet],
                         index=['ttc', 'pet'])
 
-data.to_csv('outputData/evaluation1rep-h={}.csv'.format(args.headway))
+data.to_csv('outputData/evaluation1rep-h={}-seed={}.csv'.format(args.headway, args.seed))
