@@ -9,7 +9,7 @@ import toolkit
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--rep", type=int, help="number of replications")
-parser.add_argument("--area", type=int, help="analysis zone area")
+parser.add_argument("--area", type=int, help="analysis zone area", default=None)
 parser.add_argument("--headway", type=float, help="mean headway")
 parser.add_argument("--duration", type=int, help="duration of each experiment in seconds")
 parser.add_argument("--cross", type=int, help="world has intersection or no?")

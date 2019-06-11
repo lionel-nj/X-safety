@@ -113,8 +113,8 @@ def timeToCollisionAtInstant(user, t, world):
             if v1 > v0:
                 ttc = (x0 - x1 - leader.geometry) / (v1 - v0)
                 return ttc
-        # else:
-        #     return None
+        else:
+            return None
     else:
         if user.leader is not None:
             leaderCP = user.leader.getCurvilinearPositionAtInstant(t)
@@ -156,11 +156,13 @@ def timeToCollision(user, world):
             if world.analysisZone is not None:
                 if world.analysisZone.userInAnalysisZone(user, t):
                     if len(world.alignments) > 2:
-                        if timeToCollisionAtInstant(user, t, world) is not None:
-                            ttc.append(timeToCollisionAtInstant(user, t, world))
+                        ttcValue = timeToCollisionAtInstant(user, t, world)
+                        if ttcValue is not None:
+                            ttc.append(ttcValue)
             else:
-                if timeToCollisionAtInstant(user, t, world) is not None:
-                    ttc.append(timeToCollisionAtInstant(user, t, world))
+                ttcValue = timeToCollisionAtInstant(user, t, world)
+                if ttcValue is not None:
+                    ttc.append(ttcValue)
         return ttc
     else:
         return ttc

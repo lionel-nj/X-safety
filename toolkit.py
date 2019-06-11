@@ -216,6 +216,13 @@ def notNoneMean(items):
             return -1
 
 
+def meanmean(item):
+    mean = item[0]
+    for el in item[1:]:
+        mean = (mean+el)/2
+    return mean
+
+
 if __name__ == "__main__":
     import doctest
 
