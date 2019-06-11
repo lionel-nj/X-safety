@@ -361,6 +361,81 @@ def evaluateModel(world, sim, k, file, zoneArea=None):
            list(conflictNumber5.values())[0], list(conflictNumber10.values())[0], list(conflictNumber15.values())[
                0], meanPETmin
 
+def evaluateModel2(world, sim, k, file, zoneArea=None):
+    seeds = [k]
+    interactions = {}
+    usersCount = {}
+    if zoneArea is not None:
+        world.analysisZone = AnalysisZone(world, zoneArea)
+    else:
+        world.analysisZone = None
+
+    for seed in seeds:
+
+        interactions[seed] = {}
+        sim.seed = seed
+        sim.run(world)
+        usersCount[seed] = world.getNotNoneVehiclesInWorld()[0]
+
+        for userNum in range(len(usersCount[seed]) - 1):
+            roadUser1 = world.getUserByNum(usersCount[seed][userNum].num)
+            roadUser2 = world.getUserByNum(usersCount[seed][userNum + 1].num)
+            interactions[seed][(roadUser1.num, roadUser2.num)] = []
+            i = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+            i.computeDistance(world)
+            interactions[seed][(roadUser1.num, roadUser2.num)].append(i)
+
+            t = roadUser1.timeInterval.first
+            while t in list(roadUser1.timeInterval):
+                world.checkTraffic(roadUser1, t)
+                if roadUser1.comingUser is not None:
+                    roadUser2 = roadUser1.comingUser
+                    print(roadUser1.num, roadUser2.num)
+                    interactions[seed][(roadUser1.num, roadUser2.num)] = []
+                    j = events.Interaction(useCurvilinear=True, roadUser1=roadUser1, roadUser2=roadUser2)
+                    j.computeDistance(world)
+                    interactions[seed][(roadUser1.num, roadUser2.num)].append(j)
+                    t = roadUser1.timeInterval.last + 5
+                else:
+                    t += 1
+
+    # simulatedUsers = world.getNotNoneVehiclesInWorld()[0]
+
+    ### TTC sur un lien ###
+    TTC = {}
+    TTCmin = {}
+
+    for user in usersCount[seed]:
+        ttc = timeToCollision(user, world)
+        user0 = user.leader
+        if user0 is None:
+            num0 = None
+        else:
+            num0 = user0.num
+
+        TTC[num0, user.num] = ttc
+        if ttc != []:
+            if min(TTC[num0, user.num]) < 30:
+                TTCmin[num0, user.num] = min(TTC[num0, user.num])
+    PETmin = {}
+    if len(world.alignments) > 2:
+        PET = {}
+
+        for user in usersCount[seed]:
+            pet = postEncroachmentTime(user, world)
+
+            PET[user.num] = pet
+            if pet != []:
+                if min(PET[user.num]) < 30:
+                    PETmin[user.num] = min(PET[user.num])
+
+    data = pandas.DataFrame(data=[TTCmin, PETmin],
+                            index=['TTC', 'pet (min)'])
+
+    data.to_csv('outputData/evaluations/{}-data-k={}-area{}.csv'.format(file, k, zoneArea))
+
+    return TTCmin, PETmin
+
 
 def plotVariations(indicatorValues, fileName, figName):
     nRep = [k for k in range(1, len(indicatorValues) + 1)]
