@@ -26,9 +26,9 @@ for h in headways:
         sim = simulation.Simulation.load('config.yml')
         sim.duration = args.duration
         sim.seed = seed
-        world = network.World.load('simple-net.yml')
+        world = network.World.load('cross-net.yml')
 
-        world.userInputs[0].distributions['headway'].scale = h - 1
+        world.userInputs[1].distributions['headway'].scale = h - 1
         world.userInputs[0].distributions['speed'].loc = args.speed
         world.userInputs[0].distributions['dn'].loc = args.dn
         world.userInputs[0].distributions['tau'].loc = args.tau
@@ -42,7 +42,7 @@ for h in headways:
         data = pandas.DataFrame(data=[ttc, pet],
                                 index=['ttc', 'pet'])
 
-        data.to_csv('outputData/evaluation1rep-h={}-seed={}.csv'.format(h, seed))
+        data.to_csv('outputData/evaluation1rep-crossing-h={}-seed={}.csv'.format(h, seed))
 
 
 toolkit.callWhenDone()
