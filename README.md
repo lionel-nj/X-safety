@@ -1,4 +1,9 @@
 # FR : Outil de simulation minimal des interactions entre usagers de la route
+
+Ce projet en cours de développement consiste en la réalisation d'un outil de simulation minimal à es fins d'analyse de sécurité routière.
+Il s'agit d'un travail mis en oeuvre dans le cadre du mémoire de maitrise de Lionel Nébot Janvier réalisé à l'école Polytechnique de Montréal sous la supervision du Professeur Nicolas Saunier.
+
+Comme évoqué precedemment, le code est encore en développement, par conséquent la struture des fichiers est amenée à changer.
 # EN : Minimal Simulation tool of road users' interactions
 
 
