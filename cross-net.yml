@@ -4,7 +4,8 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
   - 1
-  controlDeviceIndices: null
+  controlDeviceIndices:
+    - 0
   graphCorrespondance:
     - 0
     - 1
@@ -51,8 +52,7 @@ alignments:
   connectedAlignmentIndices:
   - 3
   - 1
-  controlDeviceIndices:
-    - 0
+  controlDeviceIndices: null
   idx: 2
   graphCorrespondance:
     - 3
@@ -98,7 +98,7 @@ alignments:
   width: null
 controlDevices:
 - !!python/object:network.StopSign
-  alignmentIdx: 2
+  alignmentIdx: 0
   category: 1
   idx: 0
 

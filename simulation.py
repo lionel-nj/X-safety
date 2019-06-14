@@ -78,7 +78,7 @@ class Simulation(object):
             for u in ui.users:
                 if u.timeInterval is not None:
                     u.plotCurvilinearPositions()
-            plt.xlabel('time(s/100)')
+            plt.xlabel('time(s/10)')
             plt.ylabel('longitudinal coordinate (m)')
             plt.show()
         return world

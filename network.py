@@ -127,32 +127,30 @@ class Alignment:
             t.append([])
             x.append(user.curvilinearPositions.positions[0])
             for time in range(user.getFirstInstant(), len(user.curvilinearPositions) + user.getFirstInstant()):
-                t[idx].append(time * .1)
+                t[idx].append(time * self.timeStep)
 
             plt.plot(t[idx], x[idx])
         plt.show()
 
     def getNextAlignment(self, user, nextPosition):
-        visitedAlignmentsLength = user.visitedAlignmentsLength
-        deltap = visitedAlignmentsLength - nextPosition
+        # visitedAlignmentsLength = user.visitedAlignmentsLength
+        deltap = user.visitedAlignmentsLength- nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                cd = self.controlDevice
-                if cd is not None:
-                    if cd.category == 1:  # si c'est un stop
-                        cd.user = user
-                        cd.permissionToGo(user)
-                else:
-                    user.go = True
-                print(1)
-                return self.connectedAlignments[0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+            #     cd = self.controlDevice
+                # if cd is not None:
+                #     if cd.category == 1:  # si c'est un stop
+                        # cd.user = user
+                        # cd.permissionToGo(user)
+                # else:
+                    # user.go = True
+                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
+                # user.go = True
                 user.inSimulation = False
-                print(2)
                 return self
         else:  # si on reste sur l'alignement
-            user.go = True
-            print(2)
+            # user.go = True
             return self
 
 
