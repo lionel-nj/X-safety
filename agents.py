@@ -21,7 +21,7 @@ class NewellMovingObject(moving.MovingObject):
         self.go = True
         self.comingUser = None
 
-    def updateCurvilinearPositions(self, method, instant, timeStep, maxSpeed=None, acceleration=None):
+    def updateCurvilinearPositions(self, method, instant, timeStep, world, maxSpeed=None, acceleration=None):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
@@ -72,15 +72,19 @@ class NewellMovingObject(moving.MovingObject):
                             if self.currentAlignment.controlDevice is not None:
                                 cd = self.currentAlignment.controlDevice
                                 if s2 >= self.visitedAlignmentsLength:
-                                    cd.user = self
+                                    # cd.user = self
                                     if cd.userTimeAtStop < cd.timeAtStop:
                                         s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                         cd.userTimeAtStop += timeStep
                                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                     else:
-                                        s2 = freeFlowCoord
                                         cd.userTimeAtStop = 0
-                                        cd.user = None
+                                        if world.isGapAcceptable(self, instant):
+                                            s2 = freeFlowCoord
+                                            self.hasStopped = True
+                                            cd.user = None
+                                        else:
+                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
 
                             self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
@@ -106,9 +110,13 @@ class NewellMovingObject(moving.MovingObject):
                                     cd.userTimeAtStop += timeStep
                                     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                 else:
-                                    s2 = freeFlowCoord
-                                    cd.userTimeAtStop = 0
-                                    cd.user = None
+                                    if world.isGapAcceptable(self, instant):
+                                        s2 = freeFlowCoord
+                                        cd.userTimeAtStop = 0
+                                        cd.user = None
+                                        self.hasStopped = True
+                                    else:
+                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
                         self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
                 if self.inSimulation:

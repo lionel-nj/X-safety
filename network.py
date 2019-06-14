@@ -137,20 +137,11 @@ class Alignment:
         deltap = user.visitedAlignmentsLength- nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-            #     cd = self.controlDevice
-                # if cd is not None:
-                #     if cd.category == 1:  # si c'est un stop
-                        # cd.user = user
-                        # cd.permissionToGo(user)
-                # else:
-                    # user.go = True
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                # user.go = True
                 user.inSimulation = False
                 return self
         else:  # si on reste sur l'alignement
-            # user.go = True
             return self
 
 
@@ -707,7 +698,6 @@ class World:
                     if sortedUserList != []:
                         user.comingUser = sortedUserList[0]
 
-
     def estimateGap(self, user, instant):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
@@ -734,11 +724,11 @@ class World:
     def getControlDeviceCategory(self, cdIdx):
         return self.getControlDeviceById(cdIdx).category
 
-    # def isGapAcceptable(self, user, instant):
-    #     if user.criticalGap < self.estimateGap(user, instant):
-    #         user.acceptGap = True
-    #     else:
-    #         user.acceptGap = False
+    def isGapAcceptable(self, user, instant):
+        if user.criticalGap < self.estimateGap(user, instant):
+            return True
+        else:
+            return False
 
     def isClearingTimeAcceptable(self, user, timeStep):
         # todo : a verifier

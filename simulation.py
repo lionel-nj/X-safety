@@ -66,7 +66,8 @@ class Simulation(object):
                     # world.isGapAcceptable(u, i)
                     u.updateCurvilinearPositions(method="newell",
                                                     instant=i,
-                                                    timeStep=self.timeStep)
+                                                    timeStep=self.timeStep,
+                                                    world=world)
                     # if world.controlDevices[0].user is not None:
                     #     print(world.controlDevices[0].user.num, world.controlDevices[0].userTimeAtStop)
 
