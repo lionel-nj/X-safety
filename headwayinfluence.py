@@ -48,5 +48,5 @@ for k in range(0, args.rep):
 data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15, PET],
                         index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15', 'pet (min)'])
 
-data.to_csv('outputData/headway-influence/data{}s.csv'.format(args.headway))
+data.to_csv('outputData/headway-influence/data{}s-crossing={}.csv'.format(args.headway, args.cross))
 toolkit.callWhenDone()
