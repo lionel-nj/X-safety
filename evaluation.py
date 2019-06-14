@@ -41,8 +41,9 @@ for h in headways:
 
         data = pandas.DataFrame(data=[ttc, pet],
                                 index=['ttc', 'pet'])
-
-        data.to_csv('outputData/evaluation1rep-crossing-h={}-seed={}.csv'.format(h, seed))
-
+        if len(world.alignments) > 2:
+            data.to_csv('outputData/evaluation1rep-crossing-h={}-seed={}.csv'.format(h, seed))
+        else:
+            data.to_csv('outputData/evaluation1rep-CF-h={}-seed={}.csv'.format(h, seed))
 
 toolkit.callWhenDone()

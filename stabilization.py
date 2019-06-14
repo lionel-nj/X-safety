@@ -14,13 +14,13 @@ parser.add_argument("--duration", type=int, help="duration of each experiment in
 args = parser.parse_args()
 
 
-TTC = {}#np.zeros([args.rep])
-userCount = {}# np.zeros([args.rep])
-minDistance = {}#np.zeros([args.rep])
-meanDistance = {}#np.zeros([args.rep])
-meanConflictNumber5 = {}#np.zeros([args.rep])
-meanConflictNumber10 = {}#np.zeros([args.rep])
-meanConflictNumber15 = {}#np.zeros([args.rep])
+TTC = {}
+userCount = {}
+minDistance = {}
+meanDistance = {}
+meanConflictNumber5 = {}
+meanConflictNumber10 = {}
+meanConflictNumber15 = {}
 
 for k in range(args.rep, 4*args.rep, 3):
     print('Processing: ' + str(k) + '/{}'.format(4*args.rep/3))
