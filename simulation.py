@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 import toolkit
@@ -13,14 +14,10 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, interactionDistance, minimumTimeHeadway, seed, visibilityThreshold,
-                 threshold):
+    def __init__(self, duration, timeStep, seed, threshold):
         self.duration = duration
         self.timeStep = timeStep
-        self.interactionDistance = interactionDistance
-        self.minimumTimeHeadway = minimumTimeHeadway
         self.seed = seed
-        self.visibilityThreshold = visibilityThreshold
         self.threshold = threshold
 
     def save(self, filename):
@@ -76,14 +73,14 @@ class Simulation(object):
         world.duplicateLastVelocities()
 
         # display
-        # plt.figure()
-        # for ui in world.userInputs:
-        #     for u in ui.users:
-        #         if u.timeInterval is not None:
-        #             u.plotCurvilinearPositions()
-        #     plt.xlabel('time(s/100)')
-        #     plt.ylabel('longitudinal coordinate (m)')
-        #     plt.show()
+        plt.figure()
+        for ui in world.userInputs:
+            for u in ui.users:
+                if u.timeInterval is not None:
+                    u.plotCurvilinearPositions()
+            plt.xlabel('time(s/100)')
+            plt.ylabel('longitudinal coordinate (m)')
+            plt.show()
         return world
 
 

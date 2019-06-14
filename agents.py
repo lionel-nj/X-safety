@@ -74,8 +74,8 @@ class NewellMovingObject(moving.MovingObject):
                             if self.go:# and self.acceptGap:
                                 self.curvilinearPositions.addPositionSYL(freeFlowCoord, 0., nextAlignmentIdx)
                             else:
-                                s2 = s1
-                                self.curvilinearPositions.duplicateLastPosition()
+                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
                 else:
                     if instant in list(self.leader.timeInterval):
@@ -86,7 +86,7 @@ class NewellMovingObject(moving.MovingObject):
                     if self.go :#and self.acceptGap:
                         s2 = min(freeFlowCoord, constrainedCoord)
                     else:
-                        s2 = s1
+                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
                     nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
 
                     if self.inSimulation:
@@ -94,8 +94,8 @@ class NewellMovingObject(moving.MovingObject):
                             s2 = min(freeFlowCoord, constrainedCoord)
                             self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
                         else:
-                            s2 = s1
-                            self.curvilinearPositions.duplicateLastPosition()
+                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                            self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
                 if self.inSimulation:
                     # if nextAlignment is not None:

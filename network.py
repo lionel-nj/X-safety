@@ -135,7 +135,7 @@ class Alignment:
     def getNextAlignment(self, user, nextPosition):
         visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = visitedAlignmentsLength - nextPosition
-        if deltap <= 0:  # si on est sorti de l'alignement
+        if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
                 cd = self.controlDevice
                 if cd is not None:
@@ -144,27 +144,16 @@ class Alignment:
                         cd.permissionToGo(user)
                 else:
                     user.go = True
-
+                print(1)
                 return self.connectedAlignments[0]  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 user.inSimulation = False
+                print(2)
                 return self
         else:  # si on reste sur l'alignement
             user.go = True
+            print(2)
             return self
-
-   # def getAlignmentVector(self):
-    #     #todo : a tester
-    #     p1 = self.points[0]
-    #     p2 = self.points[-1]
-    #     alignmentVector = p2 - p1
-    #     return alignmentVector
-    #
-    # def getNormedAlignmentVector(self):
-    #     #todo : a tester
-    #     normedAlignmentVector = self.getAlignmentVector().normalize()
-    #     return normedAlignmentVector
-    # def getControlDevice(self, cdIdx):
 
 
 class ControlDevice:
@@ -254,11 +243,9 @@ class StopSign(ControlDevice):
         pass
 
     def permissionToGo(self, user):
-        # print(self.user.num)
         if self.userTimeAtStop < self.timeAtStop:
             self.userTimeAtStop += self.timeStep
-            # user.controlDevice = self
-            user.go = True
+            user.go = False
         else:
             user.go = True
             self.user = None
@@ -790,6 +777,7 @@ class World:
         self.userInputs[0].distributions['dn'].loc = args.dn
         self.userInputs[0].distributions['tau'].loc = args.tau
         self.userInputs[0].distributions['length'].loc = args.l
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):

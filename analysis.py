@@ -129,14 +129,7 @@ def timeToCollisionAtInstant(user, t, world):
                             t2 = world.distanceAtInstant(adjacentUser, world.controlDevices[0], t) / (
                                         adjacentUser.getCurvilinearVelocityAtInstant(t)[0] / world.timeStep)
                             return max(t1, t2)
-            #             else:
-            #                 return None
-            #         else:
-            #             return None
-            #     else:
-            #         return None
-            # else:
-            #     return None
+
         else:
             t1 = world.distanceAtInstant(user, world.controlDevices[0], t) / user.getCurvilinearVelocityAtInstant(t)[0]
             world.checkTraffic(user, t)
