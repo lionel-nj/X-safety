@@ -53,7 +53,7 @@ class Simulation(object):
             # print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
             if world.controlDevices is not None:
                 for cd in world.controlDevices:
-                    cd.cycle()
+                    cd.cycle(self.timeStep)
                     # if cd.user is not None:
                     #     print(cd.user.num)
                     # else:

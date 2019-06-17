@@ -134,7 +134,7 @@ class Alignment:
 
     def getNextAlignment(self, user, nextPosition):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
-        deltap = user.visitedAlignmentsLength- nextPosition
+        deltap = user.visitedAlignmentsLength - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
@@ -165,15 +165,14 @@ class ControlDevice:
 
 
 class TrafficLight(ControlDevice):
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, state):
         import copy
         category = 2
         super().__init__(idx, category, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
-        self.initialState = initialState
-        self.states = [self.initialState]
+        self.state = state
         self.remainingRed = copy.deepcopy(redTime)
         self.remainingAmber = copy.deepcopy(amberTime)
         self.remainingGreen = copy.deepcopy(greenTime)
@@ -184,39 +183,33 @@ class TrafficLight(ControlDevice):
 
     def switch(self):
         """ swith state to next state in the sequence """
-        if self.getStateAtInstant(-1) == 'red':
-            self.states.append('green')
-        elif self.getStateAtInstant(-1) == 'amber':
-            self.states.append('red')
+        if self.state == 'red':
+            self.state = 'green'
+        elif self.state == 'amber':
+            self.state = 'red'
         else:
-            self.getStateAtInstant.append('amber')
+            self.state = 'amber'
 
-    def cycle(self):
+    def cycle(self, timeStep):
         """ displays the current state for a TrafficLight object for the duration of state"""
-        if self.getStateAtInstant(-1) == 'green':
+        if self.state == 'green':
             if self.remainingGreen > 1:
-                self.remainingGreen -= 1
-                self.states.append('green')
+                self.remainingGreen -= timeStep
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime
-        elif self.getStateAtInstant(-1) == 'red':
+        elif self.state == 'red':
             if self.remainingRed > 1:
-                self.remainingRed -= 1
-                self.states.append('red')
+                self.remainingRed -= timeStep
             else:
                 self.switch()
                 self.remainingRed = self.redTime
         else:
             if self.remainingAmber > 1:
-                self.remainingAmber -= 1
-                self.states.append('amber')
+                self.remainingAmber -= timeStep
             else:
                 self.switch()
                 self.remainingAmber = self.amberTime
-
-    def permissionToGo(self, user):
-        pass
 
 
 class StopSign(ControlDevice):
@@ -225,7 +218,7 @@ class StopSign(ControlDevice):
         super().__init__(idx, category, alignmentIdx)
         self.user = None
 
-    def cycle(self):
+    def cycle(self, timeStep):
         pass
 
     def getStateAtInstant(self, t=None):

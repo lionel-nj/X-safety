@@ -71,20 +71,28 @@ class NewellMovingObject(moving.MovingObject):
                         if self.inSimulation:
                             if self.currentAlignment.controlDevice is not None:
                                 cd = self.currentAlignment.controlDevice
-                                if s2 >= self.visitedAlignmentsLength:
-                                    # cd.user = self
-                                    if cd.userTimeAtStop < cd.timeAtStop:
-                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                        cd.userTimeAtStop += timeStep
-                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                                    else:
-                                        cd.userTimeAtStop = 0
-                                        if world.isGapAcceptable(self, instant):
-                                            s2 = freeFlowCoord
-                                            self.hasStopped = True
-                                            cd.user = None
-                                        else:
+                                if cd.category == 1:
+                                    if s2 >= self.visitedAlignmentsLength:
+                                        if cd.userTimeAtStop < cd.timeAtStop:
                                             s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                            cd.user = self
+                                            cd.userTimeAtStop += timeStep
+                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                        else:
+                                            cd.userTimeAtStop = 0
+                                            if world.isGapAcceptable(self, instant):
+                                                s2 = freeFlowCoord
+                                                cd.user = None
+                                            else:
+                                                nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                elif cd.category == 2:
+                                    if cd.state == 'red':
+                                        if s2 >= self.visitedAlignmentsLength:
+                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                # else:
+                                #     pass
 
                             self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
@@ -94,29 +102,34 @@ class NewellMovingObject(moving.MovingObject):
                                            0] - self.d
                     else:
                         constrainedCoord = freeFlowCoord
-                    # if self.go :#and self.acceptGap:
                     s2 = min(freeFlowCoord, constrainedCoord)
                     nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
-                    # else:
-                    #     s2 = self.currentAlignment.points.cumulativeDistances[-1]
 
                     if self.inSimulation:
                         if self.currentAlignment.controlDevice is not None:
                             cd = self.currentAlignment.controlDevice
-                            if s2 >= self.visitedAlignmentsLength:
-                                cd.user = self
-                                if cd.userTimeAtStop < cd.timeAtStop:
-                                    s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                    cd.userTimeAtStop += timeStep
-                                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                                else:
-                                    if world.isGapAcceptable(self, instant):
-                                        s2 = freeFlowCoord
-                                        cd.userTimeAtStop = 0
-                                        cd.user = None
-                                        self.hasStopped = True
-                                    else:
+                            if cd.category == 1:
+                                if s2 >= self.visitedAlignmentsLength:
+                                    cd.user = self
+                                    if cd.userTimeAtStop < cd.timeAtStop:
                                         s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                        cd.userTimeAtStop += timeStep
+                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                    else:
+                                        if world.isGapAcceptable(self, instant):
+                                            s2 = freeFlowCoord
+                                            cd.userTimeAtStop = 0
+                                            cd.user = None
+                                        else:
+                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                            elif cd.category == 2:
+                                if cd.state == 'red':
+                                    if s2 >= self.visitedAlignmentsLength:
+                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                            # else:
+                            #     pass
                         self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
                 if self.inSimulation:
