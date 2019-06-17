@@ -552,7 +552,6 @@ class World:
                 distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
                                                    weight='weight')
                 G.remove_node('user1')
-                G.remove_node('user2')
 
                 return distance
             else:
