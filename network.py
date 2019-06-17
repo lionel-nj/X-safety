@@ -213,6 +213,8 @@ class TrafficLight(ControlDevice):
                 self.remainingAmber = self.amberTime
 
     def reset(self):
+        """ resets the defaut parameters of a traffic light .. useful to avoid different initial
+        state between two replications of a same simulation """
         import copy
         self.state = self.initialState
         self.remainingRed = copy.deepcopy(self.redTime)
@@ -768,6 +770,7 @@ class World:
         self.userInputs[0].distributions['length'].loc = args.l
 
     def resetControlDevices(self):
+        """resets original information for traffic lights"""
         for cd in self.controlDevices:
             if cd.category == 2:
                 cd.reset()
