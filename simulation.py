@@ -31,6 +31,7 @@ class Simulation(object):
 
         np.random.seed(self.seed)
         amberProbability = np.random.random()
+        # print(amberProbability)
         # world.connectAlignments()
         for ui in world.userInputs:
             # link to alignment
