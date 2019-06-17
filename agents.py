@@ -91,6 +91,11 @@ class NewellMovingObject(moving.MovingObject):
                                         if s2 >= self.visitedAlignmentsLength:
                                             s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                             nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                    elif cd.state == 'amber':
+                                        if s2 >= self.visitedAlignmentsLength:
+                                            if amberProbability >= .5: # if p > .5 user stops else if goes forward
+                                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                                nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                 # else:
                                 #     pass
 
@@ -130,7 +135,6 @@ class NewellMovingObject(moving.MovingObject):
                                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                 elif cd.state == 'amber':
                                     if s2 >= self.visitedAlignmentsLength:
-
                                         if amberProbability >= .5: # si p > .5 on s'arrete sinon on continue
                                             s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                             nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)

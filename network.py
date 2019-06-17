@@ -165,14 +165,15 @@ class ControlDevice:
 
 
 class TrafficLight(ControlDevice):
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, state):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
         import copy
         category = 2
         super().__init__(idx, category, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
-        self.state = state
+        self.initialState = initialState
+        self.state = initialState
         self.remainingRed = copy.deepcopy(redTime)
         self.remainingAmber = copy.deepcopy(amberTime)
         self.remainingGreen = copy.deepcopy(greenTime)
@@ -210,6 +211,13 @@ class TrafficLight(ControlDevice):
             else:
                 self.switch()
                 self.remainingAmber = self.amberTime
+
+    def reset(self):
+        import copy
+        self.state = self.initialState
+        self.remainingRed = copy.deepcopy(self.redTime)
+        self.remainingAmber = copy.deepcopy(self.amberTime)
+        self.remainingGreen = copy.deepcopy(self.greenTime)
 
 
 class StopSign(ControlDevice):
@@ -758,6 +766,11 @@ class World:
         self.userInputs[0].distributions['dn'].loc = args.dn
         self.userInputs[0].distributions['tau'].loc = args.tau
         self.userInputs[0].distributions['length'].loc = args.l
+
+    def resetControlDevices(self):
+        for cd in self.controlDevices:
+            if cd.category == 2:
+                cd.reset()
 
 
 class UserInput:

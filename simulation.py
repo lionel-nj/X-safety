@@ -70,6 +70,7 @@ class Simulation(object):
                     #     print(world.controlDevices[0].user.num, world.controlDevices[0].userTimeAtStop)
 
         world.duplicateLastVelocities()
+        world.resetControlDevices()
 
         # display
         plt.figure()
