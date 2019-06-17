@@ -21,7 +21,7 @@ class NewellMovingObject(moving.MovingObject):
         self.go = True
         self.comingUser = None
 
-    def updateCurvilinearPositions(self, method, instant, timeStep, world, maxSpeed=None, acceleration=None):
+    def updateCurvilinearPositions(self, method, instant, timeStep, world, amberProbability, maxSpeed=None, acceleration=None):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
@@ -128,6 +128,13 @@ class NewellMovingObject(moving.MovingObject):
                                     if s2 >= self.visitedAlignmentsLength:
                                         s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                elif cd.state == 'amber':
+                                    if s2 >= self.visitedAlignmentsLength:
+
+                                        if amberProbability >= .5: # si p > .5 on s'arrete sinon on continue
+                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+
                             # else:
                             #     pass
                         self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)

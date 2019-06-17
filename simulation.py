@@ -30,6 +30,7 @@ class Simulation(object):
     def run(self, world):
 
         np.random.seed(self.seed)
+        amberProbability = np.random.random()
         # world.connectAlignments()
         for ui in world.userInputs:
             # link to alignment
@@ -54,20 +55,17 @@ class Simulation(object):
             if world.controlDevices is not None:
                 for cd in world.controlDevices:
                     cd.cycle(self.timeStep)
-                    # if cd.user is not None:
-                    #     print(cd.user.num)
-                    # else:
-                    #     print(None)
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
-                if u.inSimulation:# in world.users:
+                if u.inSimulation:  # in world.users:
                     world.getUserCurrentAlignment(u)
                     # world.isGapAcceptable(u, i)
                     u.updateCurvilinearPositions(method="newell",
-                                                    instant=i,
-                                                    timeStep=self.timeStep,
-                                                    world=world)
+                                                 instant=i,
+                                                 timeStep=self.timeStep,
+                                                 world=world,
+                                                 amberProbability=amberProbability)
                     # if world.controlDevices[0].user is not None:
                     #     print(world.controlDevices[0].user.num, world.controlDevices[0].userTimeAtStop)
 
