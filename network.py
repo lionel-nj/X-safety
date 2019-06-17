@@ -481,14 +481,9 @@ class World:
                     user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                     user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
 
-                    # if self.getAlignmentById(user2AlignmentIdx).connectedAlignmentIndices[0] is not None:
-                    #     pass
-                    # else:
-
-                    if user1AlignmentIdx == user2AlignmentIdx:  # ) or (user2AlignmentIdx == self.getAlignmentById(user1AlignmentIdx).connectedAlignmentIndices[0]):
-                        return abs(
-                            self.getUserDistanceOnAlignmentAt(user1, instant) - self.getUserDistanceOnAlignmentAt(user2,
-                                                                                                                  instant))
+                    if user1AlignmentIdx == user2AlignmentIdx:
+                        oldest, youngest = user1.orderUsersByFirstInstant(user2)
+                        return self.getUserDistanceOnAlignmentAt(oldest, instant) - self.getUserDistanceOnAlignmentAt(youngest, instant) - oldest.geometry
 
                     else:
                         user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
@@ -517,7 +512,7 @@ class World:
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-
+                        # G.add_edge('user1', 'user2')
                         distance = nx.shortest_path_length(G, source='user1', target='user2',
                                                            weight='weight')
 
@@ -532,11 +527,11 @@ class World:
                         elif situation == 'X3':
                             distance -= pastCP.geometry
 
-                        G.remove_node('user1')
-                        G.remove_node('user2')
+                        # G.remove_node('user1')
+                        # G.remove_node('user2')
                         return distance
-                else:
-                    print('user do not coexist, therefore can not compute distance')
+            else:
+                print('user do not coexist, therefore can not compute distance')
 
         elif type(user1) == agents.NewellMovingObject and type(user2) != agents.NewellMovingObject:
             if user1.getFirstInstant() <= instant:
