@@ -474,7 +474,9 @@ class World:
         """"computes the distance between 2 users"""
         import networkx as nx
         if type(user1) == agents.NewellMovingObject and type(user2) == agents.NewellMovingObject:
+
             if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
+
                 if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                     user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                     user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
@@ -483,10 +485,10 @@ class World:
                     #     pass
                     # else:
 
-                    if user1AlignmentIdx == user2AlignmentIdx:#) or (user2AlignmentIdx == self.getAlignmentById(user1AlignmentIdx).connectedAlignmentIndices[0]):
+                    if user1AlignmentIdx == user2AlignmentIdx:  # ) or (user2AlignmentIdx == self.getAlignmentById(user1AlignmentIdx).connectedAlignmentIndices[0]):
                         return abs(
                             self.getUserDistanceOnAlignmentAt(user1, instant) - self.getUserDistanceOnAlignmentAt(user2,
-                                                                                                                  instant) - user1.geometry)
+                                                                                                                  instant))
 
                     else:
                         user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
@@ -517,7 +519,19 @@ class World:
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2',
-                                                           weight='weight') - user1.geometry
+                                                           weight='weight')
+
+                        situation, pastCP, _ = self.getUsersSituationAtInstant(user1, user2, instant)
+                        if situation == 'CF':
+                            leader = user1.orderUsersByFirstInstant(user2)[0]
+                            distance -= leader.geometry
+
+                        elif situation == 'X1':
+                            distance -= user1.geometry - user2.geometry
+
+                        elif situation == 'X3':
+                            distance -= pastCP.geometry
+
                         G.remove_node('user1')
                         G.remove_node('user2')
                         return distance
@@ -635,6 +649,10 @@ class World:
             user.currentAlignment = self.getAlignmentById(user.initialAlignmentIdx)
         else:
             user.currentAlignment = self.getAlignmentById(user.curvilinearPositions.lanes[-1])
+
+    def getIntersectionCPAtInstant(self, user, instant):
+        alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
+        return self.getIntersectionCP(alIdx)
 
     def getIntersectionCP(self, alIdx):
         """"returns the curvilinear positions of the crossing point on all its alignments
@@ -774,6 +792,27 @@ class World:
         for cd in self.controlDevices:
             if cd.category == 2:
                 cd.reset()
+
+    def getUsersSituationAtInstant(self, user, other, instant):
+        oldest, youngest = user.orderUsersByFirstInstant(other)
+        if youngest.leader is not None:
+            if oldest.num == youngest.leader.num:
+                return 'CF', None, None
+
+        user1CP = self.getIntersectionCPAtInstant(user, instant)
+        user2CP = self.getIntersectionCPAtInstant(other, instant)
+
+        if user1CP > user.getCurvilinearPositionAtInstant(instant)[0]:
+            if user2CP <= other.getCurvilinearPositionAtInstant(instant)[0]:
+                return 'X3', user, other
+            else:
+                return 'X1', None, None
+
+        elif user1CP <= user.getCurvilinearPositionAtInstant(instant)[0]:
+            if user2CP >= other.getCurvilinearPositionAtInstant(instant)[0]:
+                return 'X3', other, user
+            else:
+                return 'X2', None, None
 
 
 class UserInput:

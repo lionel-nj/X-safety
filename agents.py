@@ -21,6 +21,12 @@ class NewellMovingObject(moving.MovingObject):
         self.go = True
         self.comingUser = None
 
+    def orderUsersByFirstInstant(self, other):
+        if self.getFirstInstant() > other.getFirstInstant():
+            return other, self
+        else:
+            return self, other
+
     def updateCurvilinearPositions(self, method, instant, timeStep, world, amberProbability, maxSpeed=None, acceleration=None):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
