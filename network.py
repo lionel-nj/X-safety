@@ -627,7 +627,7 @@ class World:
             ui.users = []
 
     def getVisitedAlignmentLength(self, user):
-        # todo: docstrings + test
+        # todo: docstrings
         user.visitedAlignmentsLength = 0
         if user.curvilinearPositions is not None:
             visitedAlignments = list(set(user.curvilinearPositions.lanes))

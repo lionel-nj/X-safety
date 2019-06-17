@@ -143,7 +143,7 @@ userInputs:
       scale: 0.5
     criticalGap: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 1
+      degeneratedConstant: 2
       distributionName: norm
       distributionType: degenerated
       loc: 6
