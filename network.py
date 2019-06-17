@@ -512,7 +512,6 @@ class World:
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                        # G.add_edge('user1', 'user2')
                         distance = nx.shortest_path_length(G, source='user1', target='user2',
                                                            weight='weight')
 
@@ -527,8 +526,8 @@ class World:
                         elif situation == 'X3':
                             distance -= pastCP.geometry
 
-                        # G.remove_node('user1')
-                        # G.remove_node('user2')
+                        G.remove_node('user1')
+                        G.remove_node('user2')
                         return distance
             else:
                 print('user do not coexist, therefore can not compute distance')
@@ -553,6 +552,7 @@ class World:
                 distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
                                                    weight='weight')
                 G.remove_node('user1')
+                G.remove_node('user2')
 
                 return distance
             else:
@@ -652,12 +652,17 @@ class World:
     def getIntersectionCP(self, alIdx):
         """"returns the curvilinear positions of the crossing point on all its alignments
         alIdx : alignment to project on"""
-        intersectionCP = self.getAlignmentById(alIdx).points.cumulativeDistances[-1]
-        for al in self.alignments:
-            if al.connectedAlignmentIndices is not None:
-                if alIdx in al.connectedAlignmentIndices:
-                    intersectionCP += self.getAlignmentById(al.idx).points.cumulativeDistances[-1]
-        return intersectionCP
+        # intersectionCP = self.getAlignmentById(alIdx).points.cumulativeDistances[-1]
+        # for al in self.alignments:
+        #     if al.connectedAlignmentIndices is not None:
+        #         if alIdx in al.connectedAlignmentIndices:
+        #             intersectionCP += self.getAlignmentById(al.idx).points.cumulativeDistances[-1]
+        # return intersectionCP
+        al = self.getAlignmentById(alIdx)
+        if al.connectedAlignmentIndices is None:
+            return 0
+        else:
+            return al.points.cumulativeDistances[-1]
 
     def getIncomingTrafficAlignmentIdx(self, user, instant):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
@@ -670,6 +675,7 @@ class World:
 
     def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""
+        # todo :A revoir suite a la modification de getIntersectionCP
         if instant in list(user.timeInterval):
             if self.getIncomingTrafficAlignmentIdx(user, instant) is not None:
                 lane = self.getIncomingTrafficAlignmentIdx(user, instant)
@@ -789,6 +795,12 @@ class World:
                 cd.reset()
 
     def getUsersSituationAtInstant(self, user, other, instant):
+        """returns CF if car are in a CF situation
+        X1 if both cars are past the intersection
+        X2 if both cars are before the intersection
+        X3 if one of the cars is before the intersection and the other one is past it
+        nb: if cars are in a CF situation but not leading, X1, X2 OR X3 is returned, to be improved ... """
+
         oldest, youngest = user.orderUsersByFirstInstant(other)
         if youngest.leader is not None:
             if oldest.num == youngest.leader.num:
@@ -797,17 +809,17 @@ class World:
         user1CP = self.getIntersectionCPAtInstant(user, instant)
         user2CP = self.getIntersectionCPAtInstant(other, instant)
 
-        if user1CP > user.getCurvilinearPositionAtInstant(instant)[0]:
-            if user2CP <= other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X3', user, other
-            else:
+        if user1CP < user.getCurvilinearPositionAtInstant(instant)[0]:
+            if user2CP < other.getCurvilinearPositionAtInstant(instant)[0]:
                 return 'X1', None, None
-
-        elif user1CP <= user.getCurvilinearPositionAtInstant(instant)[0]:
-            if user2CP >= other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X3', other, user
             else:
+                return 'X3', user, None
+
+        elif user1CP >= user.getCurvilinearPositionAtInstant(instant)[0]:
+            if user2CP > other.getCurvilinearPositionAtInstant(instant)[0]:
                 return 'X2', None, None
+            else:
+                return 'X3', other, None
 
 
 class UserInput:
