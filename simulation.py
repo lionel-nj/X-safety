@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 import toolkit
@@ -14,11 +13,12 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, threshold):
+    def __init__(self, duration, timeStep, seed, threshold, verbose):
         self.duration = duration
         self.timeStep = timeStep
         self.seed = seed
         self.threshold = threshold
+        self.verbose = verbose
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -28,9 +28,9 @@ class Simulation(object):
         return toolkit.loadYaml(filename)
 
     def run(self, world):
-
         np.random.seed(self.seed)
-        amberProbability = np.random.random()
+
+        # initialize alignments
         for ui in world.userInputs:
             # link to alignment
             for al in world.alignments:
@@ -39,47 +39,29 @@ class Simulation(object):
                     ui.alignment = al
             ui.initDistributions()
             ui.generateHeadways(self.duration)
-
-        # suggestion, a voir si c'est le plus pratique
-        # for al in world.alignments:
-        #     al.users = []
-
+        
         world.getGraph()
-        world.timeStep = self.timeStep
         world.prepare()
         userNum = 0
         world.users = []
         for i in range(int(np.floor(self.duration / self.timeStep))):
-            # print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
-            if world.controlDevices is not None:
-                for cd in world.controlDevices:
-                    cd.cycle(self.timeStep)
+            if self.verbose:
+                print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
+            # if world.controlDevices is not None:
+            #    for cd in world.controlDevices:
+            #        cd.cycle(self.timeStep)
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
                 world.getUserCurrentAlignment(u)
-                if u.num == 1 and u.timeInterval is not None:
-                    world.checkTraffic(u, i)
-
-                    print(u.currentAlignment.idx, world.getIncomingTrafficAlignmentIdx(u), i, u.comingUser)
                 u.updateCurvilinearPositions(method="newell",
                                              instant=i,
-                                                 timeStep=self.timeStep,
-                                                 world=world,
-                                                 amberProbability=amberProbability)
+                                             timeStep=self.timeStep,
+                                             world=world,
+                                             #amberProbability=amberProbability
+                )
 
         world.duplicateLastVelocities()
-        world.resetControlDevices()
-
-        # display
-        plt.figure()
-        for ui in world.userInputs:
-            for u in ui.users:
-                if u.timeInterval is not None:
-                    u.plotCurvilinearPositions()
-            plt.xlabel('time(s/10)')
-            plt.ylabel('longitudinal coordinate (m)')
-            plt.show()
 
 
 if __name__ == "__main__":

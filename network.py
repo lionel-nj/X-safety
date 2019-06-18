@@ -1,9 +1,12 @@
+import copy
 import itertools
 
+import matplotlib.pyplot as plt
+import networkx as nx
+from scipy import stats
 from trafficintelligence import utils, moving
 
 import agents
-# import moving
 import toolkit
 
 
@@ -26,7 +29,6 @@ class Alignment:
         return toolkit.loadYaml(filename)
 
     def plot(self, options='', **kwargs):
-        import matplotlib.pyplot as plt
         self.points.plot(options, kwargs)
         plt.plot()
 
@@ -119,19 +121,6 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
-    def plotTrajectories(self):
-        import matplotlib.pyplot as plt
-        x = []
-        t = []
-        for idx, user in enumerate(self.vehicles):
-            t.append([])
-            x.append(user.curvilinearPositions.positions[0])
-            for time in range(user.getFirstInstant(), len(user.curvilinearPositions) + user.getFirstInstant()):
-                t[idx].append(time * self.timeStep)
-
-            plt.plot(t[idx], x[idx])
-        plt.show()
-
     def getNextAlignment(self, user, nextPosition):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = user.visitedAlignmentsLength - nextPosition
@@ -166,7 +155,6 @@ class ControlDevice:
 
 class TrafficLight(ControlDevice):
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
-        import copy
         category = 2
         super().__init__(idx, category, alignmentIdx)
         self.redTime = redTime
@@ -215,7 +203,6 @@ class TrafficLight(ControlDevice):
     def reset(self):
         """ resets the defaut parameters of a traffic light .. useful to avoid different initial
         state between two replications of a same simulation """
-        import copy
         self.state = self.initialState
         self.remainingRed = copy.deepcopy(self.redTime)
         self.remainingAmber = copy.deepcopy(self.amberTime)
@@ -297,10 +284,17 @@ class World:
         self.save("default.yml")
 
     def plot(self, options='', **kwargs):
-        import matplotlib.pyplot as plt
         for a in self.alignments:
-            a.points.plot(options, kwargs)
-        plt.plot()
+            a.plot(options, kwargs)
+
+    def plotUserTrajectories(self, timeStep):
+        plt.figure()
+        for u in self.users:
+            if u.timeInterval is not None:
+                u.plotCurvilinearPositions()
+        plt.xlabel('time ({}s)'.format(timeStep))
+        plt.ylabel('longitudinal coordinate (m)')
+        plt.show()
 
     def getAlignments(self):
         return self.alignments
@@ -440,7 +434,6 @@ class World:
 
     def getGraph(self):
         """adds graph attribute to self"""
-        import networkx as nx
         G = nx.Graph()
         for k in range(len(self.alignments) + 1):
             G.add_node(k)
@@ -462,7 +455,6 @@ class World:
 
     def distanceAtInstant(self, user1, user2, instant):
         """"computes the distance between 2 users"""
-        import networkx as nx
         if type(user1) == agents.NewellMovingObject and type(user2) == agents.NewellMovingObject:
 
             if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
@@ -614,8 +606,8 @@ class World:
                 al.controlDevice = None
 
         for ui in self.userInputs:
-            ui.users = []
-
+            ui.lastGeneratedUser = None
+                
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings
         user.visitedAlignmentsLength = 0
@@ -863,10 +855,10 @@ class UserInput:
                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
                                         initialAlignmentIdx=self.alignmentIdx)
-        if len(self.users) > 0:
+        if self.lastGeneratedUser is not None:
             # obj.leader = self.generatedNum[-1]
-            obj.leader = self.users[-1]
-        self.users.append(obj)
+            obj.leader = self.lastGeneratedUser
+        self.lastGeneratedUser = obj
         return obj
 
     def getUserByNum(self, num):
@@ -909,8 +901,6 @@ class Distribution(object):
 
     def getDistribution(self):
         """returns the scipy.stats objects that corresponds to the parameters in Distribution object"""
-        from scipy import stats
-        from trafficintelligence import utils
 
         if self.distributionType == 'theoric':
             if self.distributionName == 'norm':
