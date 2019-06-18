@@ -375,10 +375,6 @@ class World:
             for h in ui.cumulatedHeadways:
                 if i <= h / timeStep < i + 1:
                     self.users.append(ui.initUser(userNum, h))
-                    # if len(self.users) > 1:
-                    #     self.users[-1].leader = self.users[-2]
-                    # else:
-                    #     self.users[-1].leader = None
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)

@@ -59,11 +59,10 @@ class Simulation(object):
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
-                if u.inSimulation:  # in world.users:
-                    world.getUserCurrentAlignment(u)
-                    # world.isGapAcceptable(u, i)
-                    u.updateCurvilinearPositions(method="newell",
-                                                 instant=i,
+                world.getUserCurrentAlignment(u)
+                # world.isGapAcceptable(u, i)
+                u.updateCurvilinearPositions(method="newell",
+                                             instant=i,
                                                  timeStep=self.timeStep,
                                                  world=world,
                                                  amberProbability=amberProbability)
