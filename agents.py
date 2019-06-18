@@ -85,13 +85,19 @@ class NewellMovingObject(moving.MovingObject):
                                             cd.userTimeAtStop += timeStep
                                             nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                         else:
-                                            if world.isGapAcceptable(self, instant):
-                                                s2 = freeFlowCoord
-                                                cd.user = None
-                                                cd.userTimeAtStop = 0
-                                            else:
-                                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                                nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+
+                                            # if world.estimateGap(self, instant) >= self.criticalGap:
+                                            s2 = freeFlowCoord
+                                            cd.user = None
+                                            cd.userTimeAtStop = 0
+
+
+
+                                            # print(world.estimateGap(self, instant))
+                                            # else:
+                                            #     s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                            #     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                                # print(s2)
                                 elif cd.category == 2:
                                     if cd.state == 'red':
                                         if s2 >= self.visitedAlignmentsLength:
@@ -124,7 +130,8 @@ class NewellMovingObject(moving.MovingObject):
                                         cd.userTimeAtStop += timeStep
                                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
                                     else:
-                                        if world.isGapAcceptable(self, instant):
+                                        if world.estimateGap(self, instant) >= self.criticalGap:
+                                        # if world.isGapAcceptable(self, instant):
                                             s2 = freeFlowCoord
                                             cd.userTimeAtStop = 0
                                             cd.user = None

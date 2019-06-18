@@ -653,12 +653,15 @@ class World:
         else:
             return al.points.cumulativeDistances[-1]
 
-    def getIncomingTrafficAlignmentIdx(self, user, instant):
+    def getIncomingTrafficAlignmentIdx(self, user):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-        _temp = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).connectedAlignmentIndices
+
+        # self.getUserCurrentAlignment(user)
+        # if instant in list(user.timeInterval):
+        _temp = user.currentAlignment.connectedAlignmentIndices
         if _temp is not None:
             for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
-                if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
+                if al.idx != user.currentAlignment.idx:
                     if al.connectedAlignmentIndices is not None:
                         return al.idx
 
@@ -666,8 +669,8 @@ class World:
         """"returns the closest user to cross the intersection in the adjacent alignments"""
         # todo :A revoir suite a la modification de getIntersectionCP
         if instant in list(user.timeInterval):
-            if self.getIncomingTrafficAlignmentIdx(user, instant) is not None:
-                lane = self.getIncomingTrafficAlignmentIdx(user, instant)
+            lane = self.getIncomingTrafficAlignmentIdx(user)
+            if lane is not None:
                 intersectionCP = self.getIntersectionCP(lane)
                 userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[-1]
                 if user.leader is not None:
@@ -676,7 +679,7 @@ class World:
                         for k in range(len(self.userInputs)):
                             worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
                         for ui in self.userInputs:
-                            if ui.alignmentIdx == self.getIncomingTrafficAlignmentIdx(user, instant):
+                            if ui.alignmentIdx == lane:
                                 uiIdx = ui.idx
                                 break
                         adjacentUsers = worldUserList[uiIdx]
@@ -695,7 +698,7 @@ class World:
                     for k in range(len(self.userInputs)):
                         worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
                     for ui in self.userInputs:
-                        if ui.alignmentIdx == self.getIncomingTrafficAlignmentIdx(user, instant):
+                        if ui.alignmentIdx == lane:
                             uiIdx = ui.idx
                             break
                     adjacentUsers = worldUserList[uiIdx]

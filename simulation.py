@@ -31,7 +31,6 @@ class Simulation(object):
 
         np.random.seed(self.seed)
         amberProbability = np.random.random()
-        # world.connectAlignments()
         for ui in world.userInputs:
             # link to alignment
             for al in world.alignments:
@@ -59,6 +58,10 @@ class Simulation(object):
 
             for u in world.users:
                 world.getUserCurrentAlignment(u)
+                if u.num == 1 and u.timeInterval is not None:
+                    world.checkTraffic(u, i)
+
+                    print(u.currentAlignment.idx, world.getIncomingTrafficAlignmentIdx(u), i, u.comingUser)
                 u.updateCurvilinearPositions(method="newell",
                                              instant=i,
                                                  timeStep=self.timeStep,
@@ -77,7 +80,6 @@ class Simulation(object):
             plt.xlabel('time(s/10)')
             plt.ylabel('longitudinal coordinate (m)')
             plt.show()
-        return world
 
 
 if __name__ == "__main__":
