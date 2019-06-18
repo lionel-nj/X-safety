@@ -234,29 +234,23 @@ class StopSign(ControlDevice):
     def getStateAtInstant(self, t=None):
         pass
 
-    def permissionToGo(self, user):
-        if self.userTimeAtStop < self.timeAtStop:
-            self.userTimeAtStop += self.timeStep
-            user.go = False
-        else:
-            user.go = True
-            self.user = None
-            self.userTimeAtStop = 0
+    def reset(self):
+        pass
 
 
 class Yield(ControlDevice):
     def __init__(self, idx, alignmentIdx):
-        initialState = 'green'
         category = 3
         super().__init__(idx, category, alignmentIdx)
-        self.initialState = initialState
 
     def cycle(self):
         pass
 
     def getStateAtInstant(self, t=None):
-        return self.initialState
+        pass
 
+    def reset(self):
+        pass
 
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
