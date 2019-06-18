@@ -31,7 +31,6 @@ class Simulation(object):
 
         np.random.seed(self.seed)
         amberProbability = np.random.random()
-        # print(amberProbability)
         # world.connectAlignments()
         for ui in world.userInputs:
             # link to alignment
@@ -60,14 +59,11 @@ class Simulation(object):
 
             for u in world.users:
                 world.getUserCurrentAlignment(u)
-                # world.isGapAcceptable(u, i)
                 u.updateCurvilinearPositions(method="newell",
                                              instant=i,
                                                  timeStep=self.timeStep,
                                                  world=world,
                                                  amberProbability=amberProbability)
-                    # if world.controlDevices[0].user is not None:
-                    #     print(world.controlDevices[0].user.num, world.controlDevices[0].userTimeAtStop)
 
         world.duplicateLastVelocities()
         world.resetControlDevices()
