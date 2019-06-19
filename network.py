@@ -14,12 +14,12 @@ class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
-    def __init__(self, idx=None, points=None, width=None, controlDevice=None, name=None):
+    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None):
         self.idx = idx
-        self.name = name
         self.width = width
         self.points = points
         self.controlDevice = controlDevice
+        self.connectedAlignmentIndices = connectedAlignmentIndices
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
