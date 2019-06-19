@@ -632,8 +632,8 @@ class World:
         self.initGraph()
 
         # attributing a list of users to each userInput
-        for ui in self.userInputs:
-            ui.users = []
+        # for ui in self.userInputs:
+        #     ui.users = []
 
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings
@@ -880,7 +880,6 @@ class UserInput:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.lastGeneratedUser
         self.lastGeneratedUser = obj
-        self.users.append(obj)
         return obj
 
     def getUserByNum(self, num):
