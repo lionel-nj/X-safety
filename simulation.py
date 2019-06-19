@@ -8,16 +8,14 @@ class Simulation(object):
     units = [
         'sec',
         'sec',
-        'm',
         'sec',
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, threshold, verbose):
+    def __init__(self, duration, timeStep, seed, verbose):
         self.duration = duration
         self.timeStep = timeStep
         self.seed = seed
-        self.threshold = threshold
         self.verbose = verbose
 
     def save(self, filename):

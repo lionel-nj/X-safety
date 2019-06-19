@@ -2,5 +2,4 @@
 duration: 100
 timeStep: 0.1
 seed: 5
-threshold: 10
 verbose: False
