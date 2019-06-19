@@ -128,8 +128,7 @@ class Alignment:
             if self.connectedAlignments is not None:
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                # user.inSimulation = False
-                return self
+                return None
         else:  # si on reste sur l'alignement
             return self
 
@@ -624,7 +623,7 @@ class World:
             else:
                 al.controlDevice = None
 
-        # initializing the last generated user for each userInput
+        # initializing the last generated user to None for each userInput
         for ui in self.userInputs:
             ui.lastGeneratedUser = None
 
