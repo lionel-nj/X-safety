@@ -46,15 +46,14 @@ class Simulation(object):
         for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
-            # if world.controlDevices is not None:
-            #    for cd in world.controlDevices:
-            #        cd.cycle(self.timeStep)
+            if world.controlDevices is not None:
+               for cd in world.controlDevices:
+                   cd.cycle(self.timeStep)
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
                 u.getUserCurrentAlignment(world)
-                u.updateCurvilinearPositions(method="newell",
-                                             instant=i,
+                u.updateCurvilinearPositions(instant=i,
                                              timeStep=self.timeStep,
                                              world=world)
 

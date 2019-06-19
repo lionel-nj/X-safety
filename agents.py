@@ -35,7 +35,7 @@ class NewellMovingObject(moving.MovingObject):
         else:
             self.currentAlignment = world.getAlignmentById(self.curvilinearPositions.lanes[-1])
 
-    def updateCurvilinearPositions(self, method, instant, timeStep, world, maxSpeed=None, acceleration=None):#, amberProbability = 0):
+    def updateCurvilinearPositions(self, instant, timeStep, world, maxSpeed=None, acceleration=None):#, amberProbability = 0):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
