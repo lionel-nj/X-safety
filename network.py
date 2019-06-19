@@ -128,7 +128,7 @@ class Alignment:
             if self.connectedAlignments is not None:
                 return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                user.inSimulation = False
+                # user.inSimulation = False
                 return self
         else:  # si on reste sur l'alignement
             return self
@@ -210,10 +210,11 @@ class TrafficLight(ControlDevice):
 
 
 class StopSign(ControlDevice):
-    def __init__(self, idx, alignmentIdx):
+    def __init__(self, idx, alignmentIdx, timeAtStop):
         category = 1
         super().__init__(idx, category, alignmentIdx)
         self.user = None
+        self.timeAtStop = timeAtStop
 
     def cycle(self, timeStep):
         pass
@@ -222,7 +223,8 @@ class StopSign(ControlDevice):
         pass
 
     def reset(self):
-        pass
+        self.userTimeAtStop = 0
+        self.user = None
 
 
 class Yield(ControlDevice):
@@ -254,9 +256,9 @@ class Yield(ControlDevice):
 class World:
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
-    def __init__(self, alignments=None, controlDevices=None, intersections=None):
+    def __init__(self, alignments=None, controlDevices=None, userInputs=None):
         self.alignments = alignments  # liste d alignements
-        self.intersections = intersections  # liste des intersections (objets)
+        self.userInputs = userInputs  # liste des intersections (objets)
         self.controlDevices = controlDevices  # liste de CD
 
     def __repr__(self):
@@ -432,25 +434,39 @@ class World:
                 return True
         return False
 
-    def getGraph(self):
-        """adds graph attribute to self"""
+    def initNodesToAlignments(self):
+        """sets an entry and an exit node to each alignment"""
+        al = self.getAlignmentById(self.userInputs[0].alignmentIdx)
+        al.entryNode = al.idx
+        al.exitNode = al.idx + 1
+        if al.connectedAlignmentIndices is not None:
+            for connectedAlignmentIdx in al.connectedAlignmentIndices:
+                self.getAlignmentById(connectedAlignmentIdx).entryNode = al.exitNode
+                self.getAlignmentById(connectedAlignmentIdx).exitNode = connectedAlignmentIdx + 1
+            centerNode = al.exitNode
+        for ui in self.userInputs:
+            if ui.idx != self.userInputs[0].idx:
+                self.getAlignmentById(ui.alignmentIdx).entryNode = self.getAlignmentById(ui.alignmentIdx).idx + 1
+                self.getAlignmentById(ui.alignmentIdx).exitNode = centerNode
+
+
+    def initGraph(self):
+        """sets graph attribute to self"""
         G = nx.Graph()
-        for k in range(len(self.alignments) + 1):
-            G.add_node(k)
+        self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
             edgesProperties.append(
-                (al.graphCorrespondance[0], al.graphCorrespondance[1], al.points.cumulativeDistances[-1]))
+                (al.entryNode, al.exitNode, al.points.cumulativeDistances[-1]))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
             for cdIdx, cd in enumerate(self.controlDevices):
                 controlDevice = "cd{}".format(cdIdx)
                 G.add_node(controlDevice)
-                origin = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[0]
-                target = self.getAlignmentById(cd.alignmentIdx).graphCorrespondance[1]
+                origin = self.getAlignmentById(cd.alignmentIdx).entryNode
+                target = self.getAlignmentById(cd.alignmentIdx).exitNode
                 weight = self.getAlignmentById(cd.alignmentIdx).points.cumulativeDistances[-1]
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
-
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant):
@@ -581,14 +597,15 @@ class World:
         creates am empty user list for each user input,
 
         links a controlDevice to its alignment, if an alignment has no control Device assigns None"""
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                if cd.category == 1:
-                    cd.timeAtStop = self.timeAtStop
-                    cd.userTimeAtStop = 0
-                    cd.timeStep = self.timeStep
-                    cd.user = None
 
+        # compute cumulative distances for each alignment :
+        for al in self.alignments:
+            al.points.computeCumulativeDistances()
+
+        # resetting all control devices to default values
+        self.resetControlDevices()
+
+        # connecting alignments
         for al in self.alignments:
             al.connectedAlignments = []
             if al.connectedAlignmentIndices is not None:
@@ -596,6 +613,8 @@ class World:
                     al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
             else:
                 al.connectedAlignments = None
+
+            # connecting control devices to their alignments
             if self.controlDevices is not None:
                 for cd in self.controlDevices:
                     if al.idx == cd.alignmentIdx:
@@ -605,9 +624,17 @@ class World:
             else:
                 al.controlDevice = None
 
+        # initializing the last generated user for each userInput
         for ui in self.userInputs:
             ui.lastGeneratedUser = None
-                
+
+        # linking self to its graph
+        self.initGraph()
+
+        # attributing a list of users to each userInput
+        for ui in self.userInputs:
+            ui.users = []
+
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings
         user.visitedAlignmentsLength = 0
@@ -617,14 +644,6 @@ class World:
                 user.visitedAlignmentsLength += self.getAlignmentById(alIndices).points.cumulativeDistances[-1]
         else:
             user.visitedAlignmentsLength = 0
-
-    def getUserCurrentAlignment(self, user):
-        """"returns the current alignment of user"""
-        self.getVisitedAlignmentLength(user)
-        if user.curvilinearPositions is None:
-            user.currentAlignment = self.getAlignmentById(user.initialAlignmentIdx)
-        else:
-            user.currentAlignment = self.getAlignmentById(user.curvilinearPositions.lanes[-1])
 
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
@@ -774,8 +793,8 @@ class World:
 
     def resetControlDevices(self):
         """resets original information for traffic lights"""
-        for cd in self.controlDevices:
-            if cd.category == 2:
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
                 cd.reset()
 
     def getUsersSituationAtInstant(self, user, other, instant):
@@ -832,6 +851,7 @@ class UserInput:
         self.tauDistribution = self.distributions['tau'].getDistribution()
         self.dDistribution = self.distributions['dn'].getDistribution()
         self.gapDistribution = self.distributions['criticalGap'].getDistribution()
+        self.amberProbabilityDistribution = self.distributions['amberProbability'].getDistribution()
 
     def generateHeadways(self, duration):
         """ generates a set a headways"""
@@ -854,11 +874,13 @@ class UserInput:
                                         criticalGap=self.gapDistribution.rvs(),
                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
-                                        initialAlignmentIdx=self.alignmentIdx)
+                                        initialAlignmentIdx=self.alignmentIdx,
+                                        amberProbability=self.amberProbabilityDistribution.rvs())
         if self.lastGeneratedUser is not None:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.lastGeneratedUser
         self.lastGeneratedUser = obj
+        self.users.append(obj)
         return obj
 
     def getUserByNum(self, num):

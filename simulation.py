@@ -40,7 +40,6 @@ class Simulation(object):
             ui.initDistributions()
             ui.generateHeadways(self.duration)
         
-        world.getGraph()
         world.prepare()
         userNum = 0
         world.users = []
@@ -53,13 +52,11 @@ class Simulation(object):
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
-                world.getUserCurrentAlignment(u)
+                u.getUserCurrentAlignment(world)
                 u.updateCurvilinearPositions(method="newell",
                                              instant=i,
                                              timeStep=self.timeStep,
-                                             world=world,
-                                             #amberProbability=amberProbability
-                )
+                                             world=world)
 
         world.duplicateLastVelocities()
 

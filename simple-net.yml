@@ -6,20 +6,11 @@ alignments:
   - 1
   controlDeviceIndices:
   - 0
-  graphCorrespondance:
-    - 0
-    - 1
+
   idx: 0
   movementProportions:
     - 1
   points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 100.0
-    - 500.0
-    distances:
-    - 100.0
-    - 400.0
     positions:
     - - -100.0
       - 0.0
@@ -32,20 +23,10 @@ alignments:
   connectedAlignmentIndices: null
   controlDeviceIndices: null
   idx: 1
-  graphCorrespondance:
-    - 1
-    - 2
   movementProportions:
     - 1
     - 0
   points: !!python/object:trafficintelligence.moving.Trajectory
-    cumulativeDistances:
-    - 0.0
-    - 100.0
-    - 400.0
-    distances:
-    - 100.0
-    - 300.0
     positions:
     - - 400.0
       - 500.0
@@ -102,4 +83,11 @@ userInputs:
       distributionType: theoric
       loc: 6
       scale: 2
+    amberProbability: !!python/object:network.Distribution
+      cdf: null
+      degeneratedConstant: 2
+      distributionName: null
+      distributionType: degenerated
+      loc: null
+      scale: null
   idx: 0

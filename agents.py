@@ -6,7 +6,7 @@ class NewellMovingObject(moving.MovingObject):
     def __init__(self, num=None, timeInterval=None, positions=None, velocities=None, geometry=None,
                  userType=moving.userType2Num['unknown'], nObjects=None, initCurvilinear=False, desiredSpeed=None,
                  tau=None, d=None, criticalGap=None, initialCumulatedHeadway=None,
-                 initialAlignmentIdx=None):
+                 initialAlignmentIdx=None, amberProbability=None):
         super().__init__(num, timeInterval, positions, velocities, geometry, userType, nObjects, initCurvilinear)
         self.desiredSpeed = desiredSpeed
         self.tau = tau
@@ -17,9 +17,9 @@ class NewellMovingObject(moving.MovingObject):
         self.initialAlignmentIdx = initialAlignmentIdx
         self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
         self.criticalGap = criticalGap
-        self.inSimulation = True
-        self.go = True
+        # self.inSimulation = True
         self.comingUser = None
+        self.amberProbability = amberProbability
 
     def orderUsersByFirstInstant(self, other):
         if self.getFirstInstant() > other.getFirstInstant():
@@ -27,7 +27,15 @@ class NewellMovingObject(moving.MovingObject):
         else:
             return self, other
 
-    def updateCurvilinearPositions(self, method, instant, timeStep, world, amberProbability = 0, maxSpeed=None, acceleration=None):
+    def getUserCurrentAlignment(self, world):
+        """"assigns to an user its the current alignment"""
+        world.getVisitedAlignmentLength(self)
+        if self.curvilinearPositions is None:
+            self.currentAlignment = world.getAlignmentById(self.initialAlignmentIdx)
+        else:
+            self.currentAlignment = world.getAlignmentById(self.curvilinearPositions.lanes[-1])
+
+    def updateCurvilinearPositions(self, method, instant, timeStep, world, maxSpeed=None, acceleration=None):#, amberProbability = 0):
         # if timeGap< criticalGap : rester sur place, sinon avancer : a mettre en place dans le code
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
@@ -71,35 +79,35 @@ class NewellMovingObject(moving.MovingObject):
                 if self.getLastInstant() < instant:
                     s2 = freeFlowCoord
                     nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
-                    if self.inSimulation:
-                        if self.currentAlignment.controlDevice is not None:
-                            cd = self.currentAlignment.controlDevice
-                            if cd.category == 1:
-                                if s2 >= self.visitedAlignmentsLength:
-                                    if cd.userTimeAtStop < cd.timeAtStop:
-                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                        cd.user = self
-                                        cd.userTimeAtStop += timeStep
-                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                    # if self.inSimulation:
+                    if self.currentAlignment.controlDevice is not None:
+                        cd = self.currentAlignment.controlDevice
+                        if cd.category == 1:
+                            if s2 >= self.visitedAlignmentsLength:
+                                if cd.userTimeAtStop < cd.timeAtStop:
+                                    s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                    cd.user = self
+                                    cd.userTimeAtStop += timeStep
+                                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                else:
+                                    if world.isGapAcceptable(self, instant):
+                                        s2 = freeFlowCoord
+                                        cd.user = None
+                                        cd.userTimeAtStop = 0
                                     else:
-                                        if world.isGapAcceptable(self, instant):
-                                            s2 = freeFlowCoord
-                                            cd.user = None
-                                            cd.userTimeAtStop = 0
-                                        else:
-                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                            elif cd.category == 2:
-                                if cd.state == 'red':
-                                    if s2 >= self.visitedAlignmentsLength:
                                         s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                         nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                                elif cd.state == 'amber':
-                                    if s2 >= self.visitedAlignmentsLength:
-                                        if amberProbability >= .5:  # if p > .5 user stops else if goes forward
-                                            s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                            nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                        self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                        elif cd.category == 2:
+                            if cd.state == 'red':
+                                if s2 >= self.visitedAlignmentsLength:
+                                    s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                            elif cd.state == 'amber':
+                                if s2 >= self.visitedAlignmentsLength:
+                                    if self.amberProbability >= .5:  # if p > .5 user stops else if goes forward
+                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
             else:
                 if instant in list(self.leader.timeInterval):
@@ -110,41 +118,41 @@ class NewellMovingObject(moving.MovingObject):
                 s2 = min(freeFlowCoord, constrainedCoord)
                 nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2).idx
 
-                if self.inSimulation:
-                    if self.currentAlignment.controlDevice is not None:
-                        cd = self.currentAlignment.controlDevice
-                        if cd.category == 1:
-                            if s2 >= self.visitedAlignmentsLength:
-                                cd.user = self
-                                if cd.userTimeAtStop < cd.timeAtStop:
-                                    s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                    cd.userTimeAtStop += timeStep
-                                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                # if self.inSimulation:
+                if self.currentAlignment.controlDevice is not None:
+                    cd = self.currentAlignment.controlDevice
+                    if cd.category == 1:
+                        if s2 >= self.visitedAlignmentsLength:
+                            cd.user = self
+                            if cd.userTimeAtStop < cd.timeAtStop:
+                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                cd.userTimeAtStop += timeStep
+                                nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                            else:
+                                if world.isGapAcceptable(self, instant):
+                                    s2 = freeFlowCoord
+                                    cd.userTimeAtStop = 0
+                                    cd.user = None
                                 else:
-                                    if world.isGapAcceptable(self, instant):
-                                        s2 = freeFlowCoord
-                                        cd.userTimeAtStop = 0
-                                        cd.user = None
-                                    else:
-                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                        elif cd.category == 2:
-                            if cd.state == 'red':
-                                if s2 >= self.visitedAlignmentsLength:
+                                    nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                                    s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                    elif cd.category == 2:
+                        if cd.state == 'red':
+                            if s2 >= self.visitedAlignmentsLength:
+                                s2 = self.currentAlignment.points.cumulativeDistances[-1]
+                                nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
+                        elif cd.state == 'amber':
+                            if s2 >= self.visitedAlignmentsLength:
+                                if self.amberProbability >= .5:  # if p > .5 user stops else if goes forward
                                     s2 = self.currentAlignment.points.cumulativeDistances[-1]
                                     nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
-                            elif cd.state == 'amber':
-                                if s2 >= self.visitedAlignmentsLength:
-                                    if amberProbability >= .5:  # if p > .5 user stops else if goes forward
-                                        s2 = self.currentAlignment.points.cumulativeDistances[-1]
-                                        nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
 
-                    self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
+                self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
 
-            if self.inSimulation:
-                if self.curvilinearPositions.getLaneAt(-1) == nextAlignmentIdx:
-                    laneChange = None
-                else:
-                    laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
-                self.setLastInstant(instant)
-                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+            # if self.inSimulation:
+            if self.curvilinearPositions.getLaneAt(-1) == nextAlignmentIdx:
+                laneChange = None
+            else:
+                laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
+            self.setLastInstant(instant)
+            self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
