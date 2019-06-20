@@ -125,12 +125,13 @@ class Alignment:
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                self.previousAligmment = self
+                return self.connectedAlignments[0], nextPosition-self.getCumulativeDistances(-1) # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 # world.exit(user, instant)
-                return None
+                return None, None
         else:  # si on reste sur l'alignement
-            return self
+            return self, nextPosition
 
     def getCumulativeDistances(self, idx):
         return self.points.cumulativeDistances[idx]
@@ -601,16 +602,6 @@ class World:
 
         # initializing a lisf of users that are no longer computed to empty
         self.completed = []
-
-    def getVisitedAlignmentLength(self, user):
-        # todo: docstrings
-        user.visitedAlignmentsLength = 0
-        if user.curvilinearPositions is not None:
-            visitedAlignments = list(set(user.curvilinearPositions.lanes))
-            for alIndices in visitedAlignments:
-                user.visitedAlignmentsLength += self.getAlignmentById(alIndices).getCumulativeDistances(-1)
-        else:
-            user.visitedAlignmentsLength = 0
 
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]

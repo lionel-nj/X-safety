@@ -27,7 +27,6 @@ class NewellMovingObject(moving.MovingObject):
 
     def getUserCurrentAlignment(self, world):
         """"assigns to an user its the current alignment"""
-        world.getVisitedAlignmentLength(self)
         if self.curvilinearPositions is None:
             self.currentAlignment = world.getAlignmentById(self.initialAlignmentIdx)
         else:
@@ -76,12 +75,12 @@ class NewellMovingObject(moving.MovingObject):
             if self.leader is None:
                 if self.getLastInstant() < instant:
                     s2 = freeFlowCoord
-                    nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                    nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2)
                     if nextAlignment is not None:
                         nextAlignmentIdx = nextAlignment.idx
-                        if s2 > self.currentAlignment.getCumulativeDistances(-1):
-                            s2 -= self.currentAlignment.getCumulativeDistances(-1)
-                            s1 -= self.currentAlignment.getCumulativeDistances(-1)
+                        # if s2 > self.currentAlignment.getCumulativeDistances(-1):
+                        #     s2 -= self.currentAlignment.getCumulativeDistances(-1)
+                        #     s1 -= self.currentAlignment.getCumulativeDistances(-1)
                         # if self.currentAlignment.controlDevice is not None:
                         #     cd = self.currentAlignment.controlDevice
                         #     if cd.category == 1:
@@ -113,25 +112,28 @@ class NewellMovingObject(moving.MovingObject):
 
             else:
                 if instant in list(self.leader.timeInterval):
-                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
-                                       0] - self.d
-                    if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
-                        constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
+                    constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep, self.currentAlignment)[
+                                       0] - self.d + self.currentAlignment.getCumulativeDistances(-1)
+                    # if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
+                    #     constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
                 else:
                     constrainedCoord = freeFlowCoord
-                    if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
-                        constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
+                    # if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
+                    #     constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
 
-                # if freeFlowCoord > self.currentAlignment.getCumulativeDistances(-1):
-                #     freeFlowCoord -= self.currentAlignment.getCumulativeDistances(-1)
+                if freeFlowCoord > self.currentAlignment.getCumulativeDistances(-1):
+                    freeFlowCoord -= self.currentAlignment.getCumulativeDistances(-1)
+                # if self.num ==1:
+                #     print(constrainedCoord)
                 s2 = min(freeFlowCoord, constrainedCoord)
-                nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
-
+                nextAlignment, _ = self.currentAlignment.getNextAlignment(self, s2)
                 if nextAlignment is not None:
+                    # if self.leader.currentAlignment.idx != self.currentAlignment.idx:
+                    #     s2 += nextAlignment.getCumulativeDistances(-1)
                     nextAlignmentIdx = nextAlignment.idx
-                    if s2 > self.currentAlignment.getCumulativeDistances(-1):
-                        s2 -= self.currentAlignment.getCumulativeDistances(-1)
-                        s1 -= self.currentAlignment.getCumulativeDistances(-1)
+                    # if s2 > self.currentAlignment.getCumulativeDistances(-1):
+                    #     s2 += self.currentAlignment.getCumulativeDistances(-1)
+                        # s1 -= self.currentAlignment.getCumulativeDistances(-1)
                         # if self.currentAlignment.controlDevice is not None:
                         # cd = self.currentAlignment.controlDevice
                         # if cd.category == 1:

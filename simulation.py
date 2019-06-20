@@ -50,10 +50,11 @@ class Simulation(object):
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
+                # if u.num == 1 or u.num ==0:
                 u.getUserCurrentAlignment(world)
                 u.updateCurvilinearPositions(instant=i,
-                                             timeStep=self.timeStep,
-                                             world=world)
+                                         timeStep=self.timeStep,
+                                         world=world)
 
         world.duplicateLastVelocities()
 
