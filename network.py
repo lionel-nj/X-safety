@@ -29,8 +29,7 @@ class Alignment:
         return toolkit.loadYaml(filename)
 
     def plot(self, options='', **kwargs):
-        self.points.plot(options, kwargs)
-        plt.plot()
+        self.points.plot(options, **kwargs)
 
     def build(self, entryPoint, exitPoint, others=None):
         """builds an alignments from points,
@@ -121,41 +120,45 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
-    def getNextAlignment(self, user, nextPosition):
+    def getNextAlignment(self, user, nextPosition, world, instant):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
-        deltap = user.visitedAlignmentsLength - nextPosition
+        deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                return self.connectedAlignments[0].idx # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
+                # world.exit(user, instant)
                 return None
         else:  # si on reste sur l'alignement
-            return self
+            return self.idx
+
+    def getCumulativeDistances(self, idx):
+        return self.points.cumulativeDistances[idx]
 
 
 class ControlDevice:
-    """class for control deveices :stop signs, traffic light etc ...
+    """class for control devices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
 
-    def __init__(self, idx, category, alignmentIdx):
+    def __init__(self, idx, alignmentIdx): # , category
         self.idx = idx
-        self.category = category
+        #self.category = category
         self.alignmentIdx = alignmentIdx
 
-    categories = {1: 'stop',
-                  2: 'traffic light',
-                  3: 'yield',
-                  4: 'etc'}
+    # categories = {1: 'stop',
+    #               2: 'traffic light',
+    #               3: 'yield',
+    #                  4: 'etc'}
 
-    def getCharCategory(self):
-        """returns a chain of character describing the category of self"""
-        return self.categories[self.category]
+    # def getCharCategory(self):
+    #     """returns a chain of character describing the category of self"""
+    #     return self.categories[self.category]
 
 
 class TrafficLight(ControlDevice):
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
-        category = 2
-        super().__init__(idx, category, alignmentIdx)
+        #category = 2
+        super(TrafficLight,self).__init__(idx, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
@@ -210,8 +213,8 @@ class TrafficLight(ControlDevice):
 
 class StopSign(ControlDevice):
     def __init__(self, idx, alignmentIdx, timeAtStop):
-        category = 1
-        super().__init__(idx, category, alignmentIdx)
+        #category = 1
+        super(StopSign, self).__init__(idx, alignmentIdx)
         self.user = None
         self.timeAtStop = timeAtStop
 
@@ -226,10 +229,10 @@ class StopSign(ControlDevice):
         self.user = None
 
 
-class Yield(ControlDevice):
+class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
-        category = 3
-        super().__init__(idx, category, alignmentIdx)
+        #category = 3
+        super(YieldSign, self).__init__(idx, alignmentIdx)
 
     def cycle(self):
         pass
@@ -286,7 +289,7 @@ class World:
 
     def plot(self, options='', **kwargs):
         for a in self.alignments:
-            a.plot(options, kwargs)
+            a.plot(options, **kwargs)
 
     def plotUserTrajectories(self, timeStep):
         plt.figure()
@@ -384,7 +387,7 @@ class World:
         visitedAlignmentsIndices = list(set(user.curvilinearPositions.lanes))
         visitedAlignmentsCumulativeDistance = 0
         for alignmentIdx in visitedAlignmentsIndices:
-            visitedAlignmentsCumulativeDistance += self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
+            visitedAlignmentsCumulativeDistance += self.getAlignmentById(alignmentIdx).getCumulativeDistances(-1)
 
         return visitedAlignmentsCumulativeDistance
 
@@ -394,7 +397,7 @@ class World:
         visitedAlignments.remove(user.curvilinearPositions.lanes[t - user.getFirstInstant()])
         s = 0
         for indices in visitedAlignments:
-            s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+            s += self.getAlignmentById(indices).getCumulativeDistances(-1)
         userCurvilinearPositionAt = user.getCurvilinearPositionAtInstant(t)[0]
         return userCurvilinearPositionAt - s
 
@@ -402,7 +405,7 @@ class World:
         """return the total length of the alignment occupied by an user = its last position"""
         if user.curvilinearPositions is not None:
             alignmentIdx = user.curvilinearPositions.getLaneAt(-1)
-            return self.getAlignmentById(alignmentIdx).points.cumulativeDistances[-1]
+            return self.getAlignmentById(alignmentIdx).getCumulativeDistances(-1)
         else:
             return user.initialAlignmentIdx
 
@@ -419,7 +422,7 @@ class World:
             alignmentIndices.remove(user.curvilinearPositions.lanes[-1])
             if alignmentIndices != []:
                 for indices in alignmentIndices:
-                    s += self.getAlignmentById(indices).points.cumulativeDistances[-1]
+                    s += self.getAlignmentById(indices).getCumulativeDistances(-1)
             else:
                 s = 0
         return s
@@ -456,7 +459,7 @@ class World:
         edgesProperties = []
         for al in self.alignments:
             edgesProperties.append(
-                (al.entryNode, al.exitNode, al.points.cumulativeDistances[-1]))
+                (al.entryNode, al.exitNode, al.getCumulativeDistances(-1)))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
             for cdIdx, cd in enumerate(self.controlDevices):
@@ -464,100 +467,66 @@ class World:
                 G.add_node(controlDevice)
                 origin = self.getAlignmentById(cd.alignmentIdx).entryNode
                 target = self.getAlignmentById(cd.alignmentIdx).exitNode
-                weight = self.getAlignmentById(cd.alignmentIdx).points.cumulativeDistances[-1]
+                weight = self.getAlignmentById(cd.alignmentIdx).getCumulativeDistances(-1)
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant):
         """"computes the distance between 2 users"""
-        if type(user1) == agents.NewellMovingObject and type(user2) == agents.NewellMovingObject:
+        if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
 
-            if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
-
-                if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
-                    user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
-                    user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
-
-                    if user1AlignmentIdx == user2AlignmentIdx:
-                        oldest, youngest = user1.orderUsersByFirstInstant(user2)
-                        return self.getUserDistanceOnAlignmentAt(oldest, instant) - self.getUserDistanceOnAlignmentAt(youngest, instant) - oldest.geometry
-
-                    else:
-                        user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
-                        user1DownstreamDistance = \
-                            self.getAlignmentById(
-                                user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                                -1] - user1UpstreamDistance
-                        user2UpstreamDistance = self.getUserDistanceOnAlignmentAt(user2, instant)
-                        user2DownstreamDistance = \
-                            self.getAlignmentById(
-                                user2.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                                -1] - user2UpstreamDistance
-
-                        G = self.graph
-
-                        G.add_node('user1')
-                        G.add_node('user2')
-
-                        user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
-                        user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
-                        user2Origin = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[0]
-                        user2Target = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[1]
-
-                        G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
-                        G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
-
-                        G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
-                        G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                        distance = nx.shortest_path_length(G, source='user1', target='user2',
-                                                           weight='weight')
-
-                        situation, pastCP, _ = self.getUsersSituationAtInstant(user1, user2, instant)
-                        if situation == 'CF':
-                            leader = user1.orderUsersByFirstInstant(user2)[0]
-                            distance -= leader.geometry
-
-                        elif situation == 'X1':
-                            distance -= user1.geometry - user2.geometry
-
-                        elif situation == 'X3':
-                            distance -= pastCP.geometry
-
-                        G.remove_node('user1')
-                        G.remove_node('user2')
-                        return distance
-            else:
-                print('user do not coexist, therefore can not compute distance')
-
-        elif type(user1) == agents.NewellMovingObject and type(user2) != agents.NewellMovingObject:
-            if user1.getFirstInstant() <= instant:
+            if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                 user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
-                user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
-                user1DownstreamDistance = \
-                    self.getAlignmentById(
-                        user1.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[
-                        -1] - user1UpstreamDistance
+                user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
 
-                G = self.graph
-                G.add_node('user1')
+                if user1AlignmentIdx == user2AlignmentIdx:
+                    oldest, youngest = user1.orderUsersByFirstInstant(user2)
+                    return self.getUserDistanceOnAlignmentAt(oldest, instant) - self.getUserDistanceOnAlignmentAt(youngest, instant) - oldest.geometry
 
-                user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
-                user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
-                G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
-                G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+                else:
+                    user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
+                    user1DownstreamDistance = \
+                        self.getAlignmentById(
+                            user1.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user1UpstreamDistance
+                    user2UpstreamDistance = self.getUserDistanceOnAlignmentAt(user2, instant)
+                    user2DownstreamDistance = \
+                        self.getAlignmentById(
+                            user2.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user2UpstreamDistance
 
-                distance = nx.shortest_path_length(G, source='user1', target="cd{}".format(user2.idx),
-                                                   weight='weight')
-                G.remove_node('user1')
+                    G = self.graph
 
-                return distance
-            else:
-                return print(
-                    'Can not compute distance between control Device and user because they are not located on the same alignment')
+                    G.add_node('user1')
+                    G.add_node('user2')
 
-        elif type(user2) == agents.NewellMovingObject and type(user1) == ControlDevice:
-            user1, user2 = user2, user1
-            self.distanceAtInstant(user1, user2, instant)
+                    user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
+                    user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
+                    user2Origin = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[0]
+                    user2Target = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[1]
+
+                    G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
+                    G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+
+                    G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
+                    G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
+                    distance = nx.shortest_path_length(G, source='user1', target='user2',
+                                                       weight='weight')
+
+                    situation, pastCP, _ = self.getUsersSituationAtInstant(user1, user2, instant)
+                    if situation == 'CF':
+                        leader = user1.orderUsersByFirstInstant(user2)[0]
+                        distance -= leader.geometry
+
+                    elif situation == 'X1':
+                        distance -= user1.geometry - user2.geometry
+
+                    elif situation == 'X3':
+                        distance -= pastCP.geometry
+
+                    G.remove_node('user1')
+                    G.remove_node('user2')
+                    return distance
+        else:
+            print('user do not coexist, therefore can not compute distance')
 
     def getLinkedAlignments(self, alignmentIdx):
         """return the list of all alignments that are un-directly linked to an alignment"""
@@ -630,9 +599,8 @@ class World:
         # linking self to its graph
         self.initGraph()
 
-        # attributing a list of users to each userInput
-        # for ui in self.userInputs:
-        #     ui.users = []
+        # initializing a lisf of users that are no longer computed to empty
+        self.completed = []
 
     def getVisitedAlignmentLength(self, user):
         # todo: docstrings
@@ -640,7 +608,7 @@ class World:
         if user.curvilinearPositions is not None:
             visitedAlignments = list(set(user.curvilinearPositions.lanes))
             for alIndices in visitedAlignments:
-                user.visitedAlignmentsLength += self.getAlignmentById(alIndices).points.cumulativeDistances[-1]
+                user.visitedAlignmentsLength += self.getAlignmentById(alIndices).getCumulativeDistances(-1)
         else:
             user.visitedAlignmentsLength = 0
 
@@ -651,17 +619,17 @@ class World:
     def getIntersectionCP(self, alIdx):
         """"returns the curvilinear positions of the crossing point on all its alignments
         alIdx : alignment to project on"""
-        # intersectionCP = self.getAlignmentById(alIdx).points.cumulativeDistances[-1]
+        # intersectionCP = self.getAlignmentById(alIdx).getCumulativeDistances(-1
         # for al in self.alignments:
         #     if al.connectedAlignmentIndices is not None:
         #         if alIdx in al.connectedAlignmentIndices:
-        #             intersectionCP += self.getAlignmentById(al.idx).points.cumulativeDistances[-1]
+        #             intersectionCP += self.getAlignmentById(al.idx).getCumulativeDistances(-1
         # return intersectionCP
         al = self.getAlignmentById(alIdx)
         if al.connectedAlignmentIndices is None:
             return 0
         else:
-            return al.points.cumulativeDistances[-1]
+            return al.getCumulativeDistances(-1)
 
     def getIncomingTrafficAlignmentIdx(self, user):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
@@ -682,7 +650,7 @@ class World:
             lane = self.getIncomingTrafficAlignmentIdx(user)
             if lane is not None:
                 intersectionCP = self.getIntersectionCP(lane)
-                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).points.cumulativeDistances[-1]
+                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1)
                 if user.leader is not None:
                     if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
                         worldUserList = []
@@ -742,7 +710,7 @@ class World:
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
         s = 0
         for al in self.travelledAlignments(user, instant):
-            s += al.cumulativeDistances[-1]
+            s += al.getCumulativeDistances(-1)
         return s
 
     def getControlDeviceCategory(self, cdIdx):
@@ -781,7 +749,7 @@ class World:
         if al.controlDevice is None:
             return 0
         else:
-            return al.points.cumulativeDistances[-1]
+            return al.getCumulativeDistances(-1)
 
     def assignValue(self, args):
         self.userInputs[0].distributions['headway'].scale = args.headway - 1
@@ -822,6 +790,11 @@ class World:
                 return 'X2', None, None
             else:
                 return 'X3', other, None
+
+    def exit(self, user, instant):
+        self.users.remove(user)
+        # user.timeInterval.last -= 2
+        self.completed.append(user)
 
 
 class UserInput:

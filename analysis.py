@@ -289,7 +289,7 @@ class AnalysisZone:
         self.area = area
         for al in world.alignments:
             if al.connectedAlignmentIndices is not None:
-                self.minAlignment.append([al.points.cumulativeDistances[-1] - self.area ** .5, al.idx])
+                self.minAlignment.append([al.getCumulativeDistances(-1) - self.area ** .5, al.idx])
             else:
                 self.maxAlignment.append([self.minAlignment[-1][0] + 2 * (self.area ** .5), al.idx])
 
