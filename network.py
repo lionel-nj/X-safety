@@ -120,17 +120,17 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
-    def getNextAlignment(self, user, nextPosition, world, instant):
+    def getNextAlignment(self, user, nextPosition):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                return self.connectedAlignments[0].idx # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                return self.connectedAlignments[0] # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 # world.exit(user, instant)
                 return None
         else:  # si on reste sur l'alignement
-            return self.idx
+            return self
 
     def getCumulativeDistances(self, idx):
         return self.points.cumulativeDistances[idx]

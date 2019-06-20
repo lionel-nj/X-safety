@@ -76,8 +76,9 @@ class NewellMovingObject(moving.MovingObject):
             if self.leader is None:
                 if self.getLastInstant() < instant:
                     s2 = freeFlowCoord
-                    nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2, world, instant)
-                    if nextAlignmentIdx is not None:
+                    nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
+                    if nextAlignment is not None:
+                        nextAlignmentIdx = nextAlignment.idx
                         if s2 > self.currentAlignment.getCumulativeDistances(-1):
                             s2 -= self.currentAlignment.getCumulativeDistances(-1)
                             s1 -= self.currentAlignment.getCumulativeDistances(-1)
@@ -121,12 +122,15 @@ class NewellMovingObject(moving.MovingObject):
                     if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
                         constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
 
+                # if freeFlowCoord > self.currentAlignment.getCumulativeDistances(-1):
+                #     freeFlowCoord -= self.currentAlignment.getCumulativeDistances(-1)
                 s2 = min(freeFlowCoord, constrainedCoord)
-                nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2, world, instant)
+                nextAlignment = self.currentAlignment.getNextAlignment(self, s2)
 
-                if nextAlignmentIdx is not None:
+                if nextAlignment is not None:
+                    nextAlignmentIdx = nextAlignment.idx
                     if s2 > self.currentAlignment.getCumulativeDistances(-1):
-                        # s2 -= self.currentAlignment.getCumulativeDistances(-1)
+                        s2 -= self.currentAlignment.getCumulativeDistances(-1)
                         s1 -= self.currentAlignment.getCumulativeDistances(-1)
                         # if self.currentAlignment.controlDevice is not None:
                         # cd = self.currentAlignment.controlDevice
@@ -157,7 +161,7 @@ class NewellMovingObject(moving.MovingObject):
                         #                 nextAlignmentIdx = self.curvilinearPositions.getLaneAt(-1)
 
                     self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
-            if nextAlignmentIdx is not None:
+            if nextAlignment is not None:
                 if self.curvilinearPositions.getLaneAt(-1) == nextAlignmentIdx:
                     laneChange = None
                 else:
