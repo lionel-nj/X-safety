@@ -164,3 +164,7 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = (self.curvilinearPositions.getLaneAt(-1), nextAlignmentIdx)
                 self.setLastInstant(instant)
                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+            # else:
+            #     if self.leader is not None:
+            #         self.setLastInstant(instant-2)
+
