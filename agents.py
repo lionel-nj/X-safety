@@ -115,11 +115,12 @@ class NewellMovingObject(moving.MovingObject):
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[
                                        0] - self.d
                     if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
-                        constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
+                        constrainedCoord += 2*self.currentAlignment.getCumulativeDistances(-1)
                 else:
                     constrainedCoord = freeFlowCoord
-                    # if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
-                    #     constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
+                    if self.leader.curvilinearPositions.lanes[-1] != self.curvilinearPositions.lanes[-1]:
+                        constrainedCoord += self.currentAlignment.getCumulativeDistances(-1)
+
                 s2 = min(freeFlowCoord, constrainedCoord)
                 nextAlignmentIdx = self.currentAlignment.getNextAlignment(self, s2, world, instant)
 
