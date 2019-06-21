@@ -120,7 +120,7 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
-    def getNextAlignment(self, user, nextPosition, world):
+    def getNextAlignment(self, user, nextPosition):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
