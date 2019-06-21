@@ -125,8 +125,8 @@ class Alignment:
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
             if self.connectedAlignments is not None:
-                self.previousAligmment = self
-                return self.connectedAlignments[0], nextPosition-self.getCumulativeDistances(-1) # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                user.currentAlignment = self.connectedAlignments[0]
+                return self.connectedAlignments[0], nextPosition%self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
                 # world.exit(user, instant)
                 return None, None
@@ -786,6 +786,7 @@ class World:
         self.users.remove(user)
         # user.timeInterval.last -= 2
         self.completed.append(user)
+
 
 
 class UserInput:
