@@ -518,8 +518,8 @@ class World:
                     elif situation == 'X3':
                         distance -= pastCP.geometry
 
-                    G.remove_node('user1')
-                    G.remove_node('user2')
+                    G.remove_node(user1)
+                    G.remove_node(user2)
                     return distance
         else:
             print('user do not coexist, therefore can not compute distance')
