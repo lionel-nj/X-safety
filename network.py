@@ -120,7 +120,7 @@ class Alignment:
             usersNum.append(user.num)
         return usersNum
 
-    def getNextAlignment(self, user, nextPosition):
+    def getNextAlignment(self, user, nextPosition, world):
         # visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if deltap < 0:  # si on est sorti de l'alignement
@@ -128,7 +128,7 @@ class Alignment:
                 user.currentAlignment = self.connectedAlignments[0]
                 return self.connectedAlignments[0], nextPosition%self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                # world.exit(user, instant)
+                # world.exit(user)
                 return None, None
         else:  # si on reste sur l'alignement
             return self, nextPosition
@@ -485,34 +485,29 @@ class World:
                     return self.getUserDistanceOnAlignmentAt(oldest, instant) - self.getUserDistanceOnAlignmentAt(youngest, instant) - oldest.geometry
 
                 else:
-                    user1UpstreamDistance = self.getUserDistanceOnAlignmentAt(user1, instant)
-                    user1DownstreamDistance = \
-                        self.getAlignmentById(
-                            user1.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user1UpstreamDistance
-                    user2UpstreamDistance = self.getUserDistanceOnAlignmentAt(user2, instant)
-                    user2DownstreamDistance = \
-                        self.getAlignmentById(
-                            user2.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user2UpstreamDistance
+                    user1UpstreamDistance = user1.getDistanceFromOriginAtInstant(instant)
+                    user1DownstreamDistance = self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user1UpstreamDistance
+                    user2UpstreamDistance = user2.getDistanceFromOriginAtInstant(instant)
+                    user2DownstreamDistance = self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user2UpstreamDistance
 
                     G = self.graph
 
-                    G.add_node('user1')
-                    G.add_node('user2')
+                    G.add_node(user1)
+                    G.add_node(user2)
 
-                    user1Origin = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[0]
-                    user1Target = self.getAlignmentById(user1AlignmentIdx).graphCorrespondance[1]
-                    user2Origin = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[0]
-                    user2Target = self.getAlignmentById(user2AlignmentIdx).graphCorrespondance[1]
+                    user1Origin = self.getAlignmentById(user1AlignmentIdx).entryNode
+                    user1Target = self.getAlignmentById(user1AlignmentIdx).exitNode
+                    user2Origin = self.getAlignmentById(user2AlignmentIdx).entryNode
+                    user2Target = self.getAlignmentById(user2AlignmentIdx).exitNode
 
-                    G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
-                    G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+                    G.add_weighted_edges_from([(user1Origin, user1, user1UpstreamDistance)])
+                    G.add_weighted_edges_from([(user1, user1Target, user1DownstreamDistance)])
 
-                    G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
-                    G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                    distance = nx.shortest_path_length(G, source='user1', target='user2',
-                                                       weight='weight')
+                    G.add_weighted_edges_from([(user2Origin, user2, user2UpstreamDistance)])
+                    G.add_weighted_edges_from([(user2, user2Target, user2DownstreamDistance)])
+                    distance = nx.shortest_path_length(G, source=user1, target=user2, weight='weight')
 
-                    situation, pastCP, _ = self.getUsersSituationAtInstant(user1, user2, instant)
+                    situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
                     if situation == 'CF':
                         leader = user1.orderUsersByFirstInstant(user2)[0]
                         distance -= leader.geometry
@@ -765,26 +760,25 @@ class World:
         oldest, youngest = user.orderUsersByFirstInstant(other)
         if youngest.leader is not None:
             if oldest.num == youngest.leader.num:
-                return 'CF', None, None
+                return 'CF', None
 
         user1CP = self.getIntersectionCPAtInstant(user, instant)
         user2CP = self.getIntersectionCPAtInstant(other, instant)
 
         if user1CP < user.getCurvilinearPositionAtInstant(instant)[0]:
             if user2CP < other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X1', None, None
+                return 'X1', None
             else:
-                return 'X3', user, None
+                return 'X3', user
 
         elif user1CP >= user.getCurvilinearPositionAtInstant(instant)[0]:
             if user2CP > other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X2', None, None
+                return 'X2', None
             else:
-                return 'X3', other, None
+                return 'X3', other
 
-    def exit(self, user, instant):
+    def exit(self, user):
         self.users.remove(user)
-        # user.timeInterval.last -= 2
         self.completed.append(user)
 
 
