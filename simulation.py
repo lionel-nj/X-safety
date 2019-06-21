@@ -57,6 +57,7 @@ class Simulation(object):
                                          world=world)
 
         world.duplicateLastVelocities()
+        world.exit(i)
 
 
 if __name__ == "__main__":

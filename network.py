@@ -128,7 +128,6 @@ class Alignment:
                 user.currentAlignment = self.connectedAlignments[0]
                 return self.connectedAlignments[0], nextPosition%self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
             else:
-                # world.exit(user)
                 return None, None
         else:  # si on reste sur l'alignement
             return self, nextPosition
@@ -297,6 +296,9 @@ class World:
         for u in self.users:
             if u.timeInterval is not None:
                 u.plotCurvilinearPositions()
+        for u in self.completed:
+            if u.timeInterval is not None:
+                u.plotCurvilinearPositions()
         plt.xlabel('time ({}s)'.format(timeStep))
         plt.ylabel('longitudinal coordinate (m)')
         plt.show()
@@ -383,33 +385,6 @@ class World:
                     users[ui.idx].append(user)
         return users
 
-    def getVisitedAlignmentsCumulatedDistance(self, user):
-        """returns total length of the alignment the user had been assigned to """
-        visitedAlignmentsIndices = list(set(user.curvilinearPositions.lanes))
-        visitedAlignmentsCumulativeDistance = 0
-        for alignmentIdx in visitedAlignmentsIndices:
-            visitedAlignmentsCumulativeDistance += self.getAlignmentById(alignmentIdx).getCumulativeDistances(-1)
-
-        return visitedAlignmentsCumulativeDistance
-
-    def getUserDistanceOnAlignmentAt(self, user, t):
-        """returns the travelled distance of an user on its current alignment"""
-        visitedAlignments = list(set(user.curvilinearPositions.lanes[:(t - user.getFirstInstant() + 1)]))
-        visitedAlignments.remove(user.curvilinearPositions.lanes[t - user.getFirstInstant()])
-        s = 0
-        for indices in visitedAlignments:
-            s += self.getAlignmentById(indices).getCumulativeDistances(-1)
-        userCurvilinearPositionAt = user.getCurvilinearPositionAtInstant(t)[0]
-        return userCurvilinearPositionAt - s
-
-    def occupiedAlignmentLength(self, user):
-        """return the total length of the alignment occupied by an user = its last position"""
-        if user.curvilinearPositions is not None:
-            alignmentIdx = user.curvilinearPositions.getLaneAt(-1)
-            return self.getAlignmentById(alignmentIdx).getCumulativeDistances(-1)
-        else:
-            return user.initialAlignmentIdx
-
     @staticmethod
     def hasBeenOnAlignment(user, alignmentIdx):
         """determines if a vehicles has circulated on an alignment"""
@@ -452,7 +427,6 @@ class World:
                 self.getAlignmentById(ui.alignmentIdx).entryNode = self.getAlignmentById(ui.alignmentIdx).idx + 1
                 self.getAlignmentById(ui.alignmentIdx).exitNode = centerNode
 
-
     def initGraph(self):
         """sets graph attribute to self"""
         G = nx.Graph()
@@ -480,7 +454,6 @@ class World:
                 user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                 user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
                 if user1AlignmentIdx == user2AlignmentIdx:
-
                     return abs(user1.getDistanceFromOriginAtInstant(instant, self)[0] - user2.getDistanceFromOriginAtInstant(instant, self)[0]) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
@@ -775,10 +748,12 @@ class World:
             else:
                 return 'X3', other
 
-    def exit(self, user):
-        self.users.remove(user)
-        self.completed.append(user)
-
+    def exit(self, lastInstant):
+        for u in self.users:
+            if u.timeInterval is not None:
+                if u.getLastInstant() != lastInstant:
+                    self.completed.append(u)
+                    self.users.remove(u)
 
 
 class UserInput:
