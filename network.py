@@ -479,33 +479,31 @@ class World:
             if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                 user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
                 user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
-
                 if user1AlignmentIdx == user2AlignmentIdx:
-                    oldest, youngest = user1.orderUsersByFirstInstant(user2)
-                    return self.getUserDistanceOnAlignmentAt(oldest, instant) - self.getUserDistanceOnAlignmentAt(youngest, instant) - oldest.geometry
 
+                    return abs(user1.getDistanceFromOriginAtInstant(instant, self)[0] - user2.getDistanceFromOriginAtInstant(instant, self)[0]) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
-                    user1UpstreamDistance = user1.getDistanceFromOriginAtInstant(instant)
+                    user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
                     user1DownstreamDistance = self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user1UpstreamDistance
-                    user2UpstreamDistance = user2.getDistanceFromOriginAtInstant(instant)
+                    user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
                     user2DownstreamDistance = self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user2UpstreamDistance
 
                     G = self.graph
 
-                    G.add_node(user1)
-                    G.add_node(user2)
+                    G.add_node('user1')
+                    G.add_node('user2')
 
                     user1Origin = self.getAlignmentById(user1AlignmentIdx).entryNode
                     user1Target = self.getAlignmentById(user1AlignmentIdx).exitNode
                     user2Origin = self.getAlignmentById(user2AlignmentIdx).entryNode
                     user2Target = self.getAlignmentById(user2AlignmentIdx).exitNode
 
-                    G.add_weighted_edges_from([(user1Origin, user1, user1UpstreamDistance)])
-                    G.add_weighted_edges_from([(user1, user1Target, user1DownstreamDistance)])
+                    G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
+                    G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
 
-                    G.add_weighted_edges_from([(user2Origin, user2, user2UpstreamDistance)])
-                    G.add_weighted_edges_from([(user2, user2Target, user2DownstreamDistance)])
-                    distance = nx.shortest_path_length(G, source=user1, target=user2, weight='weight')
+                    G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
+                    G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
+                    distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
                     situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
                     if situation == 'CF':
@@ -518,8 +516,8 @@ class World:
                     elif situation == 'X3':
                         distance -= pastCP.geometry
 
-                    G.remove_node(user1)
-                    G.remove_node(user2)
+                    G.remove_node('user1')
+                    G.remove_node('user2')
                     return distance
         else:
             print('user do not coexist, therefore can not compute distance')
