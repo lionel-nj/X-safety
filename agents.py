@@ -51,6 +51,22 @@ class NewellMovingObject(moving.MovingObject):
         G.remove_node(self)
         return [distance, s[1], s[2]]
 
+    def getDistanceFromOriginAt(self, idx, world):
+        G = world.graph
+        G.add_node(self)
+        s = self.getCurvilinearPositionAt(idx)
+        upstreamDistance = s[0]
+        downstreamDistance = self.currentAlignment.getCumulativeDistances(-1) - upstreamDistance
+
+        entryNode = world.getAlignmentById(s[2]).entryNode
+        exitNode = world.getAlignmentById(s[2]).exitNode
+
+        G.add_weighted_edges_from([(entryNode, self, upstreamDistance)])
+        G.add_weighted_edges_from([(self, exitNode, downstreamDistance)])
+        distance = nx.shortest_path_length(G, source=world.getAlignmentById(self.initialAlignmentIdx).entryNode, target=self, weight='weight')
+        G.remove_node(self)
+        return [distance, s[1], s[2]]
+
     def interpolateCurvilinearPositions(self, t, world):
         '''Linear interpolation of curvilinear positions, t being a float'''
         if hasattr(self, 'curvilinearPositions'):
@@ -103,7 +119,7 @@ class NewellMovingObject(moving.MovingObject):
                     self.curvilinearVelocities = moving.CurvilinearTrajectory()
 
         else:
-            s = self.getCurvilinearPositionAt(-1)
+            s = self.getDistanceFromOriginAt(-1, world)
             s1 = s[0]
             freeFlowCoord = s1 + self.desiredSpeed * timeStep
             if self.leader is None:
@@ -122,7 +138,8 @@ class NewellMovingObject(moving.MovingObject):
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep, world)[0] - self.d
                 else:
                     constrainedCoord = freeFlowCoord
-
+                # if self.num == 1:
+                #     print(self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep, world)[0] - self.d, freeFlowCoord, constrainedCoord, instant)
                 s2 = min(freeFlowCoord, constrainedCoord)
 
                 nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2)

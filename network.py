@@ -113,27 +113,31 @@ class Alignment:
         else:
             return False
 
-    def getUsersNum(self):
-        """returns a user by its num"""
-        usersNum = []
-        for user in self.vehicles:
-            usersNum.append(user.num)
-        return usersNum
-
     def getNextAlignment(self, user, nextPosition):
-        # visitedAlignmentsLength = user.visitedAlignmentsLength
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
-        if deltap < 0:  # si on est sorti de l'alignement
-            if self.connectedAlignments is not None:
+        if self.connectedAlignments is not None:
+            if deltap < 0:  # si on est sorti de l'alignement
                 user.currentAlignment = self.connectedAlignments[0]
-                return self.connectedAlignments[0], nextPosition%self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
-            else:
-                return None, None
-        else:  # si on reste sur l'alignement
-            return self, nextPosition
+                return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+            else:  # si on reste sur l'alignement
+                return self, nextPosition
+        else:
+            if deltap >= 0:  # si on reste sur l'alignement'
+                return self, nextPosition
+            else:  # si on est sorti de l'alignement
+                if nextPosition <= self.getCumulatedAlignmentDistances():
+                    return self, nextPosition % (self.getCumulatedAlignmentDistances() - user.currentAlignment.getCumulativeDistances(-1))
+                else:
+                    return None, None
+
+    def getControlDevice(self):
+        return self.controlDevice
 
     def getCumulativeDistances(self, idx):
         return self.points.cumulativeDistances[idx]
+
+    def getCumulatedAlignmentDistances(self):
+        return self.cumulatedAlignmentDistances
 
 
 class ControlDevice:
@@ -157,8 +161,7 @@ class ControlDevice:
 
 class TrafficLight(ControlDevice):
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
-        #category = 2
-        super(TrafficLight,self).__init__(idx, alignmentIdx)
+        super(TrafficLight, self).__init__(idx, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
@@ -210,13 +213,20 @@ class TrafficLight(ControlDevice):
         self.remainingAmber = copy.deepcopy(self.amberTime)
         self.remainingGreen = copy.deepcopy(self.greenTime)
 
+    def permissionToGo(self, instant):
+        if self.state == 'green':
+            return True
+        elif self.state == 'amber':
+            return True
+        else:
+            return False
+
 
 class StopSign(ControlDevice):
-    def __init__(self, idx, alignmentIdx, timeAtStop):
-        #category = 1
+    def __init__(self, idx, alignmentIdx, stopDuration):
         super(StopSign, self).__init__(idx, alignmentIdx)
         self.user = None
-        self.timeAtStop = timeAtStop
+        self.stopDuration = stopDuration
 
     def cycle(self, timeStep):
         pass
@@ -225,8 +235,15 @@ class StopSign(ControlDevice):
         pass
 
     def reset(self):
-        self.userTimeAtStop = 0
         self.user = None
+
+    def permissionToGo(self, instant):
+        if instant < self.user.arrivalInstant + self.stopDuration:
+            return False
+        else:
+            self.user = None
+            return True
+
 
 
 class YieldSign(ControlDevice):
@@ -241,6 +258,9 @@ class YieldSign(ControlDevice):
         pass
 
     def reset(self):
+        pass
+
+    def permissionToGo(self, instant):
         pass
 
 # class ETC(ControlDevice):
@@ -544,7 +564,9 @@ class World:
         for al in self.alignments:
             al.connectedAlignments = []
             if al.connectedAlignmentIndices is not None:
+                al.cumulatedAlignmentDistances = al.getCumulativeDistances(-1)
                 for connectedAlignments in al.connectedAlignmentIndices:
+                    self.getAlignmentById(connectedAlignments).cumulatedAlignmentDistances = al.cumulatedAlignmentDistances + self.getAlignmentById(connectedAlignments).getCumulativeDistances(-1)
                     al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
             else:
                 al.connectedAlignments = None

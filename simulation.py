@@ -51,6 +51,7 @@ class Simulation(object):
 
             for u in world.users:
                 # if u.num == 0 or u.num == 1:
+                # print(u.num, i)
                 u.getUserCurrentAlignment(world)
                 u.updateCurvilinearPositions(instant=i,
                                          timeStep=self.timeStep,
