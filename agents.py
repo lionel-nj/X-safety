@@ -138,10 +138,7 @@ class NewellMovingObject(moving.MovingObject):
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep, world)[0] - self.d
                 else:
                     constrainedCoord = freeFlowCoord
-                # if self.num == 1:
-                #     print(self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep, world)[0] - self.d, freeFlowCoord, constrainedCoord, instant)
                 s2 = min(freeFlowCoord, constrainedCoord)
-
                 nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2)
                 if nextAlignment is not None:
                     nextAlignmentIdx = nextAlignment.idx

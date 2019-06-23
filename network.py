@@ -245,7 +245,6 @@ class StopSign(ControlDevice):
             return True
 
 
-
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
         #category = 3
@@ -588,9 +587,6 @@ class World:
         # linking self to its graph
         self.initGraph()
 
-        # initializing a lisf of users that are no longer computed to empty
-        self.completed = []
-
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
         return self.getIntersectionCP(alIdx)
@@ -771,11 +767,8 @@ class World:
                 return 'X3', other
 
     def exit(self, lastInstant):
-        for u in self.users:
-            if u.timeInterval is not None:
-                if u.getLastInstant() != lastInstant:
-                    self.completed.append(u)
-                    self.users.remove(u)
+        self.completed = [u for u in self.users if u.timeInterval is not None and u.getLastInstant() != lastInstant]
+        self.users = [u for u in self.users if u.timeInterval is None or u.getLastInstant == lastInstant]
 
 
 class UserInput:
