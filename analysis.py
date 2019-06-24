@@ -220,6 +220,7 @@ def evaluateSimpleModel(world, sim):
 
 
 def evaluateModel(world, sim, seed, file, zoneArea=None):
+    # todo : a revoir,
     interactions = {}
     usersCount = {}
     if zoneArea is not None:
