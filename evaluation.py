@@ -1,7 +1,5 @@
 import argparse
 
-import pandas
-
 import analysis
 import network
 import simulation
@@ -14,19 +12,17 @@ parser.add_argument("--tau", type=float, help="mean tau")
 parser.add_argument("--l", type=float, help="mean vehicle length")
 parser.add_argument("--duration", type=int, help="duration")
 parser.add_argument("--seed", type=int, help="seed")
+parser.add_argument("--increment", type=int, help="seed increment")
+parser.add_argument("--headways", type=list, help="list of headways to try")
 args = parser.parse_args()
 
-headways = [1.5, 1.8, 2.1, 2.4]
-seeds = [k for k in range(0, 25)]
-
-for h in headways:
-
+seeds = [k for k in range(args.seed, args.increment*25+1, args.increment)]
+for h in args.headways:
     for seed in seeds:
-
         sim = simulation.Simulation.load('config.yml')
         sim.duration = args.duration
         sim.seed = seed
-        world = network.World.load('cross-net.yml')
+        world = network.World.load('simple-net.yml')
 
         world.userInputs[1].distributions['headway'].scale = h - 1
         world.userInputs[0].distributions['speed'].loc = args.speed
@@ -34,16 +30,6 @@ for h in headways:
         world.userInputs[0].distributions['tau'].loc = args.tau
         world.userInputs[0].distributions['length'].loc = args.l
 
-        simOutput = analysis.evaluateModel2(world, sim, seed, '1eval')
-
-        ttc = simOutput[0]
-        pet = simOutput[-1]
-
-        data = pandas.DataFrame(data=[ttc, pet],
-                                index=['ttc', 'pet'])
-        if len(world.alignments) > 2:
-            data.to_csv('outputData/evaluation1rep-crossing-h={}-seed={}.csv'.format(h, seed))
-        else:
-            data.to_csv('outputData/evaluation1rep-CF-h={}-seed={}.csv'.format(h, seed))
-
+        analysis.evaluateModel(world, sim, 'simple-net')
+analysis.gatherAllSeedsModelEvaluation(seeds, args.headways, 'simple-net')
 toolkit.callWhenDone()

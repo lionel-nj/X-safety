@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas
-from trafficintelligence import moving, events, utils
+import pandas as pd
+from trafficintelligence import moving, utils
 
+import events
 import toolkit
 
 
@@ -82,29 +83,29 @@ def timeToCollision(user, world, X):
     return ttc
 
 
-def countInteractions(distance, interactions, analysisZone):
-    interactionNumber = {}
+def countInteractions(distance, interactions, analysisZone=None):
     number = []
-    for seed in interactions:
-        for inter in interactions[seed]:
-            if analysisZone is not None:
-                if (analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1) is not None and
-                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2) is not None):
-                    timeInterval = moving.TimeInterval.intersection(
-                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser1),
-                        analysisZone.getUserTimeIntervalInAZ(interactions[seed][inter][0].roadUser2))
-                else:
-                    timeInterval = None
-                if timeInterval is not None:
-                    val = interactions[seed][inter][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
-                    if not (None in val):
-                        number.append(len(toolkit.groupOnCriterion(val, distance)))
-            else:
-                number.append(len(
-                    toolkit.groupOnCriterion(interactions[seed][inter][0].indicators['Distance'].values.values(),
-                                             distance)))
-        interactionNumber[seed] = np.sum(number)
-    return interactionNumber
+    duration = []
+    for key in interactions:
+        if analysisZone is not None:
+            pass
+            # if (analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser1) is not None and
+            #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser2) is not None):
+            #     timeInterval = moving.TimeInterval.intersection(
+            #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser1),
+            #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser2))
+            # else:
+            #     timeInterval = None
+            # if timeInterval is not None:
+            #     val = interactions[key][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
+            #     if not (None in val):
+            #         number.append(len(toolkit.groupOnCriterion(val, distance)))
+        else:
+            number.append(len(toolkit.groupOnCriterion(interactions[key].indicators['Distance'].values.values(), distance)))
+            for item in toolkit.groupOnCriterion(interactions[key].indicators['Distance'].values.values(), distance):
+                duration.append(len(item))
+    interactionNumber = np.sum(number)
+    return interactionNumber, duration
 
 
 def postEncroachmentTimeAtInstant(user, t, world):
@@ -146,24 +147,70 @@ def postEncroachmentTime(user, world):
     return pet
 
 
-def getDistance(val, interactions, seeds):
-    distance = {}  # liste des distances minimales pour chaque repetition de simulation
-    if val == 'min':
-        for seed in seeds:
-            distance[seed] = []
-            for inter in interactions[seed]:
-                distance[seed].append(min(interactions[seed][inter][0].indicators['Distance'].values.values()))
-            distance[seed] = np.mean(distance[seed])
+# def getDistance(val, interactions, seeds):
+#     distance = {}  # liste des distances minimales pour chaque repetition de simulation
+#     if val == 'min':
+#         for seed in seeds:
+#             distance[seed] = []
+#             for inter in interactions[seed]:
+#                 distance[seed].append(min(interactions[seed][inter][0].indicators['Distance'].values.values()))
+#             distance[seed] = np.mean(distance[seed])
+#
+#     if val == 'mean':
+#         for seed in seeds:
+#             distance[seed] = []
+#             for inter in interactions[seed]:
+#                 distance[seed].append(
+#                     np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
+#             distance[seed] = np.mean(distance[seed])
+#
+#     return distance
 
-    if val == 'mean':
-        for seed in seeds:
-            distance[seed] = []
-            for inter in interactions[seed]:
-                distance[seed].append(
-                    np.mean(list(interactions[seed][inter][0].indicators['Distance'].values.values())))
-            distance[seed] = np.mean(distance[seed])
 
-    return distance
+def evaluateSimpleModel(world, sim):
+    # todo : a tester
+    interactions = {}
+    sim.run(world)
+
+    for user in world.completed[1:] + world.users:
+        roadUser1 = user.leader
+        roadUser2 = user
+        i = events.Interaction(roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+        i.computeDistance(world)
+        i.computeTTC()
+        interactions[(roadUser1.num, roadUser2.num)] = i
+
+    minTTCValues = {}
+    minDistanceValues = {}
+    meanDistanceValues = {}
+    for key in interactions:
+        ttcList = toolkit.groupOnCriterion(interactions[key].indicators['Time to Collision'].values.values(), 20)
+        if ttcList != []:
+            minTTCValues[key] = []
+        for value in ttcList:
+            minTTCValues[key].append(min(value))
+        minDistanceValues[key] = min(interactions[key].indicators['Distance'].values.values())
+        meanDistanceValues[key] = np.mean(list(interactions[key].indicators['Distance'].values.values()))
+
+    interactionNumber5, duration5 = countInteractions(5, interactions)
+    interactionNumber10, duration10 = countInteractions(10, interactions)
+    interactionNumber15, duration15 = countInteractions(15, interactions)
+
+    ttcData = pd.DataFrame.from_dict(minTTCValues, orient='index').transpose()
+    minDistanceData = pd.DataFrame.from_dict(minDistanceValues, orient='index')
+    meanDistanceData = pd.DataFrame.from_dict(meanDistanceValues, orient='index')
+    interactionNumber = pd.DataFrame.from_dict({5: interactionNumber5,
+                                                10: interactionNumber10,
+                                                15: interactionNumber15}, orient='index')
+    interactionDuration = pd.DataFrame.from_dict({5: duration5,
+                                                 10: duration10,
+                                                 15: duration15}, orient='index').transpose()
+
+    ttcData.to_csv('outputData/single-evaluations/ttc/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
+    minDistanceData.to_csv('outputData/single-evaluations/minDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
+    meanDistanceData.to_csv('outputData/single-evaluations/meanDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
+    interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
+    interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
 
 
 def evaluateModel(world, sim, seed, file, zoneArea=None):
@@ -278,6 +325,7 @@ def evaluateModel(world, sim, seed, file, zoneArea=None):
     return meanTTCminCF, list(minDistance.values())[0], list(meanDistance.values())[0], len(usersCount[seed]), \
            list(interactionNumber5.values())[0], list(interactionNumber10.values())[0], list(interactionNumber15.values())[
                0], meanPETmin, meanTTCminX
+
 
 class AnalysisZone:
     def __init__(self, world, area):
