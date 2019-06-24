@@ -17,7 +17,28 @@ parser.add_argument("--headways", type=list, help="list of headways to try")
 args = parser.parse_args()
 
 seeds = [k for k in range(args.seed, args.increment*25+1, args.increment)]
+
+ttc = {}
+minDistanceValues = {}
+meanDistanceValues = {}
+interactionNumber5 = {}
+interactionNumber10 = {}
+interactionNumber15 = {}
+duration5 = {}
+duration10 = {}
+duration15 = {}
+
 for h in args.headways:
+    ttc[h] = dict()
+    minDistanceValues[h] = dict
+    meanDistanceValues[h] = dict()
+    interactionNumber5[h] = dict()
+    interactionNumber10[h] = dict()
+    interactionNumber15[h] = dict()
+    duration5[h] = dict()
+    duration10[h] = dict()
+    duration15[h] = dict()
+
     for seed in seeds:
         sim = simulation.Simulation.load('config.yml')
         sim.duration = args.duration
@@ -30,6 +51,6 @@ for h in args.headways:
         world.userInputs[0].distributions['tau'].loc = args.tau
         world.userInputs[0].distributions['length'].loc = args.l
 
-        analysis.evaluateModel(world, sim, 'simple-net')
-analysis.gatherAllSeedsModelEvaluation(seeds, args.headways, 'simple-net')
+        ttc[h][seed],  minDistanceValues[h][seed], meanDistanceValues[h][seed], interactionNumber5[h][seed], interactionNumber10[h][seed], interactionNumber15[h][seed], \
+            duration5[h][seed], duration10[h][seed], duration15[h][seed] = analysis.evaluateSimpleModel(world, sim)
 toolkit.callWhenDone()

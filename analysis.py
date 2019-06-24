@@ -212,6 +212,12 @@ def evaluateSimpleModel(world, sim):
     interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
     interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
 
+    ttc = []
+    for key in list(ttcData.keys()):
+        ttc.append(min(ttcData[key]))
+
+    return ttc, list(minDistanceValues.values()), list(meanDistanceValues.values()), interactionNumber5, interactionNumber10, interactionNumber15, duration5, duration10, duration15
+
 
 def evaluateModel(world, sim, seed, file, zoneArea=None):
     interactions = {}
