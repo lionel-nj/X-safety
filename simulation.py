@@ -37,23 +37,23 @@ class Simulation(object):
                     ui.alignment = al
             ui.initDistributions()
             ui.generateHeadways(self.duration)
-        
+
         world.prepare()
         userNum = 0
         world.users = []
         for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
-            # if world.controlDevices is not None:
-               # for cd in world.controlDevices:
-               #     cd.cycle(self.timeStep)
+            if world.controlDevices is not None:
+                for cd in world.controlDevices:
+                    cd.cycle(self.timeStep)
             userNum = world.initUsers(i, self.timeStep, userNum)
 
             for u in world.users:
                 u.getUserCurrentAlignment(world)
                 u.updateCurvilinearPositions(instant=i,
-                                         timeStep=self.timeStep,
-                                         world=world)
+                                             timeStep=self.timeStep,
+                                             world=world)
 
         world.duplicateLastVelocities()
         world.exit(i)

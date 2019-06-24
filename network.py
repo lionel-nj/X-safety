@@ -113,12 +113,20 @@ class Alignment:
         else:
             return False
 
-    def getNextAlignment(self, user, nextPosition):
+    def getNextAlignment(self, user, nextPosition, instant):
         deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
         if self.connectedAlignments is not None:
             if deltap < 0:  # si on est sorti de l'alignement
-                user.currentAlignment = self.connectedAlignments[0]
-                return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                if self.controlDevice is not None:
+                    self.controlDevice.user = user
+                    if self.controlDevice.permissionToGo(instant): # si le control device donne la permission de passer
+                        user.currentAlignment = self.connectedAlignments[0]
+                        return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                    else: # sinon  on reste au niveau du control device
+                        return self, self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
+                else:
+                    user.currentAlignment = self.connectedAlignments[0]
+                    return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)
             else:  # si on reste sur l'alignement
                 return self, nextPosition
         else:
@@ -187,19 +195,19 @@ class TrafficLight(ControlDevice):
     def cycle(self, timeStep):
         """ displays the current state for a TrafficLight object for the duration of state"""
         if self.state == 'green':
-            if self.remainingGreen > 1:
+            if self.remainingGreen > 0:
                 self.remainingGreen -= timeStep
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime
         elif self.state == 'red':
-            if self.remainingRed > 1:
+            if self.remainingRed > 0:
                 self.remainingRed -= timeStep
             else:
                 self.switch()
                 self.remainingRed = self.redTime
         else:
-            if self.remainingAmber > 1:
+            if self.remainingAmber > 0:
                 self.remainingAmber -= timeStep
             else:
                 self.switch()
@@ -238,6 +246,8 @@ class StopSign(ControlDevice):
         self.user = None
 
     def permissionToGo(self, instant):
+        if not hasattr(self.user, 'arrivalInstant'):
+            self.user.arrivalInstant = instant
         if instant < self.user.arrivalInstant + self.stopDuration:
             return False
         else:
@@ -247,7 +257,6 @@ class StopSign(ControlDevice):
 
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
-        #category = 3
         super(YieldSign, self).__init__(idx, alignmentIdx)
 
     def cycle(self):
@@ -768,8 +777,7 @@ class World:
 
     def exit(self, lastInstant):
         self.completed = [u for u in self.users if u.timeInterval is not None and u.getLastInstant() != lastInstant]
-        self.users = [u for u in self.users if u.timeInterval is None or u.getLastInstant == lastInstant]
-
+        self.users = list(filter(lambda u: not u in self.completed and u.timeInterval is not None, self.users))
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):

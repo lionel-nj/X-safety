@@ -40,7 +40,7 @@ class NewellMovingObject(moving.MovingObject):
         G.add_node(self)
         s = self.getCurvilinearPositionAtInstant(instant)
         upstreamDistance = s[0]
-        downstreamDistance = self.currentAlignment.getCumulativeDistances(-1) - upstreamDistance
+        downstreamDistance = world.getAlignmentById(s[2]).getCumulativeDistances(-1) - upstreamDistance
 
         entryNode = world.getAlignmentById(s[2]).entryNode
         exitNode = world.getAlignmentById(s[2]).exitNode
@@ -125,7 +125,7 @@ class NewellMovingObject(moving.MovingObject):
             if self.leader is None:
                 if self.getLastInstant() < instant:
                     s2 = freeFlowCoord
-                    nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2)
+                    nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2, instant)
                     if nextAlignment is not None:
                         nextAlignmentIdx = nextAlignment.idx
                         self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
@@ -139,7 +139,7 @@ class NewellMovingObject(moving.MovingObject):
                 else:
                     constrainedCoord = freeFlowCoord
                 s2 = min(freeFlowCoord, constrainedCoord)
-                nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2)
+                nextAlignment, s2 = self.currentAlignment.getNextAlignment(self, s2, instant)
                 if nextAlignment is not None:
                     nextAlignmentIdx = nextAlignment.idx
                     self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignmentIdx)
