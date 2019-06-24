@@ -221,7 +221,7 @@ class TrafficLight(ControlDevice):
         self.remainingAmber = copy.deepcopy(self.amberTime)
         self.remainingGreen = copy.deepcopy(self.greenTime)
 
-    def permissionToGo(self, instant):
+    def permissionToGo(self):
         if self.state == 'green':
             return True
         elif self.state == 'amber':
@@ -342,54 +342,33 @@ class World:
 
     def getAlignmentById(self, idx):
         """get an alignment given its id"""
-        try:
-            idList = [el.idx for el in self.alignments]
-            if idx not in idList:
-                print('wrong alignment index({})'.format(idx))
-                print(idx)
-            else:
-                for al in self.alignments:
-                    if al.idx == idx:
-                        return al
-        except:
-            print('alignment idx does not match any existing alignment')
-            return None
+        for al in self.alignments:
+            if al.idx == idx:
+                return al
+        print('alignment idx does not match any existing alignment')
+        return None
 
     def getControlDeviceById(self, idx):
         """get an control device given its id"""
-        try:
-            idList = [el.idx for el in self.controlDevices]
-            if idx not in idList:
-                print('wrong controlDevice index({})'.format(idx))
-            else:
-                for cd in self.controlDevices:
-                    if cd.idx == idx:
-                        return cd
-        except:
-            print('controlDeviceIdx does not match any existing control device')
-            return None
+        for cd in self.controlDevices:
+            if cd.idx == idx:
+                return cd
+        print('controlDeviceIdx does not match any existing control device')
+        return None
 
     def getUserInputById(self, idx):
         """get an user input given its id"""
-        try:
-            idList = [el.idx for el in self.userInputs]
-            if idx not in idList:
-                print('wrong userInput index({})'.format(idx))
-            else:
-                for ui in self.userInputs:
-                    if ui.idx == idx:
-                        return ui
-        except:
-            print('userInputsIdx does not match any existing alignment')
-            return None
+        for ui in self.userInputs:
+            if ui.idx == idx:
+                return ui
+        print('userInputsIdx does not match any existing alignment')
+        return None
 
     def getUserByNum(self, userNum):
         """returns an user given its num"""
-        userNums = []
-        for user in self.users:
-            userNums.append(user.num)
-        idx = userNums.index(userNum)
-        return self.users[idx]
+        for user in self.users + self.completed:
+            if user.num == userNum:
+                return user
 
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users """
@@ -430,15 +409,6 @@ class World:
             else:
                 s = 0
         return s
-
-    def isFirstGeneratedUser(self, user):
-        """determines if an user is the first one that has been computed"""
-        for userInput in self.userInputs:
-            if not userInput.isFirstGeneratedUser(user):
-                pass
-            else:
-                return True
-        return False
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
@@ -835,19 +805,6 @@ class UserInput:
             obj.leader = self.lastGeneratedUser
         self.lastGeneratedUser = obj
         return obj
-
-    def getUserByNum(self, num):
-        """gets an user by its id"""
-        for user in self.alignment.vehicles:
-            if user.num == num:
-                return user
-
-    def isFirstGeneratedUser(self, user):
-        """determines if an user is the first that has been computed"""
-        if self.alignment.vehicles:
-            return True
-        else:
-            return self.alignment.vehicles[0].num == user.num
 
 
 class CarGeometry:

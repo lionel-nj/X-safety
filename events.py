@@ -215,6 +215,15 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
 
+    def computeTTC(self):
+        ttc = {}
+        for instant in self.timeInterval:
+            v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+            v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0]
+            if v1 < v2:
+                ttc[instant] = self.indicators['Distance'].values[instant]/(v2-v1)
+        self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
+
 
     def computeIndicators(self, world=None, alignment1=None, alignment2=None):
         '''Computes the collision course cosine only if the cosine is positive'''
