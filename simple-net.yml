@@ -4,8 +4,7 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
   - 1
-  controlDeviceIndices:
-  - 0
+  controlDeviceIndices: null
   idx: 0
   movementProportions:
     - 1
@@ -35,12 +34,7 @@ alignments:
       - 0.0
   width: null
 
-controlDevices:
-- !!python/object:network.StopSign
-  alignmentIdx: 0
-  category: 1
-  idx: 0
-  stopDuration: 40
+controlDevices: null
 
 
 userInputs:
