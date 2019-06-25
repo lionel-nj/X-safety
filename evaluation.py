@@ -1,5 +1,7 @@
 import argparse
 
+import pandas as pd
+
 import analysis
 import network
 import simulation
@@ -53,4 +55,10 @@ for h in args.headways:
 
         ttc[h][seed],  minDistanceValues[h][seed], meanDistanceValues[h][seed], interactionNumber5[h][seed], interactionNumber10[h][seed], interactionNumber15[h][seed], \
             duration5[h][seed], duration10[h][seed], duration15[h][seed] = analysis.evaluateSimpleModel(world, sim)
+
+data = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, interactionNumber5, interactionNumber10, interactionNumber15, duration5, duration10, duration15],
+                    index=['TTC', 'minDistance', 'meanDistance', 'interactionNumber5', 'interactionNumber10', 'interactionNumber15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+
+data.to_csv('outputData/stabilization-data/data.csv')
+
 toolkit.callWhenDone()
