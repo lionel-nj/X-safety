@@ -49,7 +49,7 @@ class Alignment:
         alignmentDistance = self.getTotalDistance()
         if nextS <= alignmentDistance:
             return [self], nextS
-        elif self.connectedAlignments is not None:
+        elif self.getConnectedAlignments() is not None:
             # TODO use proportions at connection
             # TODO check control devices
             cd = self.getControlDevice()
@@ -86,6 +86,8 @@ class Alignment:
     def getConnectedAlignmentIndices(self):
         return self.connectedAlignmentIndices
 
+    def getConnectedAlignments(self):
+        return self.connectedAlignments
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...

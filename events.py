@@ -218,6 +218,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
     def computeTTC(self):
         ttc = {}
         for instant in self.timeInterval:
+            self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
             v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
             v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0]
             if v1 < v2:
