@@ -43,88 +43,6 @@ class Alignment:
     def plot(self, options='', **kwargs):
         self.points.plot(options, **kwargs)
 
-    def build(self, entryPoint, exitPoint, others=None):
-        """builds an alignments from points,
-         entryPoint and exitPoint : moving.Point
-         others : list of intermediate moving.points"""
-
-        if others is None:
-            self.points = moving.Trajectory.fromPointList([entryPoint, exitPoint])
-        else:
-            self.points = moving.Trajectory.fromPointList([entryPoint] + others + [exitPoint])
-
-    def addPoint(self, x, y):
-        self.points.addPositionXY(x, y)
-
-    def setPoint(self, i, x, y):
-        self.points.setPositionXY(i, x, y)
-
-    def insertPointAt(self, p, i):
-        """inserts a moving.Point p at index i """
-        previousPart = moving.Trajectory()
-
-        for k in range(0, i):
-            previousPart.addPosition(self.points[k])
-
-        previousPart.addPosition(p)
-
-        for k in range(i, len(self.points)):
-            previousPart.addPosition(self.points[k])
-
-        self.points = previousPart
-
-    @staticmethod
-    def isBetween(a, b, c):
-        return moving.Point.distanceNorm2(a, c) + moving.Point.distanceNorm2(c, b) == moving.Point.distanceNorm2(a, b)
-
-    def isConnectedTo(self, other):
-        """boolean, detemines if two alignments are connected"""
-        if other.idx in self.connectedAlignmentIndices or self.idx in other.connectedAlignmentIndices:
-            return True
-        else:
-            return False
-
-    def getPoint(self, i):
-        """returns i-th point of an alignment"""
-        return self.points[i]
-
-    def getFirstPoint(self):
-        "returns the first point of an alignment"
-        return self.points[0]
-
-    def getLastPoint(self):
-        "returns the last point of an alignment"
-        return self.points[-1]
-
-    def isStartOf(self, point):
-        "boolean : True if a moving.Point is the first point of an alignment"
-        if self.getFirstPoint().x == point.x and self.getFirstPoint().y == point.y:
-            return True
-        else:
-            return False
-
-    def isEndOf(self, point):
-        "boolean : True if a moving.Point is the last point of an alignment"
-
-        if self.getLastPoint().x == point.x and self.getLastPoint().y == point.y:
-            return True
-        else:
-            return False
-
-    def addUserToAlignment(self, user):
-        """adds an user to self.vehicles or self.user """
-        if self.vehicles:
-            self.vehicles.append(user)
-        else:
-            self.vehicles = [user]
-
-    def isReachableFrom(self, other):
-        """returns boolean, True if an alignment is reachable from another one"""
-        if other.connectedAlignmentIndices is not None:
-            return self.idx in other.connectedAlignmentIndices
-        else:
-            return False
-
     def getNextAlignment(self, nextS, user, instant):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
         # warning, recursive function
@@ -156,7 +74,7 @@ class Alignment:
     def getTotalDistance(self):
         return self.points.getTotalDistance()
 
-    def getId(self):
+    def getIdx(self):
         return self.idx
 
     def getEntryNode(self):
@@ -201,9 +119,9 @@ class TrafficLight(ControlDevice):
         self.remainingAmber = copy.deepcopy(amberTime)
         self.remainingGreen = copy.deepcopy(greenTime)
 
-    def getStateAtInstant(self, t):
+    def getState(self):
         """ returns art for the current color """
-        return self.states[t]
+        return self.state
 
     def switch(self):
         """ swith state to next state in the sequence """
@@ -261,7 +179,7 @@ class StopSign(ControlDevice):
     def cycle(self, timeStep):
         pass
 
-    def getStateAtInstant(self, t=None):
+    def getState(self):
         pass
 
     def reset(self):
@@ -284,7 +202,7 @@ class YieldSign(ControlDevice):
     def cycle(self):
         pass
 
-    def getStateAtInstant(self, t=None):
+    def getState(self):
         pass
 
     def reset(self):
@@ -369,22 +287,6 @@ class World:
     def getControlDevices(self):
         return self.controlDevices
 
-    def getAlignmentById(self, idx):  # to remove
-        '''Returns an alignment given its id'''
-        return getItemByIdx(self.alignments, idx)
-
-    def getControlDeviceById(self, idx):  # to remove
-        """get an control device given its id"""
-        return getItemByIdx(self.controlDevices, idx)
-
-    def getUserInputById(self, idx):
-        """get an user input given its id"""
-        for ui in self.userInputs:
-            if ui.idx == idx:
-                return ui
-        print('userInputsIdx does not match any existing alignment')
-        return None
-
     def getUserByNum(self, userNum):
         """returns an user given its num"""
         for user in self.users+self.newlyCompleted+self.completed:
@@ -414,38 +316,20 @@ class World:
             self.users.remove(u)
             self.completed.append(u)
 
-    @staticmethod
-    def hasBeenOnAlignment(user, alignmentIdx):
-        """determines if a vehicles has circulated on an alignment"""
-        return alignmentIdx in user.curvilinearPositions.lanes
-
-    def getPreviouslyOccupiedAlignmentsLength(self, user):
-        """returns the length of the alignments a vehicle has previously travelled on """
-        s = 0
-        if user.curvilinearPositions is not None:
-            alignmentIndices = list(set(user.curvilinearPositions.lanes))
-            alignmentIndices.remove(user.curvilinearPositions.lanes[-1])
-            if alignmentIndices != []:
-                for indices in alignmentIndices:
-                    s += self.getAlignmentById(indices).getTotalDistance()
-            else:
-                s = 0
-        return s
-
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
-        al = self.getAlignmentById(self.userInputs[0].getAlignmentIdx())
+        al = self.alignments[self.userInputs[0].getAlignmentIdx()]
         al.entryNode = al.idx
         al.exitNode = al.idx + 1
         if al.connectedAlignmentIndices is not None:
             for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
-                self.getAlignmentById(connectedAlignmentIdx).entryNode = al.exitNode
-                self.getAlignmentById(connectedAlignmentIdx).exitNode = connectedAlignmentIdx + 1
+                self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
+                self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
             centerNode = al.exitNode
         for ui in self.userInputs:
-            if ui.getId() != self.userInputs[0].getId():
-                self.getAlignmentById(ui.getAlignmentIdx()).entryNode = ui.getAlignmentIdx() + 1
-                self.getAlignmentById(ui.getAlignmentIdx()).exitNode = centerNode
+            if ui.getIdx() != self.userInputs[0].getIdx():
+                self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
+                self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
 
     def initGraph(self):
         """sets graph attribute to self"""
@@ -459,9 +343,9 @@ class World:
             for cdIdx, cd in enumerate(self.getControlDevices()):
                 controlDevice = "cd{}".format(cdIdx)
                 G.add_node(controlDevice)
-                origin = self.getAlignmentById(cd.getAlignmentIdx()).getEntryNode()
-                target = self.getAlignmentById(cd.getAlignmentIdx()).getExitNode()
-                weight = self.getAlignmentById(cd.getAlignmentIdx()).getTotalDistance()
+                origin = self.alignments[cd.getAlignmentIdx()].getEntryNode()
+                target = self.alignments[cd.getAlignmentIdx()].getExitNode()
+                weight = self.alignments[cd.getAlignmentIdx()].getTotalDistance()
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
@@ -476,19 +360,19 @@ class World:
                     return abs(user1.getDistanceFromOriginAtInstant(instant, self)[0] - user2.getDistanceFromOriginAtInstant(instant, self)[0]) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
-                    user1DownstreamDistance = self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance() - user1UpstreamDistance
+                    user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
                     user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
-                    user2DownstreamDistance = self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance() - user2UpstreamDistance
+                    user2DownstreamDistance = self.alignments[user2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user2UpstreamDistance
 
                     G = self.graph
 
                     G.add_node('user1')
                     G.add_node('user2')
 
-                    user1Origin = self.getAlignmentById(user1AlignmentIdx).entryNode
-                    user1Target = self.getAlignmentById(user1AlignmentIdx).exitNode
-                    user2Origin = self.getAlignmentById(user2AlignmentIdx).entryNode
-                    user2Target = self.getAlignmentById(user2AlignmentIdx).exitNode
+                    user1Origin = self.alignments[user1AlignmentIdx].entryNode
+                    user1Target = self.alignments[user1AlignmentIdx].exitNode
+                    user2Origin = self.alignments[user2AlignmentIdx].entryNode
+                    user2Target = self.alignments[user2AlignmentIdx].exitNode
 
                     G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
                     G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
@@ -514,34 +398,23 @@ class World:
         else:
             print('user do not coexist, therefore can not compute distance')
 
-    def getLinkedAlignments(self, alignmentIdx):
-        """return the list of all alignments that are un-directly linked to an alignment"""
-        al = self.getAlignmentById(alignmentIdx)
-        linkedAlignments = []
-        if al.connectedAlignmentIndices:
-            for el in al.connectedAlignmentIndices:
-                linkedAlignments.append(el)
-                if self.getAlignmentById(el).connectedAlignmentIndices:
-                    linkedAlignments = linkedAlignments + self.getAlignmentById(el).connectedAlignmentIndices
-        return linkedAlignments
-
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
         if instant is not None:
             alignments = list(set(user.curvilinearPositions.lanes[:instant - user.timeInterval.first]))
             travelledAlignments = []
             for alIndices in alignments:
-                travelledAlignments.append(self.getAlignmentById(alIndices).points)
+                travelledAlignments.append(self.alignments[alIndices].points)
             return travelledAlignments
         else:
             alignments = list(set(user.curvilinearPositions.lanes))
             travelledAlignments = []
             for alIndices in alignments:
-                travelledAlignments.append(self.getAlignmentById(alIndices).points)
+                travelledAlignments.append(self.alignments[alIndices].points)
             return travelledAlignments
 
     def duplicateLastVelocities(self):
-        for user in self.users:
+        for user in self.users + self.completed:
             if user.curvilinearVelocities is not None:
                 if len(user.curvilinearVelocities) > 0:
                     user.curvilinearVelocities.duplicateLastPosition()
@@ -620,13 +493,7 @@ class World:
     def getIntersectionCP(self, alIdx):
         """"returns the curvilinear positions of the crossing point on all its alignments
         alIdx : alignment to project on"""
-        # intersectionCP = self.getAlignmentById(alIdx).getCumulativeDistances(-1
-        # for al in self.alignments:
-        #     if al.connectedAlignmentIndices is not None:
-        #         if alIdx in al.connectedAlignmentIndices:
-        #             intersectionCP += self.getAlignmentById(al.idx).getCumulativeDistances(-1
-        # return intersectionCP
-        al = self.getAlignmentById(alIdx)
+        al = self.alignments[alIdx]
         if al.connectedAlignmentIndices is None:
             return 0
         else:
@@ -634,9 +501,6 @@ class World:
 
     def getIncomingTrafficAlignmentIdx(self, user):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-
-        # self.getUserCurrentAlignment(user)
-        # if instant in list(user.timeInterval):
         _temp = user.currentAlignment.connectedAlignmentIndices
         if _temp is not None:
             for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
@@ -651,7 +515,7 @@ class World:
             lane = self.getIncomingTrafficAlignmentIdx(user)
             if lane is not None:
                 intersectionCP = self.getIntersectionCP(lane)
-                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance()
+                userIntersectionCP = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance()
                 if user.leader is not None:
                     if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
                         worldUserList = []
@@ -694,6 +558,7 @@ class World:
     def estimateGap(self, user, instant):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
+        # todo : a revoir
         if user.timeInterval is not None:
             self.checkTraffic(user, instant)
             if user.comingUser is None:
@@ -701,7 +566,7 @@ class World:
             else:
                 v = user.comingUser.getCurvilinearVelocityAtInstant(instant)[0] / self.timeStep
                 if v != 0:
-                    d = self.distanceAtInstant(user.comingUser, self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).controlDevice, instant)
+                    d = self.distanceAtInstant(user.comingUser, self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].controlDevice, instant)
                     return d / v
                 else:
                     return float('inf')
@@ -714,9 +579,6 @@ class World:
             s += al.getTotalDistance()
         return s
 
-    def getControlDeviceCategory(self, cdIdx):
-        return self.getControlDeviceById(cdIdx).category
-
     def isGapAcceptable(self, user, instant):
         if user.criticalGap < self.estimateGap(user, instant):
             return True
@@ -726,7 +588,7 @@ class World:
     def isClearingTimeAcceptable(self, user, timeStep):
         # todo : a verifier
         v = user.curvilinearVelocities[-1][0] / timeStep
-        d = self.getAlignmentById(user.curvilinearPositions[-1][2]).connectedAlignments[2].width + user.geometry
+        d = self.alignments[user.curvilinearPositions[-1][2]].connectedAlignments[2].width + user.geometry
         clearingTime = d / v
         if clearingTime < user.supposedAmberTime:
             return True
@@ -739,14 +601,14 @@ class World:
                 break
         try:
             intersection = \
-                al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
-                                               self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
+                al.points.getLineIntersections(self.alignments[al.connectedAlignmentIndices[1]].points[0],
+                                               self.alignments[al.connectedAlignmentIndices[1]].points[1])[1]
             return intersection[0]
         except:
             return None
 
     def getControlDevicePositionOnAlignment(self, alIdx):
-        al = self.getAlignmentById(alIdx)
+        al = self.alignments[alIdx]
         if al.controlDevice is None:
             return 0
         else:
@@ -821,12 +683,6 @@ class UserInput:
     def load(filename):
         return toolkit.loadYaml(filename)
 
-    @staticmethod
-    def distanceGap(sLeader, sFollowing, lengthLeader):
-        """calculates distance gaps between two vehicles"""
-        distance = sLeader - sFollowing - lengthLeader
-        return distance
-
     def initDistributions(self):
         self.headwayDistribution = self.distributions['headway'].getDistribution()
         self.lengthDistribution = self.distributions['length'].getDistribution()
@@ -868,7 +724,7 @@ class UserInput:
     def getAlignmentIdx(self):
         return self.alignmentIdx
 
-    def getId(self):
+    def getIdx(self):
         return self.idx
 
 

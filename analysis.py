@@ -175,10 +175,11 @@ def evaluateSimpleModel(world, sim):
     for user in world.completed[1:] + world.users:
         roadUser1 = user.leader
         roadUser2 = user
-        i = events.Interaction(roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
-        i.computeDistance(world)
-        i.computeTTC()
-        interactions[(roadUser1.num, roadUser2.num)] = i
+        if roadUser2.timeInterval is not None:
+            i = events.Interaction(roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+            i.computeDistance(world)
+            i.computeTTC()
+            interactions[(roadUser1.num, roadUser2.num)] = i
 
     minTTCValues = {}
     minDistanceValues = {}
