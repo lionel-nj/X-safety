@@ -143,7 +143,7 @@ class Alignment:
         return self.controlDevice
 
     def getCumulativeDistance(self, i):
-        return self.points.getCumulativeDistance[i]
+        return self.points.cumulativeDistances[i]
 
     def getTotalDistance(self):
         return self.points.getTotalDistance()
@@ -445,7 +445,7 @@ class World:
                 G.add_node(controlDevice)
                 origin = self.getAlignmentById(cd.alignmentIdx).entryNode
                 target = self.getAlignmentById(cd.alignmentIdx).exitNode
-                weight = self.getAlignmentById(cd.alignmentIdx).getCumulativeDistances(-1)
+                weight = self.getAlignmentById(cd.alignmentIdx).getCumulativeDistance(-1)
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 

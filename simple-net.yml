@@ -35,7 +35,6 @@ alignments:
   width: null
 
 controlDevices: null
-
 userInputs:
 - !!python/object:network.UserInput
   alignmentIdx: 0
