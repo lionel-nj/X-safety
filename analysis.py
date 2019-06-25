@@ -207,11 +207,11 @@ def evaluateSimpleModel(world, sim):
                                                  10: duration10,
                                                  15: duration15}, orient='index').transpose()
 
-    ttcData.to_csv('outputData/single-evaluations/ttc/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
-    minDistanceData.to_csv('outputData/single-evaluations/minDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
-    meanDistanceData.to_csv('outputData/single-evaluations/meanDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
-    interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
-    interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-seed={}-headway{}.csv'.format(sim.seed, world.getUserInputById(0).distributions['headway'].scale+1))
+    ttcData.to_csv('outputData/single-evaluations/ttc/data-seed={}-headway{}.csv'.format(sim.seed, world.userInputs[0].distributions['headway'].scale+1))
+    minDistanceData.to_csv('outputData/single-evaluations/minDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.userInputs[0].distributions['headway'].scale+1))
+    meanDistanceData.to_csv('outputData/single-evaluations/meanDistance/data-seed={}-headway{}.csv'.format(sim.seed, world.userInputs[0].distributions['headway'].scale+1))
+    interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-seed={}-headway{}.csv'.format(sim.seed, world.userInputs[0].distributions['headway'].scale+1))
+    interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-seed={}-headway{}.csv'.format(sim.seed, world.userInputs[0].distributions['headway'].scale+1))
 
     ttc = []
     for key in list(ttcData.keys()):

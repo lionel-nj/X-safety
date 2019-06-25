@@ -89,6 +89,7 @@ class Alignment:
     def getConnectedAlignments(self):
         return self.connectedAlignments
 
+
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
@@ -356,10 +357,10 @@ class World:
         if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
 
             if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
-                user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)[2]
-                user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)[2]
+                s1, _, user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)
+                s2, _, user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)
                 if user1AlignmentIdx == user2AlignmentIdx:
-                    return abs(user1.getDistanceFromOriginAtInstant(instant, self)[0] - user2.getDistanceFromOriginAtInstant(instant, self)[0]) - user1.orderUsersByFirstInstant(user2)[0].geometry
+                    return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
                     user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
@@ -670,6 +671,9 @@ class World:
 
     def getControlDevices(self):
         return self.controlDevices
+
+    def getGraph(self):
+        return self.graph
 
 
 class UserInput:
