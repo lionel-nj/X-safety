@@ -125,7 +125,7 @@ class Alignment:
         else:
             return False
 
-    def getNextAlignment(self, nextS):
+    def getNextAlignment(self, nextS, user, instant):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
         # warning, recursive function
         alignmentDistance = self.getTotalDistance()
@@ -134,7 +134,15 @@ class Alignment:
         elif self.connectedAlignments is not None:
             # TODO use proportions at connection
             # TODO check control devices
-            alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance)
+            cd = self.getControlDevice()
+            if cd is not None:
+                cd.user = user
+                if cd.permissionToGo(instant):
+                    alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant)
+                else:
+                    alignments, s = [self], self.getTotalDistance()
+            else:
+                alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant)
             return [self] + alignments, s
         else:  # simulation finished, exited network
             return None, None
@@ -227,7 +235,7 @@ class TrafficLight(ControlDevice):
         self.remainingAmber = copy.deepcopy(self.amberTime)
         self.remainingGreen = copy.deepcopy(self.greenTime)
 
-    def permissionToGo(self):
+    def permissionToGo(self, instant):
         if self.state == 'green':
             return True
         elif self.state == 'amber':
@@ -782,6 +790,11 @@ class World:
                 if u.getLastInstant() != lastInstant:
                     self.completed.append(u)
                     self.users.remove(u)
+
+    def updateControlDevices(self, timeStep):
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                cd.cycle(timeStep)
 
 
 class UserInput:

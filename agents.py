@@ -145,7 +145,7 @@ class NewellMovingObject(moving.MovingObject):
             s1 = self.curvilinearPositions.getSCoordAt(-1)
             freeFlowCoord = s1 + self.desiredSpeed * timeStep
             if self.leader is None:
-                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(freeFlowCoord)
+                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(freeFlowCoord, self, instant)
             else:
                 if self.leader.existsAtInstant(instant):
                     # compute leader coordinate with respect to current alignment
@@ -154,10 +154,8 @@ class NewellMovingObject(moving.MovingObject):
                 else:  # simplest is to continue at constant speed
                     ds = self.curvilinearVelocities.getSCoordAt(-1)
                     constrainedCoord = s1 + ds
-                # if self.num == 5:
-                #     print(freeFlowCoord, constrainedCoord, instant, self.getCurrentAlignment().getId(), self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[2])
                 s2 = min(freeFlowCoord, constrainedCoord)
-                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(s2)
+                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(s2, self, instant)
             if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignments[-1].idx)
                 for al in nextAlignments[1:]:

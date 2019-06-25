@@ -36,9 +36,7 @@ class Simulation(object):
         for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
-            # if world.controlDevices is not None:
-            # for cd in world.controlDevices:
-            #     cd.cycle(self.timeStep)
+            world.updateControlDevices(self.timeStep)
             userNum = world.initUsers(i, self.timeStep, userNum)
             world.updateUsers(i, self.timeStep)
 
