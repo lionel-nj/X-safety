@@ -10,6 +10,18 @@ import agents
 import toolkit
 
 
+def getItemByIdx(items, idx):
+    '''Returns an item given its id'''
+    i = 0
+    while i < len(items) and items[i].idx != idx:
+        i += 1
+    if i < len(items):
+        return items[i]
+    else:
+        print('Index {} does not exist in items'.format(idx))
+        return None
+
+
 class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
@@ -113,50 +125,44 @@ class Alignment:
         else:
             return False
 
-    def getNextAlignment(self, user, nextPosition, instant):
-        deltap = user.currentAlignment.getCumulativeDistances(-1) - nextPosition
-        if self.connectedAlignments is not None:
-            if deltap < 0:  # si on est sorti de l'alignement
-                if self.controlDevice is not None:
-                    self.controlDevice.user = user
-                    if self.controlDevice.permissionToGo(instant): # si le control device donne la permission de passer
-                        user.currentAlignment = self.connectedAlignments[0]
-                        return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
-                    else: # sinon  on reste au niveau du control device
-                        return self, self.getCumulativeDistances(-1)  # todo : modifier selon les proportions de mouvements avec une variable aleatoire uniforme
-                else:
-                    user.currentAlignment = self.connectedAlignments[0]
-                    return self.connectedAlignments[0], nextPosition % self.getCumulativeDistances(-1)
-            else:  # si on reste sur l'alignement
-                return self, nextPosition
-        else:
-            if deltap >= 0:  # si on reste sur l'alignement'
-                return self, nextPosition
-            else:  # si on est sorti de l'alignement
-                if nextPosition <= self.getCumulatedAlignmentDistances():
-                    return self, nextPosition % (self.getCumulatedAlignmentDistances() - user.currentAlignment.getCumulativeDistances(-1))
-                else:
-                    return None, None
+    def getNextAlignment(self, nextS):
+        '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
+        # warning, recursive function
+        alignmentDistance = self.getTotalDistance()
+        if nextS <= alignmentDistance:
+            return [self], nextS
+        elif self.connectedAlignments is not None:
+            # TODO use proportions at connection
+            # TODO check control devices
+            alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance)
+            return [self] + alignments, s
+        else:  # simulation finished, exited network
+            return None, None
 
     def getControlDevice(self):
         return self.controlDevice
 
-    def getCumulativeDistances(self, idx):
-        return self.points.cumulativeDistances[idx]
+    def getCumulativeDistance(self, i):
+        return self.points.getCumulativeDistance[i]
 
-    def getCumulatedAlignmentDistances(self):
-        return self.cumulatedAlignmentDistances
+    def getTotalDistance(self):
+        return self.points.getTotalDistance()
+
+    def getId(self):
+        return self.idx
 
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
 
-    def __init__(self, idx, alignmentIdx): # , category
+    def __init__(self, idx, alignmentIdx):  # , category
         self.idx = idx
-        #self.category = category
+        # self.category = category
         self.alignmentIdx = alignmentIdx
 
+    def getId(self):
+        return self.idx
     # categories = {1: 'stop',
     #               2: 'traffic light',
     #               3: 'yield',
@@ -319,16 +325,23 @@ class World:
         for a in self.alignments:
             a.plot(options, **kwargs)
 
-    def plotUserTrajectories(self, timeStep):
-        plt.figure()
-        for u in self.users:
-            if u.timeInterval is not None:
-                u.plotCurvilinearPositions()
-        for u in self.completed:
-            if u.timeInterval is not None:
-                u.plotCurvilinearPositions()
-        plt.xlabel('time ({}s)'.format(timeStep))
-        plt.ylabel('longitudinal coordinate (m)')
+    def plotUserTrajectories(self, timeStep, plotPerLane=True):
+        if plotPerLane:
+            for al in self.alignments:
+                plt.figure(al.idx)
+                for u in self.users + self.completed:
+                    if u.timeInterval is not None:
+                        u.plotCurvilinearPositions(al.idx)
+                plt.xlabel('time ({}s)'.format(timeStep))
+                plt.ylabel('longitudinal coordinate (m)')
+                plt.title('Lane {}'.format(al.idx))
+        else:
+            plt.figure()
+            for u in self.users + self.completed:
+                if u.timeInterval is not None:
+                    u.plotCurvilinearPositions()
+            plt.xlabel('time ({}s)'.format(timeStep))
+            plt.ylabel('longitudinal coordinate (m)')
         plt.show()
 
     def getAlignments(self):
@@ -340,21 +353,13 @@ class World:
     def getControlDevices(self):
         return self.controlDevices
 
-    def getAlignmentById(self, idx):
-        """get an alignment given its id"""
-        for al in self.alignments:
-            if al.idx == idx:
-                return al
-        print('alignment idx does not match any existing alignment')
-        return None
+    def getAlignmentById(self, idx):  # to remove
+        '''Returns an alignment given its id'''
+        return getItemByIdx(self.alignments, idx)
 
-    def getControlDeviceById(self, idx):
+    def getControlDeviceById(self, idx):  # to remove
         """get an control device given its id"""
-        for cd in self.controlDevices:
-            if cd.idx == idx:
-                return cd
-        print('controlDeviceIdx does not match any existing control device')
-        return None
+        return getItemByIdx(self.controlDevices, idx)
 
     def getUserInputById(self, idx):
         """get an user input given its id"""
@@ -366,9 +371,11 @@ class World:
 
     def getUserByNum(self, userNum):
         """returns an user given its num"""
-        for user in self.users + self.completed:
+        for user in self.users+self.newlyCompleted+self.completed:
             if user.num == userNum:
                 return user
+        print("userNum does not match any existing user")
+        return None
 
     def initUsers(self, i, timeStep, userNum):
         """Initializes new users """
@@ -383,14 +390,13 @@ class World:
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
-    def getNotNoneVehiclesInWorld(self):
-        """returns all vehicles that have been launched on their initial alignment : user.initialAlignment"""
-        users = [[] for _ in range(len(self.userInputs))]
-        for ui in self.userInputs:
-            for user in ui.users:
-                if user.timeInterval is not None and len(user.curvilinearVelocities) > 0:
-                    users[ui.idx].append(user)
-        return users
+    def updateUsers(self, i, timeStep):
+        self.newlyCompleted = []
+        for u in self.users:
+            u.updateCurvilinearPositions(i, timeStep, self)
+        for u in self.newlyCompleted:
+            self.users.remove(u)
+            self.completed.append(u)
 
     @staticmethod
     def hasBeenOnAlignment(user, alignmentIdx):
@@ -405,7 +411,7 @@ class World:
             alignmentIndices.remove(user.curvilinearPositions.lanes[-1])
             if alignmentIndices != []:
                 for indices in alignmentIndices:
-                    s += self.getAlignmentById(indices).getCumulativeDistances(-1)
+                    s += self.getAlignmentById(indices).getTotalDistance()
             else:
                 s = 0
         return s
@@ -431,8 +437,7 @@ class World:
         self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
-            edgesProperties.append(
-                (al.entryNode, al.exitNode, al.getCumulativeDistances(-1)))
+            edgesProperties.append((al.entryNode, al.exitNode, al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
             for cdIdx, cd in enumerate(self.controlDevices):
@@ -455,9 +460,9 @@ class World:
                     return abs(user1.getDistanceFromOriginAtInstant(instant, self)[0] - user2.getDistanceFromOriginAtInstant(instant, self)[0]) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
-                    user1DownstreamDistance = self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user1UpstreamDistance
+                    user1DownstreamDistance = self.getAlignmentById(user1.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance() - user1UpstreamDistance
                     user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
-                    user2DownstreamDistance = self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1) - user2UpstreamDistance
+                    user2DownstreamDistance = self.getAlignmentById(user2.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance() - user2UpstreamDistance
 
                     G = self.graph
 
@@ -525,11 +530,39 @@ class World:
                 if len(user.curvilinearVelocities) > 0:
                     user.curvilinearVelocities.duplicateLastPosition()
 
-    def prepare(self):
-        """"links the alignments, creating a connectedAlignments member to each alignments of self
-        creates am empty user list for each user input,
+    def prepare(self, duration):
+        '''Prepares the world before simulation
+        - verify alignments and controlDevices are stored in order
+        - init user inputs, links to alignments
+        - links the alignments using connectedAlignments
+        - links controlDevices to their alignments
+        - initializes lists of users
+        - initializes the graph
 
-        links a controlDevice to its alignment, if an alignment has no control Device assigns None"""
+        TODO move checks to other checks, eg that no alignment is so short that is can be bypassed by fast user'''
+
+        # verify alignments and controlDevices are stored in order
+        i = 0
+        while i < len(self.alignments) and self.alignments[i].idx == i:
+            i += 1
+        if i < len(self.alignments):  # we have to realign
+            self.alignments.sort(key=lambda al: al.idx)
+        if self.controlDevices is not None:
+            i = 0
+            while i < len(self.controlDevices) and self.controlDevices[i].idx == i:
+                i += 1
+            if i < len(self.controlDevices):  # we have to realign
+                self.alignments.sort(key=lambda cd: cd.idx)
+
+        # initialize user inputs
+        for ui in self.userInputs:
+            ui.lastGeneratedUser = None
+            # link to alignment
+            for al in self.alignments:
+                if al.idx == ui.alignmentIdx:
+                    ui.alignment = al
+            ui.initDistributions()
+            ui.generateHeadways(duration)
 
         # compute cumulative distances for each alignment :
         for al in self.alignments:
@@ -540,31 +573,29 @@ class World:
 
         # connecting alignments
         for al in self.alignments:
-            al.connectedAlignments = []
             if al.connectedAlignmentIndices is not None:
-                al.cumulatedAlignmentDistances = al.getCumulativeDistances(-1)
-                for connectedAlignments in al.connectedAlignmentIndices:
-                    self.getAlignmentById(connectedAlignments).cumulatedAlignmentDistances = al.cumulatedAlignmentDistances + self.getAlignmentById(connectedAlignments).getCumulativeDistances(-1)
-                    al.connectedAlignments.append(self.getAlignmentById(connectedAlignments))
+                al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.connectedAlignmentIndices]
             else:
                 al.connectedAlignments = None
 
             # connecting control devices to their alignments
-            if self.controlDevices is not None:
+            if self.controlDevices is None:
+                al.controlDevice = None
+            else:
                 for cd in self.controlDevices:
                     if al.idx == cd.alignmentIdx:
                         al.controlDevice = cd
                     else:
                         al.controlDevice = None
-            else:
-                al.controlDevice = None
-
-        # initializing the last generated user to None for each userInput
-        for ui in self.userInputs:
-            ui.lastGeneratedUser = None
 
         # linking self to its graph
         self.initGraph()
+
+        # TODO verify consistency, users cannot pass more than one alignment in one step
+
+        # initializing the lisfs of users
+        self.users = []
+        self.completed = []
 
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
@@ -583,7 +614,7 @@ class World:
         if al.connectedAlignmentIndices is None:
             return 0
         else:
-            return al.getCumulativeDistances(-1)
+            return al.getTotalDistance()
 
     def getIncomingTrafficAlignmentIdx(self, user):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
@@ -604,7 +635,7 @@ class World:
             lane = self.getIncomingTrafficAlignmentIdx(user)
             if lane is not None:
                 intersectionCP = self.getIntersectionCP(lane)
-                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).getCumulativeDistances(-1)
+                userIntersectionCP = self.getAlignmentById(user.getCurvilinearPositionAtInstant(instant)[2]).getTotalDistance()
                 if user.leader is not None:
                     if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
                         worldUserList = []
@@ -664,7 +695,7 @@ class World:
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
         s = 0
         for al in self.travelledAlignments(user, instant):
-            s += al.getCumulativeDistances(-1)
+            s += al.getTotalDistance()
         return s
 
     def getControlDeviceCategory(self, cdIdx):
@@ -692,8 +723,8 @@ class World:
                 break
         try:
             intersection = \
-            al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
-                                           self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
+                al.points.getLineIntersections(self.getAlignmentById(al.connectedAlignmentIndices[1]).points[0],
+                                               self.getAlignmentById(al.connectedAlignmentIndices[1]).points[1])[1]
             return intersection[0]
         except:
             return None
@@ -703,7 +734,7 @@ class World:
         if al.controlDevice is None:
             return 0
         else:
-            return al.getCumulativeDistances(-1)
+            return al.getTotalDistance()
 
     def assignValue(self, args):
         self.userInputs[0].distributions['headway'].scale = args.headway - 1
@@ -745,9 +776,13 @@ class World:
             else:
                 return 'X3', other
 
-    def exit(self, lastInstant):
-        self.completed = [u for u in self.users if u.timeInterval is not None and u.getLastInstant() != lastInstant]
-        self.users = list(filter(lambda u: not u in self.completed and u.timeInterval is not None, self.users))
+    def finalize(self, lastInstant):
+        for u in self.users:
+            if u.timeInterval is not None:
+                if u.getLastInstant() != lastInstant:
+                    self.completed.append(u)
+                    self.users.remove(u)
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -798,13 +833,19 @@ class UserInput:
                                         criticalGap=self.gapDistribution.rvs(),
                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
-                                        initialAlignmentIdx=self.alignmentIdx,
+                                        initialAlignment=self.alignment,
                                         amberProbability=self.amberProbabilityDistribution.rvs())
         if self.lastGeneratedUser is not None:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.lastGeneratedUser
         self.lastGeneratedUser = obj
         return obj
+
+    def getUserByNum(self, num):
+        """gets an user by its id"""
+        for user in self.alignment.vehicles:
+            if user.num == num:
+                return user
 
 
 class CarGeometry:
@@ -847,6 +888,24 @@ class Distribution(object):
             return utils.ConstantDistribution(self.degeneratedConstant)
         else:
             raise NameError('error in distribution type')
+
+    def getName(self):
+        return self.distributionName
+
+    def getType(self):
+        return self.distributionType
+
+    def getScale(self):
+        return self.scale
+
+    def getLoc(self):
+        return self.loc
+
+    def getCdf(self):
+        return self.cdf
+
+    def getConstant(self):
+        return self.degeneratedConstant
 
 
 if __name__ == "__main__":
