@@ -225,16 +225,16 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
 
 
-    def computeIndicators(self, world=None, alignment1=None, alignment2=None):
-        '''Computes the collision course cosine only if the cosine is positive'''
-        collisionCourseDotProducts = {}  # [0]*int(self.timeInterval.length())
-        collisionCourseAngles = {}
-        velocityAngles = {}
-        distances = {}  # [0]*int(self.timeInterval.length())
-        speedDifferentials = {}
-        interactionInstants = []
-        for instant in self.timeInterval:
-            if self.useCurvilinear:
+    # def computeIndicators(self, world=None, alignment1=None, alignment2=None):
+    #     '''Computes the collision course cosine only if the cosine is positive'''
+    #     collisionCourseDotProducts = {}  # [0]*int(self.timeInterval.length())
+    #     collisionCourseAngles = {}
+    #     velocityAngles = {}
+    #     distances = {}  # [0]*int(self.timeInterval.length())
+    #     speedDifferentials = {}
+    #     interactionInstants = []
+    #     for instant in self.timeInterval:
+    #         if self.useCurvilinear:
                 # p1 = moving.getXYfromSY(world.getUserDistanceOnAlignmentAt(self.roadUser1, instant),
                 #                         self.roadUser1.getCurvilinearPositionAtInstant(instant)[1],
                 #                         utils._set(self.roadUser1.curvilinearPositions.lanes).index(self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]),
@@ -258,7 +258,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 # if utils._set(self.roadUser1.curvilinearPositions.lanes).index(
                 # self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]) ==  utils._set(self.roadUser2.curvilinearPositions.lanes).index(self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]):
 
-                distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant) - self.roadUser1.geometry
+                # distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant) - self.roadUser1.geometry
                 # else:
                 #     distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
                 # else:
@@ -311,7 +311,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             # velocityAngles[instant] = np.arccos(moving.Point.dot(v1, v2) / (v1.norm2() * v2.norm2()))
             # collisionCourseDotProducts[instant] = moving.Point.dot(deltap, deltav)
 
-            distances[instant] = distance
+            # distances[instant] = distance
             # speedDifferentials[instant] = deltav.norm2()
             # if collisionCourseDotProducts[instant] > 0:
             #     interactionInstants.append(instant)
@@ -331,10 +331,10 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             #             collisionCourseDotProducts[instant] / (distances[instant] * speedDifferentials[instant]))
 
 
-        if len(interactionInstants) >= 2:
-            self.interactionInterval = moving.TimeInterval(interactionInstants[0], interactionInstants[-1])
-        else:
-            self.interactionInterval = moving.TimeInterval()
+        # if len(interactionInstants) >= 2:
+        #     self.interactionInterval = moving.TimeInterval(interactionInstants[0], interactionInstants[-1])
+        # else:
+        #     self.interactionInterval = moving.TimeInterval()
         # self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[0], collisionCourseDotProducts))
         # self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[1], collisionCourseAngles))
         # self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))

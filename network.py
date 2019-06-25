@@ -159,6 +159,15 @@ class Alignment:
     def getId(self):
         return self.idx
 
+    def getEntryNode(self):
+        return self.entryNode
+
+    def getExitNode(self):
+        return self.exitNode
+
+    def getConnectedAlignmentIndices(self):
+        return self.connectedAlignmentIndices
+
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
@@ -169,16 +178,15 @@ class ControlDevice:
         # self.category = category
         self.alignmentIdx = alignmentIdx
 
-    def getId(self):
+    def getIdx(self):
         return self.idx
     # categories = {1: 'stop',
     #               2: 'traffic light',
     #               3: 'yield',
     #                  4: 'etc'}
 
-    # def getCharCategory(self):
-    #     """returns a chain of character describing the category of self"""
-    #     return self.categories[self.category]
+    def getAlignmentIdx(self):
+        return self.alignmentIdx
 
 
 class TrafficLight(ControlDevice):
@@ -426,18 +434,18 @@ class World:
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
-        al = self.getAlignmentById(self.userInputs[0].alignmentIdx)
+        al = self.getAlignmentById(self.userInputs[0].getAlignmentIdx())
         al.entryNode = al.idx
         al.exitNode = al.idx + 1
         if al.connectedAlignmentIndices is not None:
-            for connectedAlignmentIdx in al.connectedAlignmentIndices:
+            for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
                 self.getAlignmentById(connectedAlignmentIdx).entryNode = al.exitNode
                 self.getAlignmentById(connectedAlignmentIdx).exitNode = connectedAlignmentIdx + 1
             centerNode = al.exitNode
         for ui in self.userInputs:
-            if ui.idx != self.userInputs[0].idx:
-                self.getAlignmentById(ui.alignmentIdx).entryNode = self.getAlignmentById(ui.alignmentIdx).idx + 1
-                self.getAlignmentById(ui.alignmentIdx).exitNode = centerNode
+            if ui.getId() != self.userInputs[0].getId():
+                self.getAlignmentById(ui.getAlignmentIdx()).entryNode = ui.getAlignmentIdx() + 1
+                self.getAlignmentById(ui.getAlignmentIdx()).exitNode = centerNode
 
     def initGraph(self):
         """sets graph attribute to self"""
@@ -445,15 +453,15 @@ class World:
         self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
-            edgesProperties.append((al.entryNode, al.exitNode, al.getTotalDistance()))
+            edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
-            for cdIdx, cd in enumerate(self.controlDevices):
+            for cdIdx, cd in enumerate(self.getControlDevices()):
                 controlDevice = "cd{}".format(cdIdx)
                 G.add_node(controlDevice)
-                origin = self.getAlignmentById(cd.alignmentIdx).entryNode
-                target = self.getAlignmentById(cd.alignmentIdx).exitNode
-                weight = self.getAlignmentById(cd.alignmentIdx).getCumulativeDistance(-1)
+                origin = self.getAlignmentById(cd.getAlignmentIdx()).getEntryNode()
+                target = self.getAlignmentById(cd.getAlignmentIdx()).getExitNode()
+                weight = self.getAlignmentById(cd.getAlignmentIdx()).getTotalDistance()
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
@@ -796,6 +804,9 @@ class World:
             for cd in self.controlDevices:
                 cd.cycle(timeStep)
 
+    def getControlDevices(self):
+        return self.controlDevices
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -854,11 +865,11 @@ class UserInput:
         self.lastGeneratedUser = obj
         return obj
 
-    def getUserByNum(self, num):
-        """gets an user by its id"""
-        for user in self.alignment.vehicles:
-            if user.num == num:
-                return user
+    def getAlignmentIdx(self):
+        return self.alignmentIdx
+
+    def getId(self):
+        return self.idx
 
 
 class CarGeometry:
