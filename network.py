@@ -743,11 +743,12 @@ class CarGeometry:
 
 
 class Distribution(object):
-    def __init__(self, distributionType, distributionName=None, loc=None, scale=None, cdf=None,
-                 degeneratedConstant=None):
+    def __init__(self, distributionType, distributionName=None, loc=None, scale=None, a=None, b=None, cdf=None, degeneratedConstant=None):
         self.loc = loc
-        self.cdf = cdf
         self.scale = scale
+        self.a = a
+        self.b = b
+        self.cdf = cdf
         self.distributionType = distributionType
         self.distributionName = distributionName
         self.degeneratedConstant = degeneratedConstant
@@ -765,6 +766,8 @@ class Distribution(object):
         if self.distributionType == 'theoretic':
             if self.distributionName == 'norm':
                 return stats.norm(loc=self.loc, scale=self.scale)
+            if self.distributionName == 'truncnorm':
+                return stats.truncnorm(loc=self.loc, scale=self.scale, a=self.a, b=self.b)
             elif self.distributionName == 'expon':
                 return stats.expon(loc=self.loc, scale=self.scale)
             else:
@@ -793,6 +796,9 @@ class Distribution(object):
 
     def getConstant(self):
         return self.degeneratedConstant
+
+    def getThresholds(self):
+        return self.a, self.b
 
 
 if __name__ == "__main__":

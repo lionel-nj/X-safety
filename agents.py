@@ -148,7 +148,7 @@ class NewellMovingObject(moving.MovingObject):
             s1 = self.curvilinearPositions.getSCoordAt(-1)
             freeFlowCoord = s1 + self.desiredSpeed * timeStep
             if self.leader is None:
-                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(freeFlowCoord, self, instant)
+                s2 = freeFlowCoord
             else:
                 if self.leader.existsAtInstant(instant):
                     # compute leader coordinate with respect to current alignment
@@ -162,16 +162,16 @@ class NewellMovingObject(moving.MovingObject):
                     # if self.num ==1:
                     #     print(s1, ds, freeFlowCoord, constrainedCoord, instant)
                 s2 = min(freeFlowCoord, constrainedCoord)
-                nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(s2, self, instant)
+            nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant)
             if nextAlignments is not None:
-                self.curvilinearPositions.addPositionSYL(s2, 0., nextAlignments[-1].idx)
+                self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
                 for al in nextAlignments[1:]:
                     self.addVisitedAlignment(al)
                 if self.curvilinearPositions.getLaneAt(-2) == self.curvilinearPositions.getLaneAt(-1):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
-                self.curvilinearVelocities.addPositionSYL((s2 - s1)%nextAlignments[0].getTotalDistance(), 0., laneChange)
+                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
                 self.setLastInstant(instant)
                 # TODO test if the new alignment is different from leader, update leader
             else:
