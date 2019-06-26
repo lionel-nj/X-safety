@@ -343,8 +343,8 @@ class World:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
-            for cdIdx, cd in enumerate(self.getControlDevices()):
-                controlDevice = "cd{}".format(cdIdx)
+            for cd in self.getControlDevices():
+                controlDevice = "cd{}".format(cd.getIdx())
                 G.add_node(controlDevice)
                 origin = self.alignments[cd.getAlignmentIdx()].getEntryNode()
                 target = self.alignments[cd.getAlignmentIdx()].getExitNode()
@@ -363,6 +363,7 @@ class World:
                     return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
+                    print(user1.num, user2.num, instant)
                     user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
                     user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
                     user2DownstreamDistance = self.alignments[user2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user2UpstreamDistance

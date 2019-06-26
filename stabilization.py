@@ -28,9 +28,9 @@ while len(seeds) < args.rep:
 ttc = {}
 minDistanceValues = {}
 meanDistanceValues = {}
-interactionNumber5 = {}
-interactionNumber10 = {}
-interactionNumber15 = {}
+nInter5 = {}
+nInter10 = {}
+nInter15 = {}
 duration5 = {}
 duration10 = {}
 duration15 = {}
@@ -47,40 +47,39 @@ for seed in seeds:
     world.userInputs[0].distributions['tau'].loc = args.tau
     world.userInputs[0].distributions['length'].loc = args.l
 
-    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], interactionNumber5[seed], interactionNumber10[seed], interactionNumber15[seed], \
+    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], \
         duration5[seed], duration10[seed], duration15[seed] = analysis.evaluateSimpleModel(world, sim)
 
-data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, interactionNumber5, interactionNumber10, interactionNumber15, duration5, duration10, duration15],
-                    index=['TTC', 'minDistance', 'meanDistance', 'interactionNumber5', 'interactionNumber10', 'interactionNumber15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
+                    index=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
 data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
-mean_ttc = [np.mean(ttc[seeds[0]])]
-mean_minDistances = [np.mean(minDistanceValues[seeds[0]])]
-mean_meanDistances = [np.mean(meanDistanceValues[seeds[0]])]
-mean_interactionNumber5 = [np.mean(interactionNumber5[seeds[0]])]
-mean_interactionNumber10 = [np.mean(interactionNumber10[seeds[0]])]
-mean_interactionNumber15 = [np.mean(interactionNumber15[seeds[0]])]
-mean_duration5 = [np.mean(duration5[seeds[0]])]
-mean_duration10 = [np.mean(duration10[seeds[0]])]
-mean_duration15 = [np.mean(duration15[seeds[0]])]
+mean_ttc = []
+mean_minDistances = []
+mean_meanDistances = []
+mean_nInter5 = []
+mean_nInter10 = []
+mean_nInter15 = []
+mean_duration5 = []
+mean_duration10 = []
+mean_duration15 = []
 
 
-for seed in seeds[1:]:
-    mean_ttc.append(np.mean([mean_ttc[-1], np.mean(ttc[seed])]))
-    mean_minDistances.append(np.mean([mean_minDistances[-1], np.mean(minDistanceValues[seed])]))
-    mean_meanDistances.append(np.mean([mean_meanDistances[-1], np.mean(meanDistanceValues[seed])]))
+for seed in seeds:
+    mean_ttc.append(min(ttc[seed]))
+    mean_minDistances.append(min(minDistanceValues[seed]))
+    mean_meanDistances.append(min(meanDistanceValues[seed]))
 
-    mean_interactionNumber5.append(np.mean([mean_interactionNumber5[-1], np.mean(interactionNumber5[seed])]))
-    mean_interactionNumber10.append(np.mean([mean_interactionNumber10[-1], np.mean(interactionNumber10[seed])]))
-    mean_interactionNumber15.append(np.mean([mean_interactionNumber15[-1], np.mean(interactionNumber15[seed])]))
+    mean_nInter5.append(nInter5[seed])
+    mean_nInter10.append(nInter10[seed])
+    mean_nInter15.append(nInter15[seed])
 
-    mean_duration5.append(np.mean([mean_duration5[-1], np.mean(duration5[seed])]))
-    mean_duration10.append(np.mean([mean_duration10[-1], np.mean(duration10[seed])]))
-    mean_duration15.append(np.mean([mean_duration15[-1], np.mean(duration15[seed])]))
+    mean_duration5.append(np.mean(duration5[seed]))
+    mean_duration10.append(np.mean(duration10[seed]))
+    mean_duration15.append(np.mean(duration15[seed]))
 
-
-data = pd.DataFrame(data=[mean_ttc, mean_minDistances, mean_meanDistances, mean_interactionNumber5, mean_interactionNumber10, mean_interactionNumber15, mean_duration5, mean_duration10, mean_duration15],
-                    index=['TTC', 'minDistance', 'meanDistance', 'interactionNumber5', 'interactionNumber10', 'interactionNumber15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+data = pd.DataFrame(data=[toolkit.dfMean(mean_ttc), toolkit.dfMean(mean_minDistances), toolkit.dfMean(mean_meanDistances), toolkit.dfMean(mean_nInter5), toolkit.dfMean(mean_nInter10), toolkit.dfMean(mean_nInter15), toolkit.dfMean(mean_duration5), toolkit.dfMean(mean_duration10), toolkit.dfMean(mean_duration15)],
+                    index=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
 
 data.to_csv('outputData/stabilization-data/data.csv')
-toolkit.callWhenDone()
+# toolkit.callWhenDone()
