@@ -1,5 +1,7 @@
 import argparse
 
+import pandas as pd
+
 import analysis as an
 import network
 import simulation
@@ -59,8 +61,8 @@ toolkit.plotVariations(duration10, 'interactionDuration10', '$interaction durati
 toolkit.plotVariations(duration15, 'interactionDuration15', '$interaction duration_{15}$')
 
 # sauvegarde sous dataframe a revoir puis que l'on sauve des dictionnaires des listes de dictionnaires de listes : NAN
-# data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
-#                     columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
-# data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
+data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
+                    columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
 # # toolkit.callWhenDone()
