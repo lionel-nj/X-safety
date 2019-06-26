@@ -115,39 +115,6 @@ def prepareIntervals(headways, sampleSize, N_Step):
     return intervals
 
 
-def changeVolumeOnVehicleInput(worldFile, newVolume, alignmentIdx):
-    """changes the volume on a particular alignment"""
-    worldFile.vehicleInputs[alignmentIdx].volume = newVolume
-
-# set of function to be implmented/insipired of in order to perform crossing behaviours ###
-
-
-def lossOfTime(beta, tnr):
-    import math
-    return beta * (math.exp(tnr / beta) - (1 + tnr / beta))
-
-
-def crossingRisk(gap, tsa, R0, alpha):
-    import math
-    if gap <= tsa:
-        return math.inf
-    else:
-        return R0 * (gap - tsa) ** (-alpha)
-
-
-def timeGap(worldFile, rowVehicle, rowVehicleAlignmentId, time):
-    gap = (-rowVehicle.curvilinearPositions[time][0] + worldFile.alignments[
-        rowVehicleAlignmentId].distance_to_crossing_point) / rowVehicle.velocities[time][0]
-    return gap
-##########################################################################################
-
-
-def findNearest(a, a0):
-    """"Element in nd array `a` closest to the scalar value `a0`"""
-    idx = np.abs(a - a0).argmin()
-    return a.flat[idx]
-
-
 def countElementInList(elementsList, element):
     """counts all occurences of element in list"""
     c = 0
@@ -176,17 +143,12 @@ def inverseDict(dictValues, keysSet1, keysSet2):
 
 def callWhenDone():
     from twilio.rest import Client
-
-    # Your Account Sid and Auth Token from twilio.com/console
-	# DANGER! This is insecure. See http://twil.io/secure
     account_sid = 'AC75e40f32bb2c24f9f11d71e000465147'
     auth_token = 'c9a80bdc3a33cdea435c25dec282c095'
     client = Client(account_sid, auth_token)
-    call = client.calls.create(
-                        url='http://demo.twilio.com/docs/voice.xml',
+    client.calls.create(url='http://demo.twilio.com/docs/voice.xml',
                         to='+15145715064',
-                        from_='+14387962998'
-                    )
+                        from_='+14387962998')
 
 
 def drawBoxPlot(data, edgeColor, fillColor):
@@ -205,15 +167,15 @@ def groupOnCriterion(itemList, crit):
     return out
 
 
-def notNoneMean(items):
-    temp = []
-    for el in items:
-        if el is not None:
-            temp.append(el)
-        if temp != []:
-            return np.mean(temp)
-        else:
-            return -1
+def dfMean(data):
+    result = []
+    data = [item for item in data if not np.isnan(item)]
+    for k in range(1, len(data)+1):
+        temp = []
+        temp.extend(data[:k])
+        result.append(np.mean(temp))
+    return result
+
 
 if __name__ == "__main__":
     import doctest

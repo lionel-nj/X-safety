@@ -11,12 +11,12 @@ class NewellMovingObject(moving.MovingObject):
         super().__init__(num, timeInterval, positions, velocities, geometry, userType, nObjects, initCurvilinear)
         self.desiredSpeed = desiredSpeed
         self.tau = tau
-        self.d = d
+        self.d = max(d, geometry)
         self.leader = None
         # other attributes necessary for computation
         self.initialCumulatedHeadway = initialCumulatedHeadway
         self.alignments = [initialAlignment]
-        self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment,
+        self.timeAtS0 = None  # time at which the vehicle's position is s=0 on the alignment
         self.criticalGap = criticalGap
         self.comingUser = None
         self.amberProbability = amberProbability
@@ -120,27 +120,27 @@ class NewellMovingObject(moving.MovingObject):
             if self.timeAtS0 is None:
                 if self.leader is None:
                     self.timeAtS0 = self.initialCumulatedHeadway
-                elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(-1) > self.d + self.getLeaderGeometry() and len(self.leader.curvilinearPositions) >= 2:
+                elif self.leader.curvilinearPositions is not None and self.leader.curvilinearPositions.getSCoordAt(-1) > self.d and len(self.leader.curvilinearPositions) >= 2:
                     firstInstantAfterD = self.leader.getLastInstant()
-                    while self.leader.existsAtInstant(firstInstantAfterD) and self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[0] > self.d + self.getLeaderGeometry():  # find first instant after d
+                    while self.leader.existsAtInstant(firstInstantAfterD) and self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[0] > self.d: # find first instant after d
                         firstInstantAfterD -= 1  # if not recorded position before self.d, we extrapolate linearly from first known position
-                    leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD - 1)[0]
-                    self.timeAtS0 = self.tau + firstInstantAfterD * timeStep - (self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[0] - self.d - self.getLeaderGeometry()) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
+                    leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD-1)[0]
+                    self.timeAtS0 = self.tau + firstInstantAfterD*timeStep - (self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[0] - self.d) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
                     if self.timeAtS0 < self.initialCumulatedHeadway:  # obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
                         self.timeAtS0 = self.initialCumulatedHeadway
-            elif instant * timeStep > self.timeAtS0:
+            elif instant*timeStep > self.timeAtS0:
                 # firstInstant = int(ceil(self.timeAtS0/timeStep))# this first instant is instant by definition
                 leaderInstant = instant - self.tau / timeStep
                 if self.leader is None:
-                    s = (timeStep * instant - self.timeAtS0) * self.desiredSpeed
+                    s = (timeStep*instant-self.timeAtS0)*self.desiredSpeed
                     self.timeInterval = moving.TimeInterval(instant, instant)
                     self.curvilinearPositions = moving.CurvilinearTrajectory([s], [0.], [self.getInitialAlignment().idx])
                     self.curvilinearVelocities = moving.CurvilinearTrajectory()
                 elif self.leader.existsAtInstant(leaderInstant):
                     self.timeInterval = moving.TimeInterval(instant, instant)
-                    freeFlowCoord = (instant * timeStep - self.timeAtS0) * self.desiredSpeed
+                    freeFlowCoord = (instant*timeStep-self.timeAtS0)*self.desiredSpeed
                     # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
-                    constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d - self.getLeaderGeometry()
+                    constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
                     self.curvilinearPositions = moving.CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.], [self.getInitialAlignment().idx])
                     self.curvilinearVelocities = moving.CurvilinearTrajectory()
 
@@ -153,10 +153,14 @@ class NewellMovingObject(moving.MovingObject):
                 if self.leader.existsAtInstant(instant):
                     # compute leader coordinate with respect to current alignment
                     p = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)
-                    constrainedCoord = p[0] + self.leader.getTravelledDistance(self.curvilinearPositions.getLaneAt(-1), p[2]) - self.d - self.getLeaderGeometry()
+                    constrainedCoord = p[0] + self.leader.getTravelledDistance(self.curvilinearPositions.getLaneAt(-1), p[2]) - self.d
+                    # if self.num ==1:
+                    #     print(s1, freeFlowCoord, constrainedCoord, self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)[0], instant)
                 else:  # simplest is to continue at constant speed
                     ds = self.curvilinearVelocities.getSCoordAt(-1)
                     constrainedCoord = s1 + ds
+                    # if self.num ==1:
+                    #     print(s1, ds, freeFlowCoord, constrainedCoord, instant)
                 s2 = min(freeFlowCoord, constrainedCoord)
                 nextAlignments, s2 = self.getCurrentAlignment().getNextAlignment(s2, self, instant)
             if nextAlignments is not None:
@@ -167,7 +171,7 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
-                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+                self.curvilinearVelocities.addPositionSYL((s2 - s1)%nextAlignments[0].getTotalDistance(), 0., laneChange)
                 self.setLastInstant(instant)
                 # TODO test if the new alignment is different from leader, update leader
             else:

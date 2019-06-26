@@ -292,18 +292,18 @@ class World:
 
     def getUserByNum(self, userNum):
         """returns an user given its num"""
-        for user in self.users+self.newlyCompleted+self.completed:
+        for user in self.users+self.completed:
             if user.num == userNum:
                 return user
         print("userNum does not match any existing user")
         return None
 
-    def initUsers(self, i, timeStep, userNum):
+    def initUsers(self, instant, timeStep, userNum):
         """Initializes new users """
         for ui in self.userInputs:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
-                if i <= h / timeStep < i + 1:
+                if instant <= h / timeStep < instant + 1:
                     self.users.append(ui.initUser(userNum, h))
                     userNum += 1
                 else:
@@ -311,10 +311,10 @@ class World:
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
-    def updateUsers(self, i, timeStep):
+    def updateUsers(self, instant, timeStep):
         self.newlyCompleted = []
         for u in self.users:
-            u.updateCurvilinearPositions(i, timeStep, self)
+            u.updateCurvilinearPositions(instant, timeStep, self)
         for u in self.newlyCompleted:
             self.users.remove(u)
             self.completed.append(u)
@@ -762,7 +762,7 @@ class Distribution(object):
     def getDistribution(self):
         """returns the scipy.stats objects that corresponds to the parameters in Distribution object"""
 
-        if self.distributionType == 'theoric':
+        if self.distributionType == 'theoretic':
             if self.distributionName == 'norm':
                 return stats.norm(loc=self.loc, scale=self.scale)
             elif self.distributionName == 'expon':
