@@ -177,6 +177,21 @@ def dfMean(data):
     return result
 
 
+def plotVariations(indicatorValues, fileName, figName):
+    indicatorValues = list(indicatorValues.values())
+    nRep = [k for k in range(1, len(indicatorValues) + 1)]
+    meanValues = [np.mean(indicatorValues[0])]
+    for k in range(1, len(indicatorValues)):
+        meanValues.append(np.mean(flatten(indicatorValues[:k + 1])))
+    plt.plot(nRep, meanValues)
+    plt.title(figName)
+    plt.savefig(fileName)
+    plt.close('all')
+
+
+flatten = lambda l: [item for sublist in l for item in sublist]
+
+
 if __name__ == "__main__":
     import doctest
 

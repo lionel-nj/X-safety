@@ -79,7 +79,7 @@ class Analysis:
         interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
         interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
 
-        return minTTCValues, minDistanceList, meanDistanceList, nInter5, nInter10, nInter15, interDuration5, interDuration10, interDuration15
+        return minTTCValues, minDistanceList, meanDistanceList, [nInter5], [nInter10], [nInter15], interDuration5, interDuration10, interDuration15
 
     def plotDistanceForUserPair(self, user1Num, user2Num):
         """script to plot distance between a pair of vehicles"""

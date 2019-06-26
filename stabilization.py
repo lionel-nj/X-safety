@@ -1,9 +1,6 @@
 import argparse
 
-import numpy as np
-import pandas as pd
-
-import analysis
+import analysis as an
 import network
 import simulation
 import toolkit
@@ -47,39 +44,23 @@ for seed in seeds:
     world.userInputs[0].distributions['tau'].loc = args.tau
     world.userInputs[0].distributions['length'].loc = args.l
 
-    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], \
-        duration5[seed], duration10[seed], duration15[seed] = analysis.evaluateSimpleModel(world, sim)
+    sim.run(world)
+    analysis = an.Analysis(world)
+    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate()
 
-data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
-                    index=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
-data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
+toolkit.plotVariations(ttc, 'ttc', 'time to collision(s)')
+toolkit.plotVariations(minDistanceValues, 'minDistance', 'minimum intervehicular distances (m)')
+toolkit.plotVariations(meanDistanceValues,'meanDistance', 'mean intervehicular distances (m)')
+toolkit.plotVariations(nInter5, 'nInter5', '$nInter_{5}$')
+toolkit.plotVariations(nInter10, 'nInter10', '$nInter_{10}$')
+toolkit.plotVariations(nInter15, 'nInter15', '$nInter_{15}$')
+toolkit.plotVariations(duration5, 'interactionDuration5', '$interaction duration_{5}$')
+toolkit.plotVariations(duration10, 'interactionDuration10', '$interaction duration_{10}$')
+toolkit.plotVariations(duration15, 'interactionDuration15', '$interaction duration_{15}$')
 
-mean_ttc = []
-mean_minDistances = []
-mean_meanDistances = []
-mean_nInter5 = []
-mean_nInter10 = []
-mean_nInter15 = []
-mean_duration5 = []
-mean_duration10 = []
-mean_duration15 = []
+# sauvegarde sous dataframe a revoir puis que l'on sauve des dictionnaires des listes de dictionnaires de listes : NAN
+# data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
+#                     columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+# data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
-
-for seed in seeds:
-    mean_ttc.append(min(ttc[seed]))
-    mean_minDistances.append(min(minDistanceValues[seed]))
-    mean_meanDistances.append(min(meanDistanceValues[seed]))
-
-    mean_nInter5.append(nInter5[seed])
-    mean_nInter10.append(nInter10[seed])
-    mean_nInter15.append(nInter15[seed])
-
-    mean_duration5.append(np.mean(duration5[seed]))
-    mean_duration10.append(np.mean(duration10[seed]))
-    mean_duration15.append(np.mean(duration15[seed]))
-
-data = pd.DataFrame(data=[toolkit.dfMean(mean_ttc), toolkit.dfMean(mean_minDistances), toolkit.dfMean(mean_meanDistances), toolkit.dfMean(mean_nInter5), toolkit.dfMean(mean_nInter10), toolkit.dfMean(mean_nInter15), toolkit.dfMean(mean_duration5), toolkit.dfMean(mean_duration10), toolkit.dfMean(mean_duration15)],
-                    index=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
-
-data.to_csv('outputData/stabilization-data/data.csv')
-# toolkit.callWhenDone()
+# # toolkit.callWhenDone()
