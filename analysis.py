@@ -46,7 +46,7 @@ class Analysis:
 
     def evaluate(self):
         # todo : docstrings
-        for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
+        for user in self.world.completed:  # + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
             if user.leader is not None:
                 roadUser1 = user.leader
                 roadUser2 = user

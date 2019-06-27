@@ -366,7 +366,6 @@ class World:
                     return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
                 else:
                     user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
-                    print(user1.num, user2.num, instant)
                     user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
                     user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
                     user2DownstreamDistance = self.alignments[user2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user2UpstreamDistance

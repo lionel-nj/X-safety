@@ -13,7 +13,6 @@ parser.add_argument("--dn", type=float, help="mean delta")
 parser.add_argument("--tau", type=float, help="mean tau")
 parser.add_argument("--l", type=float, help="mean vehicle length")
 parser.add_argument("--headway", type=float, help="mean headway")
-parser.add_argument("--duration", type=int, help="duration")
 
 args = parser.parse_args()
 
@@ -30,7 +29,7 @@ duration15 = {}
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 for seed in seeds:
-    sim.duration = args.duration
+    print('{}'.format(seeds.index(seed)+1) + '/' + str(len(seeds)))
     sim.seed = seed
     world = network.World.load('simple-net.yml')
     world.userInputs[0].distributions['headway'].scale = args.headway - 1
@@ -41,23 +40,25 @@ for seed in seeds:
 
     sim.run(world)
     analysis = an.Analysis(world)
+    # ttc : minimum value for each interactions
+    # minDistance
     ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate()
 
-toolkit.plotVariations(ttc, 'ttc', 'time to collision(s)')
-toolkit.plotVariations(minDistanceValues, 'minDistance', 'minimum intervehicular distances (m)')
-toolkit.plotVariations(meanDistanceValues,'meanDistance', 'mean intervehicular distances (m)')
-toolkit.plotVariations(nInter5, 'nInter5', '$nInter_{5}$')
-toolkit.plotVariations(nInter10, 'nInter10', '$nInter_{10}$')
-toolkit.plotVariations(nInter15, 'nInter15', '$nInter_{15}$')
-toolkit.plotVariations(duration5, 'interactionDuration5', '$interaction duration_{5}$')
-toolkit.plotVariations(duration10, 'interactionDuration10', '$interaction duration_{10}$')
-toolkit.plotVariations(duration15, 'interactionDuration15', '$interaction duration_{15}$')
+toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s).pdf')
+toolkit.plotVariations(minDistanceValues, 'minDistance.pdf', 'minimum intervehicular distances (m)')
+toolkit.plotVariations(meanDistanceValues,'meanDistance.pdf', 'mean intervehicular distances (m)')
+toolkit.plotVariations(nInter5, 'nInter5.pdf', '$nInter_{5}$')
+toolkit.plotVariations(nInter10, 'nInter10.pdf', '$nInter_{10}$')
+toolkit.plotVariations(nInter15, 'nInter15.pdf', '$nInter_{15}$')
+toolkit.plotVariations(duration5, 'interactionDuration5.pdf', '$interaction \ duration_{5}$')
+toolkit.plotVariations(duration10, 'interactionDuration10.pdf', '$interaction \ duration_{10}$')
+toolkit.plotVariations(duration15, 'interactionDuration15.pdf', '$interaction \ duration_{15}$')
 
 # sauvegarde sous dataframe a revoir puis que l'on sauve des dictionnaires des listes de dictionnaires de listes : NAN
-data_raw = pd.DataFrame({'seeds':seeds, 'TTC':ttc, 'minDistance':minDistanceValues, 'meanDistance': meanDistanceValues, 'nInter5':nInter5, 'nInter10':nInter10, 'nInter15':nInter15, 'duration5':duration5, 'duration10':duration10, 'duration15':duration15})
+data_raw = pd.DataFrame({'seeds':seeds, 'TTCmin':list(ttc.values()), 'minDistance': list(minDistanceValues.values()), 'meanDistance': list(meanDistanceValues.values()), 'nInter5':list(nInter5.values()), 'nInter10':list(nInter10.values()), 'nInter15':list(nInter15.values()), 'duration5':list(duration5.values()), 'duration10':list(duration10.values()), 'duration15':list(duration15.values())})
 
     # data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
     #                 columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
 data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
-# # toolkit.callWhenDone()
+# toolkit.callWhenDone()
