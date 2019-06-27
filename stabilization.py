@@ -1,4 +1,4 @@
-import pandas as pd
+import numpy as np
 
 import analysis as an
 import interface as iface
@@ -28,7 +28,10 @@ for seed in seeds:
     world = network.World.load('simple-net.yml')
     sim.run(world)
     analysis = an.Analysis(world)
-    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate(seed)
+    _, _, _, ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed] = analysis.evaluate(seed)
+    nInter5[seed] = np.array(minDistanceValues[seed] <= 5).sum()
+    nInter10[seed] = np.array(minDistanceValues[seed] <= 10).sum()
+    nInter15[seed] = np.array(minDistanceValues[seed] <= 15).sum()
 
 toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s)')
 toolkit.plotVariations(minDistanceValues, 'minDistance.pdf', 'minimum intervehicular distances (m)')
@@ -40,9 +43,9 @@ toolkit.plotVariations(duration5, 'interactionDuration5.pdf', '$interaction \ du
 toolkit.plotVariations(duration10, 'interactionDuration10.pdf', '$interaction \ duration_{10}$')
 toolkit.plotVariations(duration15, 'interactionDuration15.pdf', '$interaction \ duration_{15}$')
 
-data_raw = pd.DataFrame(data={'seeds': seeds, 'TTCmin': list(ttc.values()), 'minDistance': list(minDistanceValues.values()),
-                              'meanDistance': list(meanDistanceValues.values()), 'nInter5': list(nInter5.values()), 'nInter10': list(nInter10.values()),
-                              'nInter15': list(nInter15.values()), 'duration5': list(duration5.values()), 'duration10': list(duration10.values()), 'duration15': list(duration15.values())})
-data_raw.to_csv('data_raw.csv')
+# data_raw = pd.DataFrame(data={'seeds': seeds, 'TTCmin': list(ttc.values()), 'minDistance': list(minDistanceValues.values()),
+#                               'meanDistance': list(meanDistanceValues.values()), 'nInter5': list(nInter5.values()), 'nInter10': list(nInter10.values()),
+#                               'nInter15': list(nInter15.values()), 'duration5': list(duration5.values()), 'duration10': list(duration10.values()), 'duration15': list(duration15.values())})
+# data_raw.to_csv('data_raw.csv')
 
 # toolkit.callWhenDone()

@@ -1,7 +1,7 @@
 !!python/object:simulation.Simulation
-duration: 400
+duration: 600
 timeStep: 0.1
 verbose: False
-seed: 42
+seed: 89
 increment: 4
 rep: 5
