@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 from trafficintelligence import storage
 
 import events
@@ -12,6 +11,13 @@ class Analysis:
         self.world = world
         self.interactions = {}
         self.analysisZone = analysisZone
+
+    def save(self, filename):
+        toolkit.saveYaml(filename, self)
+
+    @staticmethod
+    def load(filename):
+        toolkit.loadYaml(filename)
 
     def getInteractionsProperties(self, distance, analysisZone=None, computeDistanceDict=False):
         # todo : docstrings
@@ -34,13 +40,13 @@ class Analysis:
                 #     if not (None in val):
                 #         number.append(len(toolkit.groupOnCriterion(val, distance)))
             else:
-                number.append(len(toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].values.values(), distance)))
-                for item in toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].values.values(), distance):
+                number.append(len(toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].getValues(), distance)))
+                for item in toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].getValues(), distance):
                     duration.append(len(item))
 
             if computeDistanceDict:
-                minDistance.append(min(self.interactions[key].indicators['Distance'].values.values()))
-                meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].values.values())))
+                minDistance.append(min(self.interactions[key].indicators['Distance'].getValues()))
+                meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
 
         return minDistance, meanDistance, np.sum(number), duration
 
@@ -59,39 +65,43 @@ class Analysis:
         minTTCValues = []
 
         for key in self.interactions:
-            if len(self.interactions[key].indicators['Time to Collision'].values.values()) > 0 and min(self.interactions[key].indicators['Time to Collision'].values.values()) < 20:  # 20 : valeur seuil pour le ttc a placer en parametre
-                minTTCValues.append(min(self.interactions[key].indicators['Time to Collision'].values.values()))
+            if len(self.interactions[key].indicators['Time to Collision'].getValues()) > 0 and min(self.interactions[key].indicators['Time to Collision'].getValues()) < 20:  # 20 : valeur seuil pour le ttc a placer en parametre
+                minTTCValues.append(min(self.interactions[key].indicators['Time to Collision'].getValues()))
 
         # parametres 5, 10, 15 a passer en parametres
         minDistanceList, meanDistanceList, nInter5, interDuration5 = self.getInteractionsProperties(5, computeDistanceDict=True)     # getting the number and duration of interactions for a distance of 5m
         _, _, nInter10, interDuration10 = self.getInteractionsProperties(10)  # getting the number and duration of interactions for a distance of 10m
         _, _, nInter15, interDuration15 = self.getInteractionsProperties(15)  # getting the number and duration of interactions for a distance of 15m
 
-        ttcData = pd.DataFrame(minTTCValues, columns=['TTC'])
-        minDistanceData = pd.DataFrame(minDistanceList, columns=['minDistance'])
-        meanDistanceData = pd.DataFrame(meanDistanceList, columns=['meanDistance'])
-        interactionNumber = pd.DataFrame([nInter5, nInter10, nInter15], columns=['interaction number'])
-        interactionDuration = pd.DataFrame([interDuration5, interDuration10, interDuration15]).transpose()
-
-        ttcData.to_csv('outputData/single-evaluations/ttc/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
-        minDistanceData.to_csv('outputData/single-evaluations/minDistance/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
-        meanDistanceData.to_csv('outputData/single-evaluations/meanDistance/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
-        interactionNumber.to_csv('outputData/single-evaluations/interaction-number/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
-        interactionDuration.to_csv('outputData/single-evaluations/interaction-duration/data-headway{}.csv'.format(self.world.userInputs[0].distributions['headway'].scale + 1))
-
         return minTTCValues, minDistanceList, meanDistanceList, [nInter5], [nInter10], [nInter15], interDuration5, interDuration10, interDuration15
+
+    # @staticmethod
+    # def saveEvaluation(evaluationOutput):
+    #     minTTCValues, minDistanceList, meanDistanceList, nInter5, nInter10, nInter15,  interDuration5, interDuration10, interDuration15 = evaluationOutput
+    #
+    #     ttcData = pd.DataFrame(minTTCValues, columns=['TTC'])
+    #     minDistanceData = pd.DataFrame(minDistanceList, columns=['minDistance'])
+    #     meanDistanceData = pd.DataFrame(meanDistanceList, columns=['meanDistance'])
+    #     interactionNumber = pd.DataFrame(nInter5 + nInter10 + nInter15, columns=['interaction number'])
+    #     interactionDuration = pd.DataFrame([interDuration5, interDuration10, interDuration15], columns=['interaction duration']).transpose()
+    #
+    #     ttcData.to_csv('single-evaluation-ttc.csv')
+    #     minDistanceData.to_csv('single-evaluation-minDistance.csv')
+    #     meanDistanceData.to_csv('single-evaluation-meanDistance.csv')
+    #     interactionNumber.to_csv('single-evaluation-interaction-number.csv')
+    #     interactionDuration.to_csv('single-evaluation-interaction-duration.csv')
 
     def plotDistanceForUserPair(self, user1Num, user2Num):
         """script to plot distance between a pair of vehicles"""
-        distances = list(self.getUserPairIndicatorValues(user1Num, user2Num, 'Distance'))
-        time = list(self.getUserPairIndicatorInstants(user1Num, user2Num, 'Distance'))
+        distances = self.getUserPairIndicatorValues(user1Num, user2Num, 'Distance')
+        time = self.getUserPairIndicatorInstants(user1Num, user2Num, 'Distance')
         plt.plot(time, distances)
 
     def getUserPairIndicatorValues(self, user1Num, user2Num, indicatorName):
-        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).values.values()
+        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).getValues()
 
     def getUserPairIndicatorInstants(self, user1Num, user2Num, indicatorName):
-        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).values.keys()
+        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).getKeys()
 
     def getUserPairIndicator(self, user1Num, user2Num, indicatorName):
         return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
