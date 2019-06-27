@@ -49,7 +49,7 @@ class Analysis:
 
         return minDistance, meanDistance
 
-    def evaluate(self, seed):
+    def evaluate(self, seed, ttcFilter):
         # todo : docstrings
         self.interactions = {}
         for user in self.world.completed:  # + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
@@ -66,7 +66,14 @@ class Analysis:
 
         for key in self.interactions:
             if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
-                minTTCValues.append(self.interactions[key].getIndicator('Time to Collision').getMostSevereValue(minNInstants=1))
+                value = self.interactions[key].getIndicator('Time to Collision').getMostSevereValue(minNInstants=1)
+                if ttcFilter is not None:
+                    if value <= ttcFilter:
+                        minTTCValues.append(value)
+                    else:
+                        minTTCValues.append(None)
+                else:
+                    minTTCValues.append(value)
             else:
                 minTTCValues.append(None)
 

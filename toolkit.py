@@ -179,6 +179,7 @@ def dfMean(data):
 
 def plotVariations(indicatorValues, fileName, figName):
     indicatorValues = list(indicatorValues.values())
+    indicatorValues = [list(filter(None.__ne__, k)) for k in indicatorValues]#] if k is not None]
     nRep = [k for k in range(1, len(indicatorValues) + 1)]
     meanValues = [np.mean(indicatorValues[0])]
     for k in range(1, len(indicatorValues)):
