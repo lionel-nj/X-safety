@@ -28,7 +28,7 @@ for seed in seeds:
     world = network.World.load('simple-net.yml')
     sim.run(world)
     analysis = an.Analysis(world)
-    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate()
+    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate(seed)
 
 toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s)')
 toolkit.plotVariations(minDistanceValues, 'minDistance.pdf', 'minimum intervehicular distances (m)')

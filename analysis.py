@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from trafficintelligence import storage
 
 import events
@@ -19,9 +20,8 @@ class Analysis:
     def load(filename):
         toolkit.loadYaml(filename)
 
-    def getInteractionsProperties(self, distance, analysisZone=None, computeDistanceDict=False):
+    def getInteractionsProperties(self, analysisZone=None):
         # todo : docstrings
-        number = []
         duration = []
         minDistance = []
         meanDistance = []
@@ -39,19 +39,19 @@ class Analysis:
                 #     val = interactions[key][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
                 #     if not (None in val):
                 #         number.append(len(toolkit.groupOnCriterion(val, distance)))
-            else:
-                number.append(len(toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].getValues(), distance)))
-                for item in toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].getValues(), distance):
-                    duration.append(len(item))
+            # else:
+                # for item in toolkit.groupOnCriterion(self.interactions[key].getIndicators('Distance').getValues(), distance):
+                #     duration.append(len(item))
+                # pass
 
-            if computeDistanceDict:
-                minDistance.append(min(self.interactions[key].indicators['Distance'].getValues()))
-                meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
+            minDistance.append(min(self.interactions[key].getIndicator('Distance').getValues()))
+            meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
 
-        return minDistance, meanDistance, np.sum(number), duration
+        return minDistance, meanDistance
 
-    def evaluate(self):
+    def evaluate(self, seed):
         # todo : docstrings
+        self.interactions = {}
         for user in self.world.completed:  # + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
             if user.leader is not None:
                 roadUser1 = user.leader
@@ -65,31 +65,26 @@ class Analysis:
         minTTCValues = []
 
         for key in self.interactions:
-            if len(self.interactions[key].indicators['Time to Collision'].getValues()) > 0 and min(self.interactions[key].indicators['Time to Collision'].getValues()) < 20:  # 20 : valeur seuil pour le ttc a placer en parametre
-                minTTCValues.append(min(self.interactions[key].indicators['Time to Collision'].getValues()))
+            if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
+                minTTCValues.append(self.interactions[key].getIndicator('Time to Collision').getMostSevereValue(minNInstants=1))
+            else:
+                minTTCValues.append(None)
 
-        # parametres 5, 10, 15 a passer en parametres
-        minDistanceList, meanDistanceList, nInter5, interDuration5 = self.getInteractionsProperties(5, computeDistanceDict=True)     # getting the number and duration of interactions for a distance of 5m
-        _, _, nInter10, interDuration10 = self.getInteractionsProperties(10)  # getting the number and duration of interactions for a distance of 10m
-        _, _, nInter15, interDuration15 = self.getInteractionsProperties(15)  # getting the number and duration of interactions for a distance of 15m
+        user1Nums = [i[0] for i in list(self.interactions.keys())]
+        user2Nums = [i[1] for i in list(self.interactions.keys())]
 
-        return minTTCValues, minDistanceList, meanDistanceList, [nInter5], [nInter10], [nInter15], interDuration5, interDuration10, interDuration15
+        minDistances, meanDistances = self.getInteractionsProperties()     # getting the number and duration of interactions for a distance of 5m
 
-    # @staticmethod
-    # def saveEvaluation(evaluationOutput):
-    #     minTTCValues, minDistanceList, meanDistanceList, nInter5, nInter10, nInter15,  interDuration5, interDuration10, interDuration15 = evaluationOutput
-    #
-    #     ttcData = pd.DataFrame(minTTCValues, columns=['TTC'])
-    #     minDistanceData = pd.DataFrame(minDistanceList, columns=['minDistance'])
-    #     meanDistanceData = pd.DataFrame(meanDistanceList, columns=['meanDistance'])
-    #     interactionNumber = pd.DataFrame(nInter5 + nInter10 + nInter15, columns=['interaction number'])
-    #     interactionDuration = pd.DataFrame([interDuration5, interDuration10, interDuration15], columns=['interaction duration']).transpose()
-    #
-    #     ttcData.to_csv('single-evaluation-ttc.csv')
-    #     minDistanceData.to_csv('single-evaluation-minDistance.csv')
-    #     meanDistanceData.to_csv('single-evaluation-meanDistance.csv')
-    #     interactionNumber.to_csv('single-evaluation-interaction-number.csv')
-    #     interactionDuration.to_csv('single-evaluation-interaction-duration.csv')
+        return [seed]*len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
+
+    @staticmethod
+    def store(evaluationOutput):
+        df = pd.DataFrame({'seed':evaluationOutput[0], 'roadUser1Num':evaluationOutput[1], 'roadUserNum2':evaluationOutput[2], 'TTCmin':evaluationOutput[3], 'distmin':evaluationOutput[4], 'distmean':evaluationOutput[5]})
+        try:
+            df.to_csv('evaluation.csv', mode='a', header=False)
+        except:
+            df.to_csv('evaluation.csv')
+            print('File has been created')
 
     def plotDistanceForUserPair(self, user1Num, user2Num):
         """script to plot distance between a pair of vehicles"""
