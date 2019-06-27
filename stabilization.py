@@ -54,11 +54,7 @@ toolkit.plotVariations(duration5, 'interactionDuration5.pdf', '$interaction \ du
 toolkit.plotVariations(duration10, 'interactionDuration10.pdf', '$interaction \ duration_{10}$')
 toolkit.plotVariations(duration15, 'interactionDuration15.pdf', '$interaction \ duration_{15}$')
 
-# sauvegarde sous dataframe a revoir puis que l'on sauve des dictionnaires des listes de dictionnaires de listes : NAN
 data_raw = pd.DataFrame({'seeds':seeds, 'TTCmin':list(ttc.values()), 'minDistance': list(minDistanceValues.values()), 'meanDistance': list(meanDistanceValues.values()), 'nInter5':list(nInter5.values()), 'nInter10':list(nInter10.values()), 'nInter15':list(nInter15.values()), 'duration5':list(duration5.values()), 'duration10':list(duration10.values()), 'duration15':list(duration15.values())})
-
-    # data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
-    #                 columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
 data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
 # toolkit.callWhenDone()
