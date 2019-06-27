@@ -14,15 +14,8 @@ parser.add_argument("--tau", type=float, help="mean tau")
 parser.add_argument("--l", type=float, help="mean vehicle length")
 parser.add_argument("--headway", type=float, help="mean headway")
 parser.add_argument("--duration", type=int, help="duration")
-parser.add_argument("--seed", type=int, help="initial seed")
-parser.add_argument("--increment", type=int, help="seed increment")
-parser.add_argument("--rep", type=int, help="number of replications")
 
 args = parser.parse_args()
-
-seeds = [args.seed]
-while len(seeds) < args.rep:
-    seeds.append(seeds[-1] + args.increment)
 
 ttc = {}
 minDistanceValues = {}
@@ -35,7 +28,7 @@ duration10 = {}
 duration15 = {}
 
 sim = simulation.Simulation.load('config.yml')
-
+seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 for seed in seeds:
     sim.duration = args.duration
     sim.seed = seed
@@ -61,8 +54,10 @@ toolkit.plotVariations(duration10, 'interactionDuration10', '$interaction durati
 toolkit.plotVariations(duration15, 'interactionDuration15', '$interaction duration_{15}$')
 
 # sauvegarde sous dataframe a revoir puis que l'on sauve des dictionnaires des listes de dictionnaires de listes : NAN
-data_raw = pd.DataFrame(data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
-                    columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
+data_raw = pd.DataFrame({'seeds':seeds, 'TTC':ttc, 'minDistance':minDistanceValues, 'meanDistance': meanDistanceValues, 'nInter5':nInter5, 'nInter10':nInter10, 'nInter15':nInter15, 'duration5':duration5, 'duration10':duration10, 'duration15':duration15})
+
+    # data=[ttc, minDistanceValues, meanDistanceValues, nInter5, nInter10, nInter15, duration5, duration10, duration15],
+    #                 columns=['TTC', 'minDistance', 'meanDistance', 'nInter5', 'nInter10', 'nInter15', 'interactionDuration5', 'interactionDuration10', 'interactionDuration15'])
 data_raw.to_csv('outputData/stabilization-data/data_raw.csv')
 
 # # toolkit.callWhenDone()

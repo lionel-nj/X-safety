@@ -4,7 +4,7 @@ import itertools
 import matplotlib.pyplot as plt
 import networkx as nx
 from scipy import stats
-from trafficintelligence import utils, moving
+from trafficintelligence import utils, moving, storage
 
 import agents
 import toolkit
@@ -235,8 +235,7 @@ class World:
         self.controlDevices = controlDevices  # liste de CD
 
     def __repr__(self):
-        return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices,
-                                                                             self.userInputs)
+        return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices, self.userInputs)
 
     @staticmethod
     def load(filename):
@@ -246,6 +245,10 @@ class World:
     def save(self, filename):
         """saves data to yaml file"""
         toolkit.saveYaml(filename, self)
+
+    def saveToSqlite(self, fileName):
+        storage.saveTrajectoriesToSqlite(fileName, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
+        storage.setObjects(fileName, self.completed)
 
     @staticmethod
     def takeEntry(elem):
@@ -604,9 +607,7 @@ class World:
             if al.connectedAlignmentIndices is not None and len(al.connectedAlignmentIndices) > 1:
                 break
         try:
-            intersection = \
-                al.points.getLineIntersections(self.alignments[al.connectedAlignmentIndices[1]].points[0],
-                                               self.alignments[al.connectedAlignmentIndices[1]].points[1])[1]
+            intersection = al.points.getLineIntersections(self.alignments[al.connectedAlignmentIndices[1]].points[0], self.alignments[al.connectedAlignmentIndices[1]].points[1])[1]
             return intersection[0]
         except:
             return None

@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from trafficintelligence import storage
 
 import events
 import toolkit
 
 
 class Analysis:
-
     def __init__(self, world, analysisZone=None):
         self.world = world
-        self.indicators = {}
+        self.interactions = {}
         self.analysisZone = analysisZone
 
     def getInteractionsProperties(self, distance, analysisZone=None, computeDistanceDict=False):
@@ -19,7 +19,7 @@ class Analysis:
         duration = []
         minDistance = []
         meanDistance = []
-        for key in self.indicators:
+        for key in self.interactions:
             if analysisZone is not None:
                 pass
                 # if (analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser1) is not None and
@@ -34,13 +34,13 @@ class Analysis:
                 #     if not (None in val):
                 #         number.append(len(toolkit.groupOnCriterion(val, distance)))
             else:
-                number.append(len(toolkit.groupOnCriterion(self.indicators[key].indicators['Distance'].values.values(), distance)))
-                for item in toolkit.groupOnCriterion(self.indicators[key].indicators['Distance'].values.values(), distance):
+                number.append(len(toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].values.values(), distance)))
+                for item in toolkit.groupOnCriterion(self.interactions[key].indicators['Distance'].values.values(), distance):
                     duration.append(len(item))
 
             if computeDistanceDict:
-                minDistance.append(min(self.indicators[key].indicators['Distance'].values.values()))
-                meanDistance.append(np.mean(list(self.indicators[key].indicators['Distance'].values.values())))
+                minDistance.append(min(self.interactions[key].indicators['Distance'].values.values()))
+                meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].values.values())))
 
         return minDistance, meanDistance, np.sum(number), duration
 
@@ -51,16 +51,16 @@ class Analysis:
                 roadUser1 = user.leader
                 roadUser2 = user
                 if roadUser2.timeInterval is not None:
-                    i = events.Interaction(roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+                    i = events.Interaction(num=user.num-1, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
                     i.computeTTC()
-                    self.indicators[(roadUser1.num, roadUser2.num)] = i
+                    self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
 
-        for key in self.indicators:
-            if len(self.indicators[key].indicators['Time to Collision'].values.values()) > 0 and min(self.indicators[key].indicators['Time to Collision'].values.values()) < 20:  # 20 : valeur seuil pour le ttc a placer en parametre
-                minTTCValues.append(min(self.indicators[key].indicators['Time to Collision'].values.values()))
+        for key in self.interactions:
+            if len(self.interactions[key].indicators['Time to Collision'].values.values()) > 0 and min(self.interactions[key].indicators['Time to Collision'].values.values()) < 20:  # 20 : valeur seuil pour le ttc a placer en parametre
+                minTTCValues.append(min(self.interactions[key].indicators['Time to Collision'].values.values()))
 
         # parametres 5, 10, 15 a passer en parametres
         minDistanceList, meanDistanceList, nInter5, interDuration5 = self.getInteractionsProperties(5, computeDistanceDict=True)     # getting the number and duration of interactions for a distance of 5m
@@ -94,7 +94,10 @@ class Analysis:
         return self.getUserPairIndicator(user1Num, user2Num, indicatorName).values.keys()
 
     def getUserPairIndicator(self, user1Num, user2Num, indicatorName):
-        return self.indicators[(user1Num, user2Num)].indicators[indicatorName]
+        return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
+
+    def saveIndicatorsToTable(self, fileName):
+        storage.saveIndicatorsToSqlite(fileName, list(self.interactions.values()))
 
 
 class AnalysisZone:
