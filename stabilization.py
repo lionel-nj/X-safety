@@ -40,8 +40,6 @@ for seed in seeds:
 
     sim.run(world)
     analysis = an.Analysis(world)
-    # ttc : minimum value for each interactions
-    # minDistance
     ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed], nInter5[seed], nInter10[seed], nInter15[seed], duration5[seed], duration10[seed], duration15[seed] = analysis.evaluate()
 
 toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s).pdf')
