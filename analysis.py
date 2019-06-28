@@ -20,6 +20,9 @@ class Analysis:
     def load(filename):
         toolkit.loadYaml(filename)
 
+    def getInteractions(self):
+        return list(self.interactions.values())
+
     def getInteractionsProperties(self, analysisZone=None):
         # todo : docstrings
         duration = []
@@ -108,8 +111,8 @@ class Analysis:
     def getUserPairIndicator(self, user1Num, user2Num, indicatorName):
         return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
 
-    def saveIndicatorsToTable(self, fileName):
-        storage.saveIndicatorsToSqlite(fileName, list(self.interactions.values()))
+    def saveIndicators(self, fileName):
+        storage.saveIndicatorsToSqlite(fileName, self.getInteractions())
 
 
 class AnalysisZone:

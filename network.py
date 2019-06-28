@@ -1,5 +1,6 @@
 import copy
 import itertools
+import sqlite3
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -246,9 +247,18 @@ class World:
         """saves data to yaml file"""
         toolkit.saveYaml(filename, self)
 
-    def saveToSqlite(self, fileName):
-        storage.saveTrajectoriesToSqlite(fileName, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
-        storage.setObjects(fileName, self.completed)
+    def createDatabase(self, db):
+        '''creates an empty database'''
+        connection = sqlite3.connect(db)
+        cursor = connection.cursor()
+        createNewellMovingObjectsTable(cursor)
+        storage.createCurvilinearTrajectoryTable(cursor)
+        connection.commit()
+
+    def saveToSqlite(self, db):
+        connection = sqlite3.connect(db)
+        storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
+        setObjects(db, self.completed)
 
     @staticmethod
     def takeEntry(elem):
@@ -433,6 +443,7 @@ class World:
         - links controlDevices to their alignments
         - initializes lists of users
         - initializes the graph
+        - initiates an empty dabase
 
         TODO move checks to other checks, eg that no alignment is so short that is can be bypassed by fast user'''
 
@@ -488,9 +499,10 @@ class World:
 
         # TODO verify consistency, users cannot pass more than one alignment in one step
 
-        # initializing the lisfs of users
+        # initializing the lists of users
         self.users = []
         self.completed = []
+        self.createDatabase('world.db')
 
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
@@ -799,6 +811,20 @@ class Distribution(object):
 
     def getThresholds(self):
         return self.a, self.b
+
+
+def createNewellMovingObjectsTable(cursor):
+    cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, PRIMARY KEY(object_id))")
+
+
+def setObjects(filename, objects):
+    with sqlite3.connect(filename) as connection:
+        cursor = connection.cursor()
+        createNewellMovingObjectsTable(cursor)
+        objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?)"
+        for obj in objects:
+            cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry))
+            connection.commit()
 
 
 if __name__ == "__main__":
