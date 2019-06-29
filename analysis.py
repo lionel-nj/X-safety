@@ -3,7 +3,7 @@ import sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from trafficintelligence import storage
+from trafficintelligence.storage import printDBError
 
 import events
 import toolkit
@@ -118,7 +118,7 @@ class Analysis:
         return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
 
     def saveIndicators(self, fileName):
-        storage.saveIndicatorsToSqlite(fileName, self.getInteractions())
+        self.saveIndicatorsToSqlite(fileName, self.getInteractions())
 
     def saveParametersToTable(self, fileName):
         connection = sqlite3.connect(fileName)
@@ -140,6 +140,38 @@ class Analysis:
         tableName = 'analysis'
         cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, userInput_id INTEGER, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, amberDistribution_type TEXT, amberDistribution__name TEXT, amberDistribution_loc REAL, amberDistribution_scale REAL, amberDistribution_a REAL,amberDistribution_b REAL, amberDistribution_cdf LIST, PRIMARY KEY(analysis_id))")
         connection.commit()
+
+    def saveIndicatorsToSqlite(self, filename, interactions, indicatorNames=events.Interaction.indicatorNames):
+        'Saves the indicator values in the table'
+        with sqlite3.connect(filename) as connection:
+            cursor = connection.cursor()
+            try:
+                self.createInteractionTable(cursor)
+                self.createIndicatorTable(cursor)
+                for inter in interactions:
+                    self.saveInteraction(cursor, inter)
+                    for indicatorName in indicatorNames:
+                        indicator = inter.getIndicator(indicatorName)
+                        if indicator is not None:
+                           self.saveIndicator(cursor, inter.getNum(), indicator)
+            except sqlite3.OperationalError as error:
+                printDBError(error)
+            connection.commit()
+
+    def createInteractionTable(self, cursor):
+        cursor.execute('CREATE TABLE IF NOT EXISTS interactions (id INTEGER PRIMARY KEY, analysis_id INTEGER, object_id1 INTEGER, object_id2 INTEGER, first_frame_number INTEGER, last_frame_number INTEGER, FOREIGN KEY(object_id1) REFERENCES objects(id), FOREIGN KEY(object_id2) REFERENCES objects(id))')
+
+    def createIndicatorTable(self, cursor):
+        cursor.execute('CREATE TABLE IF NOT EXISTS indicators (interaction_id INTEGER, analysis_id INTEGER, indicator_type INTEGER, frame_number INTEGER, value REAL, FOREIGN KEY(interaction_id) REFERENCES interactions(id), PRIMARY KEY(interaction_id, indicator_type, frame_number))')
+
+    def saveInteraction(self, cursor, interaction):
+        roadUserNumbers = list(interaction.getRoadUserNumbers())
+        cursor.execute('INSERT INTO interactions VALUES({}, {}, {}, {}, {}, {})'.format(interaction.getNum(), self.idx, roadUserNumbers[0], roadUserNumbers[1], interaction.getFirstInstant(), interaction.getLastInstant()))
+
+    def saveIndicator(self, cursor, interactionNum, indicator):
+        for instant in indicator.getTimeInterval():
+            if indicator[instant]:
+                cursor.execute('INSERT INTO indicators VALUES({}, {}, {}, {}, {})'.format(interactionNum, self.idx, events.Interaction.indicatorNameToIndices[indicator.getName()], instant, indicator[instant]))
 
 
 class AnalysisZone:
@@ -173,3 +205,4 @@ class AnalysisZone:
                 if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] - user.getTravelledDistance(minVal[1], maxVal[1]) and cp[2] == maxVal[1]):
                     return True
             return False
+
