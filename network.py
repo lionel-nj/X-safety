@@ -260,6 +260,7 @@ class World:
         storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
         setObjects(db, self.completed)
 
+
     @staticmethod
     def takeEntry(elem):
         return elem.getTimeInterval()[0]
@@ -791,26 +792,50 @@ class Distribution(object):
         else:
             raise NameError('error in distribution type')
 
-    def getName(self):
-        return self.distributionName
-
     def getType(self):
         return self.distributionType
 
+    def getName(self):
+        if hasattr(self, 'name'):
+            return self.distributionName
+        else:
+            return None
+
     def getScale(self):
-        return self.scale
+        if hasattr(self, 'scale'):
+            return self.scale
+        else:
+            return None
 
     def getLoc(self):
-        return self.loc
+        if hasattr(self, 'loc'):
+            return self.loc
+        else:
+            return None
 
     def getCdf(self):
-        return self.cdf
+        if hasattr(self, 'cdf'):
+            return self.cdf
+        else:
+            return None
 
     def getConstant(self):
-        return self.degeneratedConstant
+        if hasattr(self, 'degeneratedConstant'):
+            return self.degeneratedConstant
+        else:
+            return None
 
-    def getThresholds(self):
-        return self.a, self.b
+    def getMinThreshold(self):
+        if hasattr(self, 'a'):
+            return self.a
+        else:
+            return None
+
+    def getMaxThreshold(self):
+        if hasattr(self, 'b'):
+            return self.b
+        else:
+            return None
 
 
 def createNewellMovingObjectsTable(cursor):

@@ -8,7 +8,7 @@ import toolkit
 
 world = network.World.load('simple-net.yml')
 interface = iface.Interface(world)
-interface.getParametersAsInputs()
+interface.setInputsAsParameters()
 
 ttc = {}
 minDistanceValues = {}

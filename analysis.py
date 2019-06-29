@@ -1,3 +1,5 @@
+import sqlite3
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -8,10 +10,14 @@ import toolkit
 
 
 class Analysis:
-    def __init__(self, world, analysisZone=None):
+    def __init__(self, idx, world, analysisZone=None):
+        self.idx = idx
         self.world = world
         self.interactions = {}
         self.analysisZone = analysisZone
+
+    def getIdx(self):
+        return self.idx
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -43,9 +49,9 @@ class Analysis:
                 #     if not (None in val):
                 #         number.append(len(toolkit.groupOnCriterion(val, distance)))
             # else:
-                # for item in toolkit.groupOnCriterion(self.interactions[key].getIndicators('Distance').getValues(), distance):
-                #     duration.append(len(item))
-                # pass
+            # for item in toolkit.groupOnCriterion(self.interactions[key].getIndicators('Distance').getValues(), distance):
+            #     duration.append(len(item))
+            # pass
 
             minDistance.append(min(self.interactions[key].getIndicator('Distance').getValues()))
             meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
@@ -60,7 +66,7 @@ class Analysis:
                 roadUser1 = user.leader
                 roadUser2 = user
                 if roadUser2.timeInterval is not None:
-                    i = events.Interaction(num=user.num-1, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+                    i = events.Interaction(num=user.num - 1, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
                     i.computeTTC()
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
@@ -83,13 +89,13 @@ class Analysis:
         user1Nums = [i[0] for i in list(self.interactions.keys())]
         user2Nums = [i[1] for i in list(self.interactions.keys())]
 
-        minDistances, meanDistances = self.getInteractionsProperties()     # getting the number and duration of interactions for a distance of 5m
+        minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m
 
-        return [seed]*len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
+        return [seed] * len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):
-        df = pd.DataFrame({'seed':evaluationOutput[0], 'roadUser1Num':evaluationOutput[1], 'roadUserNum2':evaluationOutput[2], 'TTCmin':evaluationOutput[3], 'distmin':evaluationOutput[4], 'distmean':evaluationOutput[5]})
+        df = pd.DataFrame({'seed': evaluationOutput[0], 'roadUser1Num': evaluationOutput[1], 'roadUserNum2': evaluationOutput[2], 'TTCmin': evaluationOutput[3], 'distmin': evaluationOutput[4], 'distmean': evaluationOutput[5]})
         try:
             df.to_csv('evaluation.csv', mode='a', header=False)
         except:
@@ -113,6 +119,27 @@ class Analysis:
 
     def saveIndicators(self, fileName):
         storage.saveIndicatorsToSqlite(fileName, self.getInteractions())
+
+    def saveParametersToTable(self, fileName):
+        connection = sqlite3.connect(fileName)
+        cursor = connection.cursor()
+        for ui in self.world.userInputs:
+            values = [self.idx, ui.idx]
+            for distribution in ui.distributions:
+                dist = ui.distributions[distribution]
+                values.extend([dist.getType(), dist.getName(), dist.getLoc(), dist.getScale(), dist.getMinThreshold(), dist.getMaxThreshold(), dist.getCdf()])
+            query = "INSERT INTO analysis VALUES("+"?,"*len(values)
+            query = query[:-1]
+            query += ")"
+            cursor.execute(query, values)#, values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8]))
+        connection.commit()
+
+    def createAnalysisTable(self, fileName):
+        connection = sqlite3.connect(fileName)
+        cursor = connection.cursor()
+        tableName = 'analysis'
+        cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, userInput_id INTEGER, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, amberDistribution_type TEXT, amberDistribution__name TEXT, amberDistribution_loc REAL, amberDistribution_scale REAL, amberDistribution_a REAL,amberDistribution_b REAL, amberDistribution_cdf LIST, PRIMARY KEY(analysis_id))")
+        connection.commit()
 
 
 class AnalysisZone:

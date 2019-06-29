@@ -14,7 +14,7 @@ class Interface:
     def load(filename):
         toolkit.loadYaml(filename)
 
-    def getParametersAsInputs(self):
+    def setInputsAsParameters(self):
         defaultValues = input('Compute with defaut values ? y or n ?\n')
         if defaultValues =='n':
             for ui in self.world.userInputs:
@@ -55,3 +55,14 @@ class Interface:
                     os.system('clear')
         else:
             pass
+
+    def setSensitivityAnalysisParameters(self):
+        self.variations = float(input('enter percentage of variation for parameters\n'))
+
+
+    def setSensivityAnalysisMethod(self):
+        method = int(input('1: one-at-a-time\n2: sobol-satelli'))
+        if method == 1:
+            self.saMethod = 'OAT'
+        else:
+            self.method = 'SS'

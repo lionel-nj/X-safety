@@ -54,8 +54,8 @@ userInputs:
       degeneratedConstant: null
       distributionName: expon
       distributionType: theoretic
-      loc: 2.
-      scale: 2.
+      loc: 0.8
+      scale: 1.
     length: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
@@ -72,8 +72,8 @@ userInputs:
       distributionType: theoretic
       loc: 14
       scale: 6
-      a: -1
-      b: 10
+      a: -2
+      b: 2
     tau: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
@@ -81,18 +81,18 @@ userInputs:
       distributionType: theoretic
       loc: 2
       scale: 0.5
-      a: -2
-      b: 2
+      a: -1
+      b: 1
     criticalGap: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoretic
-      loc: 6
-      scale: 2
+      degeneratedConstant: 5
+      distributionName: null
+      distributionType: degenerated
+      loc: null
+      scale: null
     amberProbability: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 2
+      degeneratedConstant: 5
       distributionName: null
       distributionType: degenerated
       loc: null
