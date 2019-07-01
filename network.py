@@ -255,7 +255,7 @@ class World:
         storage.createCurvilinearTrajectoryTable(cursor)
         connection.commit()
 
-    def saveToSqlite(self, db):
+    def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
         storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
         setObjects(db, self.completed)
@@ -796,7 +796,7 @@ class Distribution(object):
         return self.distributionType
 
     def getName(self):
-        if hasattr(self, 'name'):
+        if hasattr(self, 'distributionName'):
             return self.distributionName
         else:
             return None

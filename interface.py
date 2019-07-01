@@ -57,7 +57,7 @@ class Interface:
             pass
 
     def setSensitivityAnalysisParameters(self):
-        self.variations = float(input('enter percentage of variation for parameters\n'))
+        self.variationRate = float(input('enter percentage of variation for parameters\n'))
 
 
     def setSensivityAnalysisMethod(self):

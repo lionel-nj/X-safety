@@ -4,4 +4,4 @@ timeStep: 0.1
 verbose: False
 seed: 20
 increment: 4
-rep: 100
+rep: 5
