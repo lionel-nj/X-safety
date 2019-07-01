@@ -88,12 +88,12 @@ class Analysis:
             else:
                 minTTCValues.append(None)
 
-        user1Nums = [i[0] for i in list(self.interactions.keys())]
-        user2Nums = [i[1] for i in list(self.interactions.keys())]
+        # user1Nums = [i[0] for i in list(self.interactions.keys())]
+        # user2Nums = [i[1] for i in list(self.interactions.keys())]
 
         minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m
 
-        return [seed] * len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
+        # return [seed] * len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):
