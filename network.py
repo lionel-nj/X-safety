@@ -195,6 +195,7 @@ class StopSign(ControlDevice):
         if instant < self.user.arrivalInstant + self.stopDuration:
             return False
         else:
+
             self.user = None
             return True
 
@@ -338,7 +339,7 @@ class World:
         al = self.alignments[self.userInputs[0].getAlignmentIdx()]
         al.entryNode = al.idx
         al.exitNode = al.idx + 1
-        if al.connectedAlignmentIndices is not None:
+        if al.getConnectedAlignmentIndices() is not None:
             for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
                 self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
                 self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
@@ -480,8 +481,8 @@ class World:
 
         # connecting alignments
         for al in self.alignments:
-            if al.connectedAlignmentIndices is not None:
-                al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.connectedAlignmentIndices]
+            if al.getConnectedAlignmentIndices() is not None:
+                al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
             else:
                 al.connectedAlignments = None
 
@@ -513,79 +514,68 @@ class World:
         """"returns the curvilinear positions of the crossing point on all its alignments
         alIdx : alignment to project on"""
         al = self.alignments[alIdx]
-        if al.connectedAlignmentIndices is None:
+        if al.getConnectedAlignmentIndices() is None:
             return 0
         else:
             return al.getTotalDistance()
 
-    def getIncomingTrafficAlignmentIdx(self, user):
+    def getIncomingTrafficAlignmentIdx(self, user, instant):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-        _temp = user.currentAlignment.connectedAlignmentIndices
+        _temp = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getConnectedAlignmentIndices()
         if _temp is not None:
             for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
-                if al.idx != user.currentAlignment.idx:
-                    if al.connectedAlignmentIndices is not None:
+                if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
+                    if al.getConnectedAlignmentIndices() is not None:
                         return al.idx
 
     def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""
-        # todo :A revoir suite a la modification de getIntersectionCP
-        if instant in list(user.timeInterval):
-            lane = self.getIncomingTrafficAlignmentIdx(user)
-            if lane is not None:
-                intersectionCP = self.getIntersectionCP(lane)
-                userIntersectionCP = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance()
-                if user.leader is not None:
-                    if user.leader.getCurvilinearPositionAtInstant(instant)[0] > userIntersectionCP:
-                        worldUserList = []
-                        for k in range(len(self.userInputs)):
-                            worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
-                        for ui in self.userInputs:
-                            if ui.alignmentIdx == lane:
-                                uiIdx = ui.idx
-                                break
-                        adjacentUsers = worldUserList[uiIdx]
-                        incomingUsers = []
-                        for adUser in adjacentUsers:
-                            if instant in list(adUser.timeInterval):
-                                if adUser.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP:
-                                    incomingUsers.append(adUser)
-                        sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
-                        if sortedUserList != []:
-                            user.comingUser = sortedUserList[0]
+        lane = self.getIncomingTrafficAlignmentIdx(user, instant)
+        if lane is not None:
+            if user.leader is not None:
+                if user.leader.getCurvilinearPositionAtInstant(instant)[2] != user.getCurvilinearPositionAtInstant(instant)[2]:
+
+                    adjacentUsers = []
+                    for _user in self.users:
+                        if _user.num != user.num:
+                            if _user.timeInterval is not None and instant in list(_user.timeInterval):
+                                if _user.getCurvilinearPositionAtInstant(instant)[2] == lane:
+                                    adjacentUsers.append(_user)
+
+                    sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                    if sortedUserList != []:
+                        user.comingUser = sortedUserList[0]
                     else:
                         user.comingUser = None
                 else:
-                    worldUserList = []
-                    for k in range(len(self.userInputs)):
-                        worldUserList.append(self.getNotNoneVehiclesInWorld()[k])
-                    for ui in self.userInputs:
-                        if ui.alignmentIdx == lane:
-                            uiIdx = ui.idx
-                            break
-                    adjacentUsers = worldUserList[uiIdx]
-                    incomingUsers = []
-                    for adUser in adjacentUsers:
-                        if instant in list(adUser.timeInterval):
-                            if adUser.getCurvilinearPositionAtInstant(instant)[0] <= intersectionCP:
-                                incomingUsers.append(adUser)
-                    sortedUserList = sorted(incomingUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0],
-                                            reverse=True)
-                    if sortedUserList != []:
-                        user.comingUser = sortedUserList[0]
+                    user.comingUser = None
+            else:
+                adjacentUsers = []
+                for _user in self.users:
+                    if _user.num != user.num:
+                        if _user.timeInterval is not None and instant in list(_user.timeInterval):
+                            if user.getCurvilinearPositionAtInstant(instant)[2] == lane:
+                                adjacentUsers.append(_user)
 
-    def estimateGap(self, user, instant):
+                sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
+                if sortedUserList != []:
+                    user.comingUser = sortedUserList[0]
+                else:
+                    user.comingUser = None
+        else:
+            user.comingUser = None
+
+    def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
-        # todo : a revoir
         if user.timeInterval is not None:
             self.checkTraffic(user, instant)
             if user.comingUser is None:
                 return float('inf')
             else:
-                v = user.comingUser.getCurvilinearVelocityAtInstant(instant)[0] / self.timeStep
+                v = user.comingUser.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
                 if v != 0:
-                    d = self.distanceAtInstant(user.comingUser, self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].controlDevice, instant)
+                    d = self.distanceAtInstant(user.comingUser, user, instant) - (self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user.getCurvilinearPositionAtInstant(instant)[0])
                     return d / v
                 else:
                     return float('inf')
@@ -616,10 +606,10 @@ class World:
 
     def getIntersectionXYcoords(self):
         for al in self.alignments:
-            if al.connectedAlignmentIndices is not None and len(al.connectedAlignmentIndices) > 1:
+            if al.getConnectedAlignmentIndices() is not None and len(al.getConnectedAlignmentIndices()) > 1:
                 break
         try:
-            intersection = al.points.getLineIntersections(self.alignments[al.connectedAlignmentIndices[1]].points[0], self.alignments[al.connectedAlignmentIndices[1]].points[1])[1]
+            intersection = al.points.getLineIntersections(self.alignments[al.getConnectedAlignmentIndices()[1]].points[0], self.alignments[al.getConnectedAlignmentIndices()[1]].points[1])[1]
             return intersection[0]
         except:
             return None
