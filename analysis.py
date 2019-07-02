@@ -60,40 +60,31 @@ class Analysis:
 
         return minDistance, meanDistance
 
-    def evaluate(self, seed, ttcFilter):
+    def evaluate(self, ttcFilter, speedDifferential):
         # todo : docstrings
         self.interactions = {}
-        for user in self.world.completed:  # + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
+        for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
             if user.leader is not None:
                 roadUser1 = user.leader
                 roadUser2 = user
                 if roadUser2.timeInterval is not None:
                     i = events.Interaction(num=user.num - 1, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
-                    i.computeTTC()
+                    i.computeTTC(ttcFilter, speedDifferential)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
 
         for key in self.interactions:
             if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
-                value = self.interactions[key].getIndicator('Time to Collision').getMostSevereValue(minNInstants=1)
-                if ttcFilter is not None:
-                    if value <= ttcFilter:
-                        minTTCValues.append(value)
-                    else:
-                        minTTCValues.append(None)
-                else:
-                    minTTCValues.append(value)
-            else:
-                minTTCValues.append(None)
-
-        # user1Nums = [i[0] for i in list(self.interactions.keys())]
-        # user2Nums = [i[1] for i in list(self.interactions.keys())]
+                value = min(self.interactions[key].getIndicator('Time to Collision').getValues())
+                minTTCValues.append(value)
+            # else:
+            #     minTTCValues.append(None)
 
         minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m
 
-        # return [seed] * len(user1Nums), user1Nums, user2Nums, minTTCValues, minDistances, meanDistances
+        return minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):

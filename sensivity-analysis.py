@@ -33,7 +33,7 @@ for distribution in world.userInputs[0].distributions:
         sim.seed = seed
         print('ok')
         sim.run(world)
-        analysis.evaluate(sim.seed, ttcFilter=20)
+        analysis.evaluate(ttcFilter=20, speedDifferential=1)
         analysis.saveIndicators('world.db')
 
     c += 1

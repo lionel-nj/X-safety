@@ -215,14 +215,20 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
 
-    def computeTTC(self):
+    def computeTTC(self, dv, ttcFilter=None):
         ttc = {}
         for instant in self.timeInterval:
             self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
             v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
             v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0]
-            if v1 < v2:
-                ttc[instant] = self.indicators['Distance'].values[instant]/(v2-v1)
+            speedDifferential = v2 - v1
+            if speedDifferential > dv:
+                if ttcFilter is None:
+                    ttc[instant] = self.indicators['Distance'].values[instant]/(v2-v1)
+                else:
+                    value = self.indicators['Distance'].values[instant]/(v2-v1)
+                    if value <= ttcFilter:
+                        ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
 
 

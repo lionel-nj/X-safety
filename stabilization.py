@@ -24,8 +24,8 @@ for seed in seeds:
     sim.seed = seed
     world = network.World.load('simple-net.yml')
     sim.run(world)
-    analysis = an.Analysis(world)
-    _, _, _, ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed] = analysis.evaluate(seed, ttcFilter=20)
+    analysis = an.Analysis(idx=0, seed=seed, world=world)
+    ttc[seed],  minDistanceValues[seed], meanDistanceValues[seed] = analysis.evaluate(ttcFilter=20, speedDifferential=1)
     nInter5[seed] = [(np.array(minDistanceValues[seed]) <= 5).sum()]
     nInter10[seed] = [(np.array(minDistanceValues[seed]) <= 10).sum()]
     nInter15[seed] = [(np.array(minDistanceValues[seed]) <= 15).sum()]

@@ -257,7 +257,7 @@ class World:
 
     def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
-        storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # db creation + completion with curvilinear trajectories tables
+        storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # completion with curvilinear trajectories tables
         setObjects(db, self.completed)
 
 
