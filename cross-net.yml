@@ -5,8 +5,7 @@ alignments:
   connectedAlignmentIndices:
   - 1
   - 3
-  controlDeviceIndices:
-    - 0
+  controlDeviceIndices: null
   idx: 0
   movementProportions:
     - 1
@@ -76,105 +75,120 @@ userInputs:
     dn: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 8.333333
       scale: 1
+      a: -2
+      b: 2
     headway: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: expon
-      distributionType: theoric
-      loc: 1
-      scale: 0.8
+      distributionType: theoretic
+      loc: 0.8
+      scale: 1.
     length: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 7
       scale: 1
+      a: -2
+      b: 2
     speed: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 14
-      scale: 3
+      scale: 6
+      a: -2
+      b: 2
     tau: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 2
       scale: 0.5
+      a: -1
+      b: 1
     criticalGap: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 2
-      distributionName: norm
+      degeneratedConstant: 5
+      distributionName: null
       distributionType: degenerated
-      loc: 6
-      scale: 2
+      loc: null
+      scale: null
     amberProbability: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 2
+      degeneratedConstant: 5
       distributionName: null
       distributionType: degenerated
       loc: null
       scale: null
   idx: 0
+
 - !!python/object:network.UserInput
   alignmentIdx: 2
   distributions:
     dn: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 8.333333
       scale: 1
+      a: -2
+      b: 2
     headway: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
       distributionName: expon
-      distributionType: theoric
-      loc: 1
-      scale: 0.5
+      distributionType: theoretic
+      loc: 0.8
+      scale: 1.
     length: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 7
       scale: 1
+      a: -2
+      b: 2
     speed: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 14
-      scale: 3
+      scale: 6
+      a: -2
+      b: 2
     tau: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
+      distributionName: truncnorm
+      distributionType: theoretic
       loc: 2
       scale: 0.5
+      a: -1
+      b: 1
     criticalGap: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: null
-      distributionName: norm
-      distributionType: theoric
-      loc: 6
-      scale: 2
+      degeneratedConstant: 1
+      distributionName: null
+      distributionType: degenerated
+      loc: null
+      scale: null
     amberProbability: !!python/object:network.Distribution
       cdf: null
-      degeneratedConstant: 2
-      distributionName: norm
+      degeneratedConstant: 5
+      distributionName: null
       distributionType: degenerated
       loc: null
       scale: null
   idx: 1
-
-timeAtStop: 4

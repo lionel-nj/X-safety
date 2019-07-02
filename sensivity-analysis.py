@@ -7,7 +7,7 @@ import network
 import simulation
 # import toolkit
 
-world = network.World.load('simple-net.yml')
+world = network.World.load('cross-net.yml')
 
 sim = simulation.Simulation.load('config.yml')
 interface = iface.Interface(world)

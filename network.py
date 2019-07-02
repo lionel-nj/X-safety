@@ -44,7 +44,7 @@ class Alignment:
     def plot(self, options='', **kwargs):
         self.points.plot(options, **kwargs)
 
-    def getNextAlignment(self, nextS, user, instant):
+    def getNextAlignment(self, nextS, user, instant, world, timeStep):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
         # warning, recursive function
         alignmentDistance = self.getTotalDistance()
@@ -56,12 +56,12 @@ class Alignment:
             cd = self.getControlDevice()
             if cd is not None:
                 cd.user = user
-                if cd.permissionToGo(instant):
-                    alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant)
+                if cd.permissionToGo(instant, world, timeStep):
+                    alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
                     alignments, s = [self], self.getTotalDistance()
             else:
-                alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant)
+                alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
             return [self] + alignments, s
         else:  # simulation finished, exited network
             return None, None
@@ -189,15 +189,19 @@ class StopSign(ControlDevice):
     def reset(self):
         self.user = None
 
-    def permissionToGo(self, instant):
+    def permissionToGo(self, instant, world, timeStep):
         if not hasattr(self.user, 'arrivalInstant'):
             self.user.arrivalInstant = instant
         if instant < self.user.arrivalInstant + self.stopDuration:
             return False
         else:
-
-            self.user = None
-            return True
+            if world.estimateGap(user=self.user, instant=instant, timeStep=timeStep) > self.user.criticalGap/timeStep:
+                self.user = None
+                return True
+            else:
+                return False  # pas passer
+            # self.user = None
+            # return True
 
 
 class YieldSign(ControlDevice):
@@ -521,12 +525,13 @@ class World:
 
     def getIncomingTrafficAlignmentIdx(self, user, instant):
         """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-        _temp = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getConnectedAlignmentIndices()
-        if _temp is not None:
-            for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
-                if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
-                    if al.getConnectedAlignmentIndices() is not None:
-                        return al.idx
+        if instant in list(user.timeInterval):
+            _temp = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getConnectedAlignmentIndices()
+            if _temp is not None:
+                for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
+                    if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
+                        if al.getConnectedAlignmentIndices() is not None:
+                            return al.idx
 
     def checkTraffic(self, user, instant):
         """"returns the closest user to cross the intersection in the adjacent alignments"""

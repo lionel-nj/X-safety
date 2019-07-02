@@ -162,7 +162,7 @@ class NewellMovingObject(moving.MovingObject):
                     # if self.num ==1:
                     #     print(s1, ds, freeFlowCoord, constrainedCoord, instant)
                 s2 = min(freeFlowCoord, constrainedCoord)
-            nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant)
+            nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(nextS=s2, user=self, instant=instant, world=world, timeStep=timeStep)
             if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
                 for al in nextAlignments[1:]:
