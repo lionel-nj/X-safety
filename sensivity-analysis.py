@@ -26,7 +26,7 @@ for distribution in world.userInputs[0].distributions:
     else:
         world.userInputs[0].distributions[distribution].degeneratedConstant *= (1 + interface.variationRate)
     analysis = an.Analysis(c, world=world, seed=sim.seed)
-    analysis.saveParametersToTable('world.db', sim.seed)
+    analysis.saveParametersToTable('world.db')
 
     for seed in seeds:
         analysis.seed = seed

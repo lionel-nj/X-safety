@@ -1,5 +1,6 @@
 import numpy as np
 
+import network
 import toolkit
 
 
@@ -12,11 +13,12 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, verbose):
+    def __init__(self, duration, timeStep, seed, verbose, dbName=None):
         self.duration = duration
         self.timeStep = timeStep
         self.seed = seed
         self.verbose = verbose
+        self.dbName = dbName
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -42,6 +44,9 @@ class Simulation(object):
 
         world.duplicateLastVelocities()
         world.finalize(i)
+        if self.dbName is not None:
+            network.createNewellMovingObjectsTable(self.dbName)
+            world.saveCurvilinearTrajectoriesToSqlite(self.dbName)
 
 
 if __name__ == "__main__":

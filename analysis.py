@@ -113,7 +113,7 @@ class Analysis:
     def saveIndicators(self, fileName):
         self.saveIndicatorsToSqlite(fileName, self.getInteractions())
 
-    def saveParametersToTable(self, fileName, seed):
+    def saveParametersToTable(self, fileName):
         connection = sqlite3.connect(fileName)
         cursor = connection.cursor()
         for ui in self.world.userInputs:
@@ -124,7 +124,7 @@ class Analysis:
             query = "INSERT INTO analysis VALUES("+"?,"*len(values)
             query = query[:-1]
             query += ")"
-            cursor.execute(query, values)#, values[1], values[2], values[3], values[4], values[5], values[6], values[7], values[8]))
+            cursor.execute(query, values)
         connection.commit()
 
     def createAnalysisTable(self, fileName):
@@ -199,3 +199,6 @@ class AnalysisZone:
                 if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] - user.getTravelledDistance(minVal[1], maxVal[1]) and cp[2] == maxVal[1]):
                     return True
             return False
+
+    # def userTimeIntervalInAnalysisZone(self, user):
+    #     for

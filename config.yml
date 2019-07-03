@@ -5,3 +5,4 @@ verbose: False
 seed: 20
 increment: 4
 rep: 12
+dbName: world.db

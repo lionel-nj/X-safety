@@ -192,44 +192,82 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
     #
 
-    def areCrossing(self,  firstThreshold, secondThreshold, instant):
-        roadUser1 = self.roadUser1
-        roadUser2 = self.roadUser2
-
-        if roadUser1.getFirstInstant() <= instant <= roadUser1.getLastInstant() and roadUser2.getFirstInstant() <= instant <= roadUser2.getLastInstant():
-            if roadUser1.leader is not None and roadUser2.leader is not None:
-                return roadUser1.leader.getCurvilinearPositionAtInstant(instant)[0] > firstThreshold and roadUser2.leader.getCurvilinearPositionAtInstant(instant)[0] > secondThreshold
-            elif roadUser1.leader is not None and roadUser2.leader is None:
-                return roadUser1.leader.getCurvilinearPositionAtInstant(instant)[0] > firstThreshold
-            elif roadUser1.leader is None and roadUser2.leader is not None:
-                return roadUser2.leader.getCurvilinearPositionAtInstant(instant)[0] > secondThreshold
-            else:
-                return True
-        else:
-            return False
-
     def computeDistance(self, world):
         distances = {}
         for instant in self.timeInterval:
             if self.useCurvilinear:
+                print(instant, self.roadUser1.num, self.roadUser2.num)
                 distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
 
-    def computeTTC(self, dv, ttcFilter=None):
+    def computeTTC(self, world, ttcFilter=None):
         ttc = {}
         for instant in self.timeInterval:
-            self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
-            v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
-            v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0]
-            speedDifferential = v2 - v1
-            if speedDifferential > dv:
+            if world.getUsersSituationAtInstant(self.roadUser1, self.roadUser2, instant) == 'CF':
+                self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
+                v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0]
                 if ttcFilter is None:
                     ttc[instant] = self.indicators['Distance'].values[instant]/(v2-v1)
                 else:
                     value = self.indicators['Distance'].values[instant]/(v2-v1)
                     if value <= ttcFilter:
                         ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
+            else:
+                if self.roadUser1.leader and self.roadUser2.leader is not None:
+                    if (self.roadUser1.leader.getCurvilinearPositionAtInstant(instant)[2] != self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]) and (self.roadUser2.leader.getCurvilinearPositionAtInstant(instant)[2] != self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]):
+                        d = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
+                        d1 = d - (world.alignment[self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser2.getCurvilinearPositionAtInstant(instant[0]))
+                        d2 = d - (world.alignment[self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser1.getCurvilinearPositionAtInstant(instant[0]))
+                        t1 = d1 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        t2 = d2 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        value = max(t1, t2)
+                        ttc[instant] = value
+                    elif (self.roadUser1.leader is None) and (self.roadUser2.leader.getCurvilinearPositionAtInstant(instant)[2] != self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]):
+                        d = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
+                        d1 = d - (world.alignment[self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser2.getCurvilinearPositionAtInstant(instant[0]))
+                        d2 = d - (world.alignment[self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser1.getCurvilinearPositionAtInstant(instant[0]))
+                        t1 = d1 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        t2 = d2 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        value = max(t1, t2)
+                        ttc[instant] = value
+                    elif (self.roadUser2.leader is None) and (self.roadUser1.leader.getCurvilinearPositionAtInstant(instant)[2] != self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]):
+                        d = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant)
+                        d1 = d - (world.alignment[self.roadUser2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser2.getCurvilinearPositionAtInstant(instant[0]))
+                        d2 = d - (world.alignment[self.roadUser1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - self.roadUser1.getCurvilinearPositionAtInstant(instant[0]))
+                        t1 = d1 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        t2 = d2 / self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0]
+                        value = max(t1, t2)
+                        ttc[instant] = value
+
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
+
+    @staticmethod
+    # def computePET(obj1, obj2, collisionDistanceThreshold):
+    #     '''Post-encroachment time based on distance threshold
+    #
+    #     Returns the smallest time difference when the object positions are within collisionDistanceThreshold
+    #     and the instants at which each object is passing through its corresponding position'''
+    #
+    #     obj1.positions =
+    #     obj2.positions =
+    #     positions1 = [p.astuple() for p in obj1.getPositions()]
+    #     positions2 = [p.astuple() for p in obj2.getPositions()]
+    #     n1 = len(positions1)
+    #     n2 = len(positions2)
+    #     pets = zeros((n1, n2))
+    #     for i, t1 in enumerate(obj1.getTimeInterval()):
+    #         for j, t2 in enumerate(obj2.getTimeInterval()):
+    #             pets[i, j] = abs(t1 - t2)
+    #     distances = cdist(positions1, positions2, metric='euclidean')
+    #     smallDistances = (distances <= collisionDistanceThreshold)
+    #     if smallDistances.any():
+    #         smallPets = pets[smallDistances]
+    #         petIdx = smallPets.argmin()
+    #         distanceIndices = np.argwhere(smallDistances)[petIdx]
+    #         return smallPets[petIdx], obj1.getFirstInstant() + distanceIndices[0], obj2.getFirstInstant() + distanceIndices[1]
+    #     else:
+    #         return None, None, None
 
 
     # def computeIndicators(self, world=None, alignment1=None, alignment2=None):

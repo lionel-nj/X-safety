@@ -1,4 +1,3 @@
-import copy
 import itertools
 import sqlite3
 
@@ -55,8 +54,10 @@ class Alignment:
             # TODO check control devices
             cd = self.getControlDevice()
             if cd is not None:
-                cd.user = user
-                if cd.permissionToGo(instant, world, timeStep):
+                # cd.setUser(user)
+                user.setArrivalInstantAtControlDevice(instant)
+                if cd.permissionToGo(instant, user, world, timeStep):
+                    user.resetArrivalInstantAtControlDevice()
                     alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
                     alignments, s = [self], self.getTotalDistance()
@@ -110,6 +111,17 @@ class ControlDevice:
     def getAlignmentIdx(self):
         return self.alignmentIdx
 
+    def reset(self):
+        pass
+
+    def getState(self):
+        return None
+
+    def update(self, instant):
+        pass
+
+    def permissionToGo(self, instant, user, world, timeStep):
+        return None
 
 class TrafficLight(ControlDevice):
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
@@ -118,10 +130,7 @@ class TrafficLight(ControlDevice):
         self.greenTime = greenTime
         self.amberTime = amberTime
         self.initialState = initialState
-        self.state = initialState
-        self.remainingRed = copy.deepcopy(redTime)
-        self.remainingAmber = copy.deepcopy(amberTime)
-        self.remainingGreen = copy.deepcopy(greenTime)
+        self.reset()
 
     def getState(self):
         """ returns art for the current color """
@@ -136,8 +145,8 @@ class TrafficLight(ControlDevice):
         else:
             self.state = 'amber'
 
-    def cycle(self, timeStep):
-        """ displays the current state for a TrafficLight object for the duration of state"""
+    def update(self, timeStep):
+        """Updates the current state for a TrafficLight object for the duration of state"""
         if self.state == 'green':
             if self.remainingGreen > 0:
                 self.remainingGreen -= timeStep
@@ -161,9 +170,9 @@ class TrafficLight(ControlDevice):
         """ resets the defaut parameters of a traffic light .. useful to avoid different initial
         state between two replications of a same simulation """
         self.state = self.initialState
-        self.remainingRed = copy.deepcopy(self.redTime)
-        self.remainingAmber = copy.deepcopy(self.amberTime)
-        self.remainingGreen = copy.deepcopy(self.greenTime)
+        self.remainingRed = self.redTime
+        self.remainingAmber = self.amberTime
+        self.remainingGreen = self.greenTime
 
     def permissionToGo(self, instant):
         if self.state == 'green':
@@ -180,56 +189,25 @@ class StopSign(ControlDevice):
         self.user = None
         self.stopDuration = stopDuration
 
-    def cycle(self, timeStep):
-        pass
-
-    def getState(self):
-        pass
-
-    def reset(self):
-        self.user = None
-
-    def permissionToGo(self, instant, world, timeStep):
-        if not hasattr(self.user, 'arrivalInstant'):
-            self.user.arrivalInstant = instant
-        if instant < self.user.arrivalInstant + self.stopDuration:
+    def permissionToGo(self, instant, user, world, timeStep):
+        if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            if world.estimateGap(user=self.user, instant=instant, timeStep=timeStep) > self.user.criticalGap/timeStep:
-                self.user = None
+            if world.estimateGap(user, instant, timeStep) > user.getCriticalGap()/timeStep:
                 return True
             else:
                 return False  # pas passer
-            # self.user = None
-            # return True
-
 
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
         super(YieldSign, self).__init__(idx, alignmentIdx)
 
-    def cycle(self):
-        pass
-
-    def getState(self):
-        pass
-
-    def reset(self):
-        pass
-
-    def permissionToGo(self, instant):
-        pass
 
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
 #         super().__init__(idx, category, alignmentIdx)
 #         self.initialState = initialState
 #         self.states = [self.initialState]
-#
-#     def cycle(self):
-#         pass
-#     def getStateAtInstant(self, t):
-# pass
 
 
 class World:
@@ -252,18 +230,10 @@ class World:
         """saves data to yaml file"""
         toolkit.saveYaml(filename, self)
 
-    def createDatabase(self, db):
-        '''creates an empty database'''
-        connection = sqlite3.connect(db)
-        cursor = connection.cursor()
-        createNewellMovingObjectsTable(cursor)
-        storage.createCurvilinearTrajectoryTable(cursor)
-        connection.commit()
-
     def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
         storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # completion with curvilinear trajectories tables
-        setObjects(db, self.completed)
+        saveObjects(db, self.completed)
 
 
     @staticmethod
@@ -306,8 +276,16 @@ class World:
     def getUserInputs(self):
         return self.userInputs
 
-    def getControlDevices(self):
-        return self.controlDevices
+    def updateControlDevices(self, timeStep):
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                cd.update(timeStep)
+
+    def resetControlDevices(self):
+        """resets original information for traffic lights"""
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                cd.reset()
 
     def getUserByNum(self, userNum):
         """returns an user given its num"""
@@ -355,14 +333,14 @@ class World:
 
     def initGraph(self):
         """sets graph attribute to self"""
-        G = nx.Graph()
+        G = nx.DiGraph()
         self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
         if self.controlDevices is not None:
-            for cd in self.getControlDevices():
+            for cd in self.controlDevices:
                 controlDevice = "cd{}".format(cd.getIdx())
                 G.add_node(controlDevice)
                 origin = self.alignments[cd.getAlignmentIdx()].getEntryNode()
@@ -398,9 +376,12 @@ class World:
 
                     G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
                     G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+                    # G.add_weighted_edges_from([(user1Target, 'user1', user1UpstreamDistance_2)])
 
                     G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                     G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
+                    # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
+
                     distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
                     situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
@@ -449,7 +430,6 @@ class World:
         - links controlDevices to their alignments
         - initializes lists of users
         - initializes the graph
-        - initiates an empty dabase
 
         TODO move checks to other checks, eg that no alignment is so short that is can be bypassed by fast user'''
 
@@ -508,7 +488,6 @@ class World:
         # initializing the lists of users
         self.users = []
         self.completed = []
-        self.createDatabase('world.db')
 
     def getIntersectionCPAtInstant(self, user, instant):
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
@@ -541,7 +520,7 @@ class World:
                 if user.leader.getCurvilinearPositionAtInstant(instant)[2] != user.getCurvilinearPositionAtInstant(instant)[2]:
 
                     adjacentUsers = []
-                    for _user in self.users:
+                    for _user in self.completed + self.users:
                         if _user.num != user.num:
                             if _user.timeInterval is not None and instant in list(_user.timeInterval):
                                 if _user.getCurvilinearPositionAtInstant(instant)[2] == lane:
@@ -549,38 +528,39 @@ class World:
 
                     sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
                     if sortedUserList != []:
-                        user.comingUser = sortedUserList[0]
+                        return sortedUserList[0]
                     else:
-                        user.comingUser = None
+                        return None
                 else:
-                    user.comingUser = None
+                    return None
             else:
                 adjacentUsers = []
-                for _user in self.users:
+                for _user in self.completed + self.users:
                     if _user.num != user.num:
                         if _user.timeInterval is not None and instant in list(_user.timeInterval):
-                            if user.getCurvilinearPositionAtInstant(instant)[2] == lane:
+                            if _user.getCurvilinearPositionAtInstant(instant)[2] == lane:
                                 adjacentUsers.append(_user)
 
                 sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
                 if sortedUserList != []:
-                    user.comingUser = sortedUserList[0]
+                   return sortedUserList[0]
                 else:
-                    user.comingUser = None
+                    return None
         else:
-            user.comingUser = None
+            return None
 
     def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
         if user.timeInterval is not None:
-            self.checkTraffic(user, instant)
-            if user.comingUser is None:
+            incomingUser = self.checkTraffic(user, instant)
+            if incomingUser is None:
+                print('inf1', user.num, instant)
                 return float('inf')
             else:
-                v = user.comingUser.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
+                v = incomingUser.getCurvilinearVelocityAtInstant(instant-1)[0] / timeStep
                 if v != 0:
-                    d = self.distanceAtInstant(user.comingUser, user, instant) - (self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user.getCurvilinearPositionAtInstant(instant)[0])
+                    d = self.distanceAtInstant(incomingUser, user, instant) - (self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user.getCurvilinearPositionAtInstant(instant)[0])
                     return d / v
                 else:
                     return float('inf')
@@ -633,18 +613,12 @@ class World:
         self.userInputs[0].distributions['tau'].loc = args.tau
         self.userInputs[0].distributions['length'].loc = args.l
 
-    def resetControlDevices(self):
-        """resets original information for traffic lights"""
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                cd.reset()
-
     def getUsersSituationAtInstant(self, user, other, instant):
         """returns CF if car are in a CF situation
         X1 if both cars are past the intersection
         X2 if both cars are before the intersection
         X3 if one of the cars is before the intersection and the other one is past it
-        nb: if cars are in a CF situation but not leading, X1, X2 OR X3 is returned, to be improved ... """
+        nb: if cars are in a CF situation but not leading one another, X1, X2 OR X3 is returned, to be improved ... """
 
         oldest, youngest = user.orderUsersByFirstInstant(other)
         if youngest.leader is not None:
@@ -677,9 +651,6 @@ class World:
         if self.controlDevices is not None:
             for cd in self.controlDevices:
                 cd.cycle(timeStep)
-
-    def getControlDevices(self):
-        return self.controlDevices
 
     def getGraph(self):
         return self.graph
@@ -791,56 +762,38 @@ class Distribution(object):
         return self.distributionType
 
     def getName(self):
-        if hasattr(self, 'distributionName'):
-            return self.distributionName
-        else:
-            return None
+        return self.distributionName
 
     def getScale(self):
-        if hasattr(self, 'scale'):
-            return self.scale
-        else:
-            return None
+        return self.scale
 
     def getLoc(self):
-        if hasattr(self, 'loc'):
-            return self.loc
-        else:
-            return None
+        return self.loc
 
     def getCdf(self):
-        if hasattr(self, 'cdf'):
-            return self.cdf
-        else:
-            return None
+        return self.cdf
 
     def getConstant(self):
-        if hasattr(self, 'degeneratedConstant'):
-            return self.degeneratedConstant
-        else:
-            return None
+        return self.degeneratedConstant
 
     def getMinThreshold(self):
-        if hasattr(self, 'a'):
-            return self.a
-        else:
-            return None
+        return self.a
 
     def getMaxThreshold(self):
-        if hasattr(self, 'b'):
-            return self.b
-        else:
-            return None
+        return self.b
 
 
-def createNewellMovingObjectsTable(cursor):
+def createNewellMovingObjectsTable(db):
+    connection = sqlite3.connect(db)
+    cursor = connection.cursor()
     cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, PRIMARY KEY(object_id))")
+    storage.createCurvilinearTrajectoryTable(cursor)
+    connection.commit()
 
 
-def setObjects(filename, objects):
+def saveObjects(filename, objects):
     with sqlite3.connect(filename) as connection:
         cursor = connection.cursor()
-        createNewellMovingObjectsTable(cursor)
         objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?)"
         for obj in objects:
             cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry))
