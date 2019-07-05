@@ -349,58 +349,66 @@ class World:
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
-    def distanceAtInstant(self, user1, user2, instant):
+    def distanceAtInstant(self, user1, user2, instant, method='curvilinear'):
         """"computes the distance between 2 users"""
         if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
+            if method == 'curvilinear':
 
-            if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
-                s1, _, user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)
-                s2, _, user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)
-                if user1AlignmentIdx == user2AlignmentIdx:
-                    return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
-                else:
-                    user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
-                    user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
-                    user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
-                    user2DownstreamDistance = self.alignments[user2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user2UpstreamDistance
+                if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
+                    s1, _, user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)
+                    s2, _, user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)
+                    if user1AlignmentIdx == user2AlignmentIdx:
+                        return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
+                    else:
+                        user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
+                        user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
+                        user2UpstreamDistance = user2.getCurvilinearPositionAtInstant(instant)[0]
+                        user2DownstreamDistance = self.alignments[user2.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user2UpstreamDistance
 
-                    G = self.graph
+                        G = self.graph
 
-                    G.add_node('user1')
-                    G.add_node('user2')
+                        G.add_node('user1')
+                        G.add_node('user2')
 
-                    user1Origin = self.alignments[user1AlignmentIdx].entryNode
-                    user1Target = self.alignments[user1AlignmentIdx].exitNode
-                    user2Origin = self.alignments[user2AlignmentIdx].entryNode
-                    user2Target = self.alignments[user2AlignmentIdx].exitNode
+                        user1Origin = self.alignments[user1AlignmentIdx].entryNode
+                        user1Target = self.alignments[user1AlignmentIdx].exitNode
+                        user2Origin = self.alignments[user2AlignmentIdx].entryNode
+                        user2Target = self.alignments[user2AlignmentIdx].exitNode
 
-                    G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
-                    G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
-                    # G.add_weighted_edges_from([(user1Target, 'user1', user1UpstreamDistance_2)])
+                        G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
+                        G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
+                        # G.add_weighted_edges_from([(user1Target, 'user1', user1UpstreamDistance_2)])
 
-                    G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
-                    G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                    # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
+                        G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
+                        G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
+                        # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
 
-                    distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
+                        distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
-                    situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
-                    if situation == 'CF':
-                        leader = user1.orderUsersByFirstInstant(user2)[0]
-                        distance -= leader.geometry
+                        situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
+                        if situation == 'CF':
+                            leader = user1.orderUsersByFirstInstant(user2)[0]
+                            distance -= leader.geometry
 
-                    elif situation == 'X1':
-                        distance -= user1.geometry - user2.geometry
+                        elif situation == 'X1':
+                            distance -= user1.geometry - user2.geometry
 
-                    elif situation == 'X3':
-                        distance -= pastCP.geometry
+                        elif situation == 'X3':
+                            distance -= pastCP.geometry
 
-                    G.remove_node('user1')
-                    G.remove_node('user2')
-                    return distance
+                        G.remove_node('user1')
+                        G.remove_node('user2')
+                        return distance
+
+            elif method == 'euclidian':
+                s1 = user1.getCurvilinearPositionAtInstant(instant)
+                s2 = user2.getCurvilinearPositionAtInstant(instant)
+                p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
+                p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in self.alignments])
+                return (p1-p2).norm2()
+
         else:
             print('user do not coexist, therefore can not compute distance')
-
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
         if instant is not None:
