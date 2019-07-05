@@ -349,7 +349,7 @@ class World:
                 G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
-    def distanceAtInstant(self, user1, user2, instant, method='curvilinear'):
+    def distanceAtInstant(self, user1, user2, instant, method):
         """"computes the distance between 2 users"""
         if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
             if method == 'curvilinear':
@@ -406,15 +406,15 @@ class World:
                 s2 = user2.getCurvilinearPositionAtInstant(instant)
                 p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
                 p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in self.alignments])
-                situation = self.getUsersSituationAtInstant(user1, user2, instant)
+                situation, _ = self.getUsersSituationAtInstant(user1, user2, instant)
                 if situation == 'CF':
                     distance = (p1-p2).norm2() - user1.geometry
                 else:
                     distance = (p1-p2).norm2()
                 return distance
-
         else:
             print('user do not coexist, therefore can not compute distance')
+            
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
         if instant is not None:
@@ -606,12 +606,7 @@ class World:
     def getIntersectionXYcoords(self):
         for al in self.alignments:
             if al.getConnectedAlignmentIndices() is not None and len(al.getConnectedAlignmentIndices()) > 1:
-                break
-        try:
-            intersection = al.points.getLineIntersections(self.alignments[al.getConnectedAlignmentIndices()[1]].points[0], self.alignments[al.getConnectedAlignmentIndices()[1]].points[1])[1]
-            return intersection[0]
-        except:
-            return None
+                return al.points[-1]
 
     def getControlDevicePositionOnAlignment(self, alIdx):
         al = self.alignments[alIdx]

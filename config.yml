@@ -2,7 +2,8 @@
 duration: 500
 timeStep: 0.1
 verbose: False
-seed: 20
+seed: 42
 increment: 4
 rep: 12
 dbName: world.db
+collisionThreshold: 1

@@ -60,31 +60,33 @@ class Analysis:
 
         return minDistance, meanDistance
 
-    def evaluate(self, ttcFilter, speedDifferential):
+    def evaluate(self, timeStep, collisionThreshold):
         # todo : docstrings
         self.interactions = {}
+        idx = 0
         for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
+            idx += 1
             if user.leader is not None:
                 roadUser1 = user.leader
                 roadUser2 = user
                 if roadUser2.timeInterval is not None:
-                    i = events.Interaction(num=user.num - 1, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+                    i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
-                    i.computeTTC(ttcFilter, speedDifferential)
+                    i.computeTTC(self.world, timeStep, collisionThreshold)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
 
         for key in self.interactions:
             if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
-                value = min(self.interactions[key].getIndicator('Time to Collision').getValues())
-                minTTCValues.append(value)
-            # else:
-            #     minTTCValues.append(None)
+                filteredList = list(filter(None, self.interactions[key].getIndicator('Time to Collision').getValues()))
+                if len(filteredList) > 0:
+                    value = min(self.interactions[key].getIndicator('Time to Collision'))
+                    minTTCValues.append(value)
 
         minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m
 
-        return minTTCValues, minDistances, meanDistances
+        # return minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):
