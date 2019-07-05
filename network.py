@@ -401,11 +401,17 @@ class World:
                         return distance
 
             elif method == 'euclidian':
+                user1, user2 = user1.orderUsersByFirstInstant(user2)
                 s1 = user1.getCurvilinearPositionAtInstant(instant)
                 s2 = user2.getCurvilinearPositionAtInstant(instant)
                 p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
                 p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in self.alignments])
-                return (p1-p2).norm2()
+                situation = self.getUsersSituationAtInstant(user1, user2, instant)
+                if situation == 'CF':
+                    distance = (p1-p2).norm2() - user1.geometry
+                else:
+                    distance = (p1-p2).norm2()
+                return distance
 
         else:
             print('user do not coexist, therefore can not compute distance')
