@@ -1,6 +1,5 @@
 import numpy as np
 
-import network
 import toolkit
 
 
@@ -44,9 +43,9 @@ class Simulation(object):
 
         world.duplicateLastVelocities()
         world.finalize(i)
-        if self.dbName is not None:
-            network.createNewellMovingObjectsTable(self.dbName)
-            world.saveCurvilinearTrajectoriesToSqlite(self.dbName)
+        # if self.dbName is not None:
+        #     network.createNewellMovingObjectsTable(self.dbName)
+        #     world.saveCurvilinearTrajectoriesToSqlite(self.dbName)
 
 
 if __name__ == "__main__":

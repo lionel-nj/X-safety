@@ -198,33 +198,43 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
 
-    def computeTTC(self, world, timeStep, collisionThreshold):
+    def computeDistanceAtInstant(self, world, instant, method):
+        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method)
+        self.getIndicator('Distance').values[instant] = distance
+
+    def computeTTCAtInstant(self, world, timeStep, instant, collisionThreshold):
+        intersectionCP = world.getIntersectionXYcoords()
+
+        s1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
+        s2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
+
+        v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
+        v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
+
+        p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in world.alignments])
+        p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in world.alignments])
+
+        d1 = (intersectionCP - p1).norm2()
+        d2 = (intersectionCP - p2).norm2()
+
+        if v1 > 0 and v2 > 0:
+            t1 = d1 / v1
+            t2 = d2 / v2
+            if abs(t1 - t2) < collisionThreshold:
+                ttc = min(t1, t2)
+                self.getIndicator('Time to Collision').values[instant] = ttc
+
+    def computeTTC(self, timeStep):
         ttc = {}
         for instant in self.timeInterval:
-            situation = world.getUsersSituationAtInstant(self.roadUser1, self.roadUser2, instant)[0]
             v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
             v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
-            if situation == 'CF':
-                self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
-                if v2 > v1:
-                    ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
-            elif situation == 'X2':
-                intersectionCP = world.getIntersectionXYcoords()
-                s1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
-                s2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
-                p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in world.alignments])
-                p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in world.alignments])
-                d1 = (intersectionCP-p1).norm2()
-                d2 = (intersectionCP-p2).norm2()
-                if v1 > 0 and v2 > 0:
-                    t1 = d1 / v1
-                    t2 = d2 / v2
-                    if abs(t1 - t2) < collisionThreshold:
-                        ttc[instant] = min(t1, t2)
-
+            self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
+            if v2 > v1:
+                ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
 
-    @staticmethod
+    # @staticmethod
     # def computePET(obj1, obj2, collisionDistanceThreshold):
     #     '''Post-encroachment time based on distance threshold
     #

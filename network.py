@@ -232,7 +232,7 @@ class World:
 
     def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
-        storage.saveTrajectoriesToTable(connection, self.completed, 'curvilinear')  # completion with curvilinear trajectories tables
+        storage.saveTrajectoriesToTable(connection, self.completed+self.users, 'curvilinear')  # completion with curvilinear trajectories tables
         saveObjects(db, self.completed)
 
 
@@ -462,6 +462,7 @@ class World:
 
         # initialize user inputs
         for ui in self.userInputs:
+            ui.generatedNums = []
             ui.lastGeneratedUser = None
             # link to alignment
             for al in self.alignments:
@@ -473,6 +474,7 @@ class World:
         # compute cumulative distances for each alignment :
         for al in self.alignments:
             al.points.computeCumulativeDistances()
+            al.currentUsers = {}
 
         # resetting all control devices to default values
         self.resetControlDevices()
@@ -664,6 +666,35 @@ class World:
     def getGraph(self):
         return self.graph
 
+    def getUsersOnAlignmentAtInstant(self, alignmentIdx, instant):
+        '''returns every user that is on alignment at instant'''
+        if instant in self.alignments[alignmentIdx].currentUsers:
+            return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant]]
+        else:
+            return []
+
+    def getCrossingUsers(self, instant):
+        '''returns a tuple of two users that are aboutot cross each other path'''
+        for al in self.alignments:
+            if len(al.getConnectedAlignmentIndices()) > 1:
+                break
+        al1 = al
+
+        for alignment in self.alignments:
+            if alignment.idx != al1.idx:
+                if alignment.getConnectedAlignmentIndices() is not None:
+                    if len(alignment.getConnectedAlignmentIndices()) > 1:
+                        break
+        al2 = alignment
+
+        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant)
+        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant)
+
+        if len(userSet1) > 0 and len(userSet2) > 0:
+            return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0], sorted(userSet2, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+        elif len(userSet1) == 0 or len(userSet2) == 0:
+            return None, None
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -714,6 +745,7 @@ class UserInput:
             # obj.leader = self.generatedNum[-1]
             obj.leader = self.lastGeneratedUser
         self.lastGeneratedUser = obj
+        self.generatedNums.append(obj.num)
         return obj
 
     def getAlignmentIdx(self):

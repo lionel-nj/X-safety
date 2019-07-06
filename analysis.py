@@ -3,6 +3,7 @@ import sqlite3
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from trafficintelligence import indicators
 from trafficintelligence.storage import printDBError
 
 import events
@@ -54,13 +55,12 @@ class Analysis:
             # for item in toolkit.groupOnCriterion(self.interactions[key].getIndicators('Distance').getValues(), distance):
             #     duration.append(len(item))
             # pass
-
             minDistance.append(min(self.interactions[key].getIndicator('Distance').getValues()))
             meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
 
         return minDistance, meanDistance
 
-    def evaluate(self, timeStep, collisionThreshold):
+    def evaluate(self, timeStep, collisionThreshold, duration):
         # todo : docstrings
         self.interactions = {}
         idx = 0
@@ -72,10 +72,23 @@ class Analysis:
                 if roadUser2.timeInterval is not None:
                     i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
-                    i.computeTTC(self.world, timeStep, collisionThreshold)
+                    i.computeTTC(timeStep)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
+
+        for t in range(int(np.floor(duration / timeStep))):
+            roadUser1, roadUser2 = self.world.getCrossingUsers(t)
+            if (roadUser1, roadUser2) != (None, None):
+                if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
+                    if (roadUser1.num, roadUser2.num) not in self.interactions:
+                        i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
+                        i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False)    )
+                        i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
+
+                    i.computeDistanceAtInstant(self.world, t, 'euclidian')
+                    i.computeTTCAtInstant(self.world, timeStep, t, collisionThreshold)
+                    self.interactions[(roadUser1.num, roadUser2.num)] = i 
 
         for key in self.interactions:
             if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
@@ -86,7 +99,7 @@ class Analysis:
 
         minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m
 
-        # return minTTCValues, minDistances, meanDistances
+        return minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):
