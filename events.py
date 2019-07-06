@@ -203,26 +203,22 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         self.getIndicator('Distance').values[instant] = distance
 
     def computeTTCAtInstant(self, world, timeStep, instant, collisionThreshold):
-        intersectionCP = world.getIntersectionXYcoords()
 
-        s1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
-        s2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
+        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, 'curvilinear')
+        cp1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
+        cp2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
 
         v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
         v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
 
-        p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in world.alignments])
-        p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in world.alignments])
-
-        d1 = (intersectionCP - p1).norm2()
-        d2 = (intersectionCP - p2).norm2()
+        d1 = world.alignments[cp1[2]].getTotalDistance() - self.roadUser1.getCurvilinearPositionAtInstant(instant)[0]
+        d2 = world.alignments[cp2[2]].getTotalDistance() - self.roadUser2.getCurvilinearPositionAtInstant(instant)[0]
 
         if v1 > 0 and v2 > 0:
-            t1 = d1 / v1
-            t2 = d2 / v2
-            if abs(t1 - t2) < collisionThreshold:
-                ttc = min(t1, t2)
-                self.getIndicator('Time to Collision').values[instant] = ttc
+            t1 = (distance - d1) / v1
+            t2 = (distance - d2) / v2
+            ttc = min(t1, t2)
+            self.getIndicator('Time to Collision').values[instant] = ttc
 
     def computeTTC(self, timeStep):
         ttc = {}

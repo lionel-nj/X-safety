@@ -95,6 +95,7 @@ class Analysis:
                 filteredList = list(filter(None, self.interactions[key].getIndicator('Time to Collision').getValues()))
                 if len(filteredList) > 0:
                     value = min(self.interactions[key].getIndicator('Time to Collision'))
+                    print(value)
                     minTTCValues.append(value)
 
         minDistances, meanDistances = self.getInteractionsProperties()  # getting the number and duration of interactions for a distance of 5m

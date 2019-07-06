@@ -345,14 +345,6 @@ class World:
         for al in self.alignments:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                controlDevice = "cd{}".format(cd.getIdx())
-                G.add_node(controlDevice)
-                origin = self.alignments[cd.getAlignmentIdx()].getEntryNode()
-                target = self.alignments[cd.getAlignmentIdx()].getExitNode()
-                weight = self.alignments[cd.getAlignmentIdx()].getTotalDistance()
-                G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant, method):
@@ -383,11 +375,11 @@ class World:
 
                         G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
                         G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
-                        # G.add_weighted_edges_from([(user1Target, 'user1', user1UpstreamDistance_2)])
+                        G.add_weighted_edges_from([(user1Target, 'user1', user1DownstreamDistance)])
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                        # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
+                        G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
