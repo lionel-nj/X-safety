@@ -202,7 +202,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method)
         self.getIndicator('Distance').values[instant] = distance
 
-    def computeTTCAtInstant(self, world, timeStep, instant, collisionThreshold):
+    def computeTTCAtInstant(self, world, timeStep, instant):
 
         distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, 'curvilinear')
         cp1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)

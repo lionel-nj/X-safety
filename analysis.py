@@ -87,7 +87,7 @@ class Analysis:
                         i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
 
                     i.computeDistanceAtInstant(self.world, t, 'euclidian')
-                    i.computeTTCAtInstant(self.world, timeStep, t, collisionThreshold)
+                    i.computeTTCAtInstant(self.world, timeStep, t)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i 
 
         for key in self.interactions:
