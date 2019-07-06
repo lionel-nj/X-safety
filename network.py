@@ -1,4 +1,5 @@
 import itertools
+import random
 import sqlite3
 
 import matplotlib.pyplot as plt
@@ -42,6 +43,11 @@ class Alignment:
 
     def plot(self, options='', **kwargs):
         self.points.plot(options, **kwargs)
+        if random.random() < 0.5:
+            p = self.points[0]
+        else:
+            p = self.points[1]
+        plt.text(p.x+5, p.y+5, str(self.idx))
 
     def getNextAlignment(self, nextS, user, instant, world, timeStep):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
