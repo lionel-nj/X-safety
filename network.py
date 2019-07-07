@@ -11,18 +11,6 @@ import agents
 import toolkit
 
 
-def getItemByIdx(items, idx):
-    '''Returns an item given its id'''
-    i = 0
-    while i < len(items) and items[i].idx != idx:
-        i += 1
-    if i < len(items):
-        return items[i]
-    else:
-        print('Index {} does not exist in items'.format(idx))
-        return None
-
-
 class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
@@ -238,8 +226,7 @@ class World:
 
     def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
-        storage.saveTrajectoriesToTable(connection, self.completed+self.users, 'curvilinear')  # completion with curvilinear trajectories tables
-        saveObjects(db, self.completed)
+        storage.saveTrajectoriesToTable(connection, [user for user in self.completed+self.users if user.timeInterval is not None], 'curvilinear')
 
 
     @staticmethod
@@ -693,6 +680,20 @@ class World:
         elif len(userSet1) == 0 or len(userSet2) == 0:
             return None, None
 
+    def saveTrajectoriesToDB(self, dbName):
+        # createNewellMovingObjectsTable(dbName)
+        # saveObjects(dbName, [user for user in self.users + self.completed if user.timeInterval is not None])
+        self.saveCurvilinearTrajectoriesToSqlite(dbName)
+
+    def saveObjects(self, dbName):
+        with sqlite3.connect(dbName) as connection:
+            cursor = connection.cursor()
+            objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?,?,?)"
+            for obj in self.users+self.completed:
+                if obj.timeInterval is not None:
+                    cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
+                    connection.commit()
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):
@@ -822,21 +823,25 @@ class Distribution(object):
         return self.b
 
 
+def getItemByIdx(items, idx):
+    '''Returns an item given its id'''
+    i = 0
+    while i < len(items) and items[i].idx != idx:
+        i += 1
+    if i < len(items):
+        return items[i]
+    else:
+        print('Index {} does not exist in items'.format(idx))
+        return None
+
+
 def createNewellMovingObjectsTable(db):
     connection = sqlite3.connect(db)
     cursor = connection.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, PRIMARY KEY(object_id))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, first_instant, last_instant, PRIMARY KEY(object_id))")
     storage.createCurvilinearTrajectoryTable(cursor)
     connection.commit()
 
-
-def saveObjects(filename, objects):
-    with sqlite3.connect(filename) as connection:
-        cursor = connection.cursor()
-        objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?)"
-        for obj in objects:
-            cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry))
-            connection.commit()
 
 
 if __name__ == "__main__":

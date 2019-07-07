@@ -16,7 +16,6 @@ class Analysis:
         self.world = world
         self.interactions = {}
         self.analysisZone = analysisZone
-        self.createAnalysisTable('world.db')
         self.seed = seed
 
     def getIdx(self):
@@ -60,7 +59,7 @@ class Analysis:
 
         return minDistance, meanDistance
 
-    def evaluate(self, timeStep, collisionThreshold, duration):
+    def evaluate(self, timeStep, duration):
         # todo : docstrings
         self.interactions = {}
         idx = 0
@@ -76,12 +75,13 @@ class Analysis:
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
-
+        idx +=1
         for t in range(int(np.floor(duration / timeStep))):
             roadUser1, roadUser2 = self.world.getCrossingUsers(t)
             if (roadUser1, roadUser2) != (None, None):
                 if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
                     if (roadUser1.num, roadUser2.num) not in self.interactions:
+                        idx += 1
                         i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                         i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False)    )
                         i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
