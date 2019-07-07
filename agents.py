@@ -1,4 +1,3 @@
-import networkx as nx
 import numpy as np
 from trafficintelligence import moving
 
@@ -55,27 +54,27 @@ class NewellMovingObject(moving.MovingObject):
     def getWaitingTimeAtControlDevice(self, instant):
         return instant-self.arrivalInstantAtControlDevice
         
-    def getDistanceFromOriginAt(self, idx, world):
-        G = world.graph
-        G.add_node(self)
+    def getDistanceFromOriginAt(self, idx):
+
+        path = []
+        distance = 0
+        k = 0
         s = self.getCurvilinearPositionAt(idx)
-        upstreamDistance = s[0]
-        downstreamDistance = self.getCurrentAlignment().getTotalDistance() - upstreamDistance
+        while self.alignments[k].idx != s[2]:
+            path.append(self.alignments[k])
+            k += 1
+        for al in path:
+            distance += al.getTotalDistance()
 
-        entryNode = world.alignments[s[2]].getEntryNode()
-        exitNode = world.alignments[s[2]].getExitNode()
+        distance += s[0]
 
-        G.add_weighted_edges_from([(entryNode, self, upstreamDistance)])
-        G.add_weighted_edges_from([(self, exitNode, downstreamDistance)])
-        distance = nx.shortest_path_length(G, source=self.getInitialAlignment().getEntryNode(), target=self, weight='weight')
-        G.remove_node(self)
         return [distance, s[1], s[2]]
 
     def getLeaderGeometry(self):
         return self.leader.geometry
 
-    def getDistanceFromOriginAtInstant(self, instant, world):
-        return self.getDistanceFromOriginAt(instant - self.getFirstInstant(), world)
+    def getDistanceFromOriginAtInstant(self, instant):
+        return self.getDistanceFromOriginAt(instant - self.getFirstInstant())
 
     def interpolateCurvilinearPositions(self, t):
         '''Linear interpolation of curvilinear positions, t being a float
