@@ -514,12 +514,13 @@ class World:
                 incomingUser = crossingUsers[1]
             else:
                 incomingUser = crossingUsers[0]
-            # print(user.num, incomingUser.num, instant)
 
-            v = incomingUser.getCurvilinearVelocityAtInstant(instant-2)[0] / timeStep
+            v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
 
             if v != 0:
-                d = self.distanceAtInstant(incomingUser, user, instant-2, 'euclidian')
+                d = self.distanceAtInstant(incomingUser, user, instant - 2, 'curvilinear')
+                cp = user.getCurvilinearPositionAtInstant(instant-1)
+                d -= self.alignments[cp[2]].getTotalDistance() - cp[0]
                 return d / v
             else:
                 return float('inf')
@@ -641,8 +642,6 @@ class World:
             return None, None
 
     def saveTrajectoriesToDB(self, dbName):
-        # createNewellMovingObjectsTable(dbName)
-        # saveObjects(dbName, [user for user in self.users + self.completed if user.timeInterval is not None])
         self.saveCurvilinearTrajectoriesToSqlite(dbName)
 
     def saveObjects(self, dbName):
