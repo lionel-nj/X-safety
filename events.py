@@ -92,9 +92,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
 
     timeIndicators = ['Time to Collision', 'predicted Post Encroachment Time']
 
-    def __init__(self, useCurvilinear, num=None, timeInterval=None, roaduserNum1=None, roaduserNum2=None,
-                 roadUser1=None,
-                 roadUser2=None, categoryNum=None):
+    def __init__(self, useCurvilinear, num=None, timeInterval=None, roaduserNum1=None, roaduserNum2=None, roadUser1=None, roadUser2=None, categoryNum=None):
         moving.STObject.__init__(self, num, timeInterval)
         if timeInterval is None and roadUser1 is not None and roadUser2 is not None:
             self.timeInterval = roadUser1.commonTimeInterval(roadUser2)
@@ -387,8 +385,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         #     self.addIndicator(
         #         indicators.SeverityIndicator(Interaction.indicatorNames[3], minDistances, mostSevereIsMax=False))
 
-    def computeCrossingsCollisions(self, predictionParameters, collisionDistanceThreshold, timeHorizon, useCurvilinear,
-                                   alignment1, alignment2, computeCZ=False, debug=False, timeInterval=None):
+    def computeCrossingsCollisions(self, predictionParameters, collisionDistanceThreshold, timeHorizon, useCurvilinear, alignment1, alignment2, computeCZ=False, debug=False, timeInterval=None):
         '''Computes all crossing and collision points at each common instant for two road users. '''
         TTCs = {}
         collisionProbabilities = {}
@@ -425,8 +422,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
     def computePET(self, collisionDistanceThreshold):
         pet, t1, t2 = moving.MovingObject.computePET(self.roadUser1, self.roadUser2, collisionDistanceThreshold)
         if pet is not None:
-            self.addIndicator(
-                indicators.SeverityIndicator(Interaction.indicatorNames[10], {min(t1, t2): pet}, mostSevereIsMax=False))
+            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[10], {min(t1, t2): pet}, mostSevereIsMax=False))
 
     def setCollision(self, collision):
         '''indicates if it is a collision: argument should be boolean'''
@@ -475,15 +471,12 @@ def findInteraction(interactions, roadUserNum1, roadUserNum2):
         return None
 
 
-def computeIndicators(interactions, computeMotionPrediction, computePET, predictionParameters,
-                      collisionDistanceThreshold, timeHorizon, computeCZ=False, debug=False, timeInterval=None):
+def computeIndicators(interactions, computeMotionPrediction, computePET, predictionParameters, collisionDistanceThreshold, timeHorizon, computeCZ=False, debug=False, timeInterval=None):
     for inter in interactions:
-        print('processing interaction {}'.format(
-            inter.getNum()))  # logging.debug('processing interaction {}'.format(inter.getNum()))
+        print('processing interaction {}'.format(inter.getNum()))  # logging.debug('processing interaction {}'.format(inter.getNum()))
         inter.computeIndicators()
         if computeMotionPrediction:
-            inter.computeCrossingsCollisions(predictionParameters, collisionDistanceThreshold, timeHorizon, computeCZ,
-                                             debug, timeInterval)
+            inter.computeCrossingsCollisions(predictionParameters, collisionDistanceThreshold, timeHorizon, computeCZ, debug, timeInterval)
         if computePET:
             inter.computePET(collisionDistanceThreshold)
     return interactions
@@ -505,10 +498,8 @@ def aggregateSafetyPoints(interactions, pointType='collision'):
     return allPoints
 
 
-def prototypeCluster(interactions, similarities, indicatorName, minSimilarity, similarityFunc=None, minClusterSize=None,
-                     randomInitialization=False):
-    return ml.prototypeCluster([inter.getIndicator(indicatorName) for inter in interactions], similarities,
-                               minSimilarity, similarityFunc, minClusterSize, randomInitialization)
+def prototypeCluster(interactions, similarities, indicatorName, minSimilarity, similarityFunc=None, minClusterSize=None, randomInitialization=False):
+    return ml.prototypeCluster([inter.getIndicator(indicatorName) for inter in interactions], similarities, minSimilarity, similarityFunc, minClusterSize, randomInitialization)
 
 
 class Crossing(moving.STObject):
