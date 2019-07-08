@@ -225,7 +225,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         for instant in self.timeInterval:
             v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
             v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
-            self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByFirstInstant(self.roadUser2)
+            self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByPositionAtInstant(self.roadUser2, instant)
             if v2 > v1:
                 ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
