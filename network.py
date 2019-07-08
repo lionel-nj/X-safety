@@ -54,7 +54,7 @@ class Alignment:
                     user.resetArrivalInstantAtControlDevice()
                     alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
-                    alignments, s = [self], self.getTotalDistance()
+                    alignments, s = [], self.getTotalDistance()
             else:
                 alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
             return [self] + alignments, s
@@ -116,6 +116,7 @@ class ControlDevice:
 
     def permissionToGo(self, instant, user, world, timeStep):
         return None
+
 
 class TrafficLight(ControlDevice):
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
@@ -187,7 +188,8 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            if world.estimateGap(user, instant, timeStep) > user.getCriticalGap()/timeStep:
+            print(world.estimateGap(user, instant, timeStep))
+            if world.estimateGap(user, instant, timeStep)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
                 return False  # pas passer
@@ -343,7 +345,7 @@ class World:
                     s1, _, user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)
                     s2, _, user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)
                     if user1AlignmentIdx == user2AlignmentIdx:
-                        return abs(s1 - s2) - user1.orderUsersByFirstInstant(user2)[0].geometry
+                        return abs(s1 - s2) - user1.orderUsersByPositionAtInstant(user2, instant)[0].geometry
                     else:
                         user1UpstreamDistance = user1.getCurvilinearPositionAtInstant(instant)[0]
                         user1DownstreamDistance = self.alignments[user1.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user1UpstreamDistance
@@ -372,7 +374,7 @@ class World:
 
                         situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
                         if situation == 'CF':
-                            leader = user1.orderUsersByFirstInstant(user2)[0]
+                            leader = user1.orderUsersByPositionAtInstant(user2, instant)[0]
                             distance -= leader.geometry
 
                         elif situation == 'X1':
@@ -386,7 +388,7 @@ class World:
                         return distance
 
             elif method == 'euclidian':
-                user1, user2 = user1.orderUsersByFirstInstant(user2)
+                user1, user2 = user1.orderUsersByPositionAtInstant(user2, instant)
                 s1 = user1.getCurvilinearPositionAtInstant(instant)
                 s2 = user2.getCurvilinearPositionAtInstant(instant)
                 p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
@@ -513,60 +515,27 @@ class World:
                         if al.getConnectedAlignmentIndices() is not None:
                             return al.idx
 
-    def checkTraffic(self, user, instant):
-        """"returns the closest user to cross the intersection in the adjacent alignments"""
-        lane = self.getIncomingTrafficAlignmentIdx(user, instant)
-        if lane is not None:
-            if user.leader is not None:
-                if user.leader.getCurvilinearPositionAtInstant(instant)[2] != user.getCurvilinearPositionAtInstant(instant)[2]:
-
-                    adjacentUsers = []
-                    for _user in self.completed + self.users:
-                        if _user.num != user.num:
-                            if _user.timeInterval is not None and instant in list(_user.timeInterval):
-                                if _user.getCurvilinearPositionAtInstant(instant)[2] == lane:
-                                    adjacentUsers.append(_user)
-
-                    sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
-                    if sortedUserList != []:
-                        return sortedUserList[0]
-                    else:
-                        return None
-                else:
-                    return None
-            else:
-                adjacentUsers = []
-                for _user in self.completed + self.users:
-                    if _user.num != user.num:
-                        if _user.timeInterval is not None and instant in list(_user.timeInterval):
-                            if _user.getCurvilinearPositionAtInstant(instant)[2] == lane:
-                                adjacentUsers.append(_user)
-
-                sortedUserList = sorted(adjacentUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
-                if sortedUserList != []:
-                   return sortedUserList[0]
-                else:
-                    return None
-        else:
-            return None
-
     def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
-        if user.timeInterval is not None:
-            incomingUser = self.checkTraffic(user, instant)
-            if incomingUser is None:
-                print('inf1', user.num, instant)
-                return float('inf')
+        crossingUsers = self.getCrossingUsers(instant)
+        if crossingUsers != (None, None):
+            if crossingUsers[0].num == user.num:
+                incomingUser = crossingUsers[1]
             else:
-                v = incomingUser.getCurvilinearVelocityAtInstant(instant-1)[0] / timeStep
-                if v != 0:
-                    d = self.distanceAtInstant(incomingUser, user, instant) - (self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getTotalDistance() - user.getCurvilinearPositionAtInstant(instant)[0])
-                    return d / v
-                else:
-                    return float('inf')
+                incomingUser = crossingUsers[0]
+            print(user.num, incomingUser.num, instant)
+
+            v = incomingUser.getCurvilinearVelocityAtInstant(instant-2)[0] / timeStep
+
+            if v != 0:
+                d = self.distanceAtInstant(incomingUser, user, instant-2, 'euclidian')
+                return d / v
+            else:
+                return float('inf')
         else:
             return float('inf')
+
 
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
         s = 0
@@ -616,7 +585,7 @@ class World:
         X3 if one of the cars is before the intersection and the other one is past it
         nb: if cars are in a CF situation but not leading one another, X1, X2 OR X3 is returned, to be improved ... """
 
-        oldest, youngest = user.orderUsersByFirstInstant(other)
+        oldest, youngest = user.orderUsersByPositionAtInstant(other, instant)
         if youngest.leader is not None:
             if oldest.num == youngest.leader.num:
                 return 'CF', None
@@ -646,20 +615,23 @@ class World:
     def updateControlDevices(self, timeStep):
         if self.controlDevices is not None:
             for cd in self.controlDevices:
-                cd.cycle(timeStep)
+                cd.update(timeStep)
 
     def getGraph(self):
         return self.graph
 
     def getUsersOnAlignmentAtInstant(self, alignmentIdx, instant):
-        '''returns every user that is on alignment at instant'''
+        '''returns a list of users that are on alignment at instant'''
         if instant in self.alignments[alignmentIdx].currentUsers:
             return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant]]
+        # else:
+        #     if instant-1 in self.alignments[alignmentIdx].currentUsers:
+        #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant-1]]
         else:
             return []
 
     def getCrossingUsers(self, instant):
-        '''returns a tuple of two users that are aboutot cross each other path'''
+        '''returns a tuple of two users that are about to cross each other path'''
         for al in self.alignments:
             if len(al.getConnectedAlignmentIndices()) > 1:
                 break
@@ -672,11 +644,10 @@ class World:
                         break
         al2 = alignment
 
-        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant)
-        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant)
-
+        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant-1)
+        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant-1)
         if len(userSet1) > 0 and len(userSet2) > 0:
-            return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0], sorted(userSet2, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+            return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0]
         elif len(userSet1) == 0 or len(userSet2) == 0:
             return None, None
 

@@ -2,9 +2,9 @@
 
 alignments:
 - !!python/object:network.Alignment
-  connectedAlignmentIndices:
-  - 1
-  controlDeviceIndices: null
+  connectedAlignmentIndices: null
+  controlDeviceIndices:
+  - 0
   idx: 0
   movementProportions:
     - 1

@@ -77,7 +77,7 @@ class Analysis:
         minTTCValues = []
         idx +=1
         for t in range(int(np.floor(duration / timeStep))):
-            roadUser1, roadUser2 = self.world.getCrossingUsers(t)
+            roadUser1, roadUser2 = self.world.getCrossingUsers(t+1)
             if (roadUser1, roadUser2) != (None, None):
                 if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
                     if (roadUser1.num, roadUser2.num) not in self.interactions:
