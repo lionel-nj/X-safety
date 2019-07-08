@@ -106,7 +106,8 @@ class NewellMovingObject(moving.MovingObject):
             while interS > self.alignments[i].getTotalDistance():
                 interS -= self.alignments[i].getTotalDistance()
                 i += 1
-            return [interS, (1 - alpha) * p1[1] + alpha * p2[1], i]
+                # resolution du bug de vitesse : self.alignments[i].idx au lieu de i dans le retour de la fonction
+            return [interS, (1 - alpha) * p1[1] + alpha * p2[1], self.alignments[i].idx]
         # if hasattr(self, 'curvilinearPositions') and if self.existsAtInstant(t):
         #     i = int(floor(t))
         #     p1 = self.getCurvilinearPositionAtInstant(i)
@@ -192,6 +193,10 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
+                # bug vitesse negative : voir interpolateCurvi...
+                # if s2 - s1 < 0:
+                #     print('wesfiuwhfgr', self.num, s2, s1, s2onNextAlignment, freeFlowCoord, constrainedCoord, instant)
+
                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
                 self.setLastInstant(instant)
                 # TODO test if the new alignment is different from leader, update leader

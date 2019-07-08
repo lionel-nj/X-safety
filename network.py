@@ -54,7 +54,7 @@ class Alignment:
                     user.resetArrivalInstantAtControlDevice()
                     alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
-                    alignments, s = [], self.getTotalDistance()
+                    alignments, s = [self], self.getTotalDistance()
             else:
                 alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
             return [self] + alignments, s
@@ -188,11 +188,11 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            print(world.estimateGap(user, instant, timeStep))
             if world.estimateGap(user, instant, timeStep)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
-                return False  # pas passer
+                return False
+
 
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
@@ -514,7 +514,7 @@ class World:
                 incomingUser = crossingUsers[1]
             else:
                 incomingUser = crossingUsers[0]
-            print(user.num, incomingUser.num, instant)
+            # print(user.num, incomingUser.num, instant)
 
             v = incomingUser.getCurvilinearVelocityAtInstant(instant-2)[0] / timeStep
 
