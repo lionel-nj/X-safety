@@ -505,16 +505,6 @@ class World:
         else:
             return al.getTotalDistance()
 
-    def getIncomingTrafficAlignmentIdx(self, user, instant):
-        """"returns the alignment id of the adjacent alignment where the traffic comes from"""
-        if instant in list(user.timeInterval):
-            _temp = self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getConnectedAlignmentIndices()
-            if _temp is not None:
-                for al in self.alignments:  # determiner l'alignement sur lequel le traffic adjacent arrive
-                    if al.idx != user.getCurvilinearPositionAtInstant(instant)[2]:
-                        if al.getConnectedAlignmentIndices() is not None:
-                            return al.idx
-
     def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining between the center of the intersection"""
@@ -535,7 +525,6 @@ class World:
                 return float('inf')
         else:
             return float('inf')
-
 
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
         s = 0
