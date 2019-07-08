@@ -21,12 +21,14 @@ class NewellMovingObject(moving.MovingObject):
         self.comingUser = None
         self.amberProbability = amberProbability
 
-    def orderUsersByFirstInstant(self, other):
+    def orderUsersByPositionAtInstant(self, other, instant):
         # todo : modifier byPosition
-        if self.getFirstInstant() > other.getFirstInstant():
-            return other, self
-        else:
+        d1 = self.getDistanceFromOriginAtInstant(instant)[0]
+        d2 = other.getDistanceFromOriginAtInstant(instant)[0]
+        if d1 > d2:
             return self, other
+        else:
+            return other, self
 
     def getCriticalGap(self):
         return self.criticalGap
