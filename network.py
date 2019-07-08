@@ -90,17 +90,12 @@ class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
     adapted from traffic_light_simulator package in pip3"""
 
-    def __init__(self, idx, alignmentIdx):  # , category
+    def __init__(self, idx, alignmentIdx):
         self.idx = idx
-        # self.category = category
         self.alignmentIdx = alignmentIdx
 
     def getIdx(self):
         return self.idx
-    # categories = {1: 'stop',
-    #               2: 'traffic light',
-    #               3: 'yield',
-    #                  4: 'etc'}
 
     def getAlignmentIdx(self):
         return self.alignmentIdx
@@ -210,9 +205,9 @@ class World:
     """Description of the world, including the road (alignments), control devices (signs, traffic lights) and crossing point """
 
     def __init__(self, alignments=None, controlDevices=None, userInputs=None):
-        self.alignments = alignments  # liste d alignements
-        self.userInputs = userInputs  # liste des intersections (objets)
-        self.controlDevices = controlDevices  # liste de CD
+        self.alignments = alignments
+        self.userInputs = userInputs
+        self.controlDevices = controlDevices
 
     def __repr__(self):
         return "alignments: {}, control devices: {}, user inputs: {}".format(self.alignments, self.controlDevices, self.userInputs)
@@ -264,12 +259,6 @@ class World:
             plt.xlabel('time ({}s)'.format(timeStep))
             plt.ylabel('longitudinal coordinate (m)')
         plt.show()
-
-    def getAlignments(self):
-        return self.alignments
-
-    def getUserInputs(self):
-        return self.userInputs
 
     def updateControlDevices(self, timeStep):
         if self.controlDevices is not None:
@@ -492,7 +481,14 @@ class World:
         self.users = []
         self.completed = []
 
+    def getIntersectionXYcoords(self):
+        """returns intersection XY coordinates"""
+        for al in self.alignments:
+            if al.getConnectedAlignmentIndices() is not None and len(al.getConnectedAlignmentIndices()) > 1:
+                return al.points[-1]
+
     def getIntersectionCPAtInstant(self, user, instant):
+        """returns intersection curvilinear position relatively to user position"""
         alIdx = user.getCurvilinearPositionAtInstant(instant)[2]
         return self.getIntersectionCP(alIdx)
 
@@ -501,6 +497,13 @@ class World:
         alIdx : alignment to project on"""
         al = self.alignments[alIdx]
         if al.getConnectedAlignmentIndices() is None:
+            return 0
+        else:
+            return al.getTotalDistance()
+
+    def getControlDevicePositionOnAlignment(self, alIdx):
+        al = self.alignments[alIdx]
+        if al.controlDevice is None:
             return 0
         else:
             return al.getTotalDistance()
@@ -519,7 +522,7 @@ class World:
 
             if v != 0:
                 d = self.distanceAtInstant(incomingUser, user, instant - 2, 'curvilinear')
-                cp = user.getCurvilinearPositionAtInstant(instant-1)
+                cp = user.getCurvilinearPositionAtInstant(instant - 1)
                 d -= self.alignments[cp[2]].getTotalDistance() - cp[0]
                 return d / v
             else:
@@ -528,18 +531,23 @@ class World:
             return float('inf')
 
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
+        """returns travelled distance of user at instant
+        0 if the user did not change alignment
+        length of travelled alignments otherwise """
         s = 0
         for al in self.travelledAlignments(user, instant):
             s += al.getTotalDistance()
         return s
 
     def isGapAcceptable(self, user, instant):
+        """determines if a gap is acceptable according to user critical gap value"""
         if user.criticalGap < self.estimateGap(user, instant):
             return True
         else:
             return False
 
     def isClearingTimeAcceptable(self, user, timeStep):
+        """determines if intersection clearing time for user is acceptable"""
         # todo : a verifier
         v = user.curvilinearVelocities[-1][0] / timeStep
         d = self.alignments[user.curvilinearPositions[-1][2]].connectedAlignments[2].width + user.geometry
@@ -548,18 +556,6 @@ class World:
             return True
         else:
             return False
-
-    def getIntersectionXYcoords(self):
-        for al in self.alignments:
-            if al.getConnectedAlignmentIndices() is not None and len(al.getConnectedAlignmentIndices()) > 1:
-                return al.points[-1]
-
-    def getControlDevicePositionOnAlignment(self, alIdx):
-        al = self.alignments[alIdx]
-        if al.controlDevice is None:
-            return 0
-        else:
-            return al.getTotalDistance()
 
     def assignValue(self, args):
         self.userInputs[0].distributions['headway'].scale = args.headway - 1
@@ -802,8 +798,6 @@ def createNewellMovingObjectsTable(db):
     connection.commit()
 
 
-
 if __name__ == "__main__":
     import doctest
-
     doctest.testmod()

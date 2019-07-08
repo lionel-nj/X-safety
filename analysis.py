@@ -198,12 +198,15 @@ class AnalysisZone:
                 self.maxAlignment.append([self.minAlignment[-1][0] + 2 * (self.area ** .5), al.idx])
 
     def getLimits(self):
+        """return limits of analysis zone"""
         return self.minAlignment, self.maxAlignment
 
     def getArea(self):
+        """returns area of analysis zone"""
         return self.area
 
     def getCenter(self):
+        """returns center of analysis zone"""
         return self.center
 
     def userInAnalysisZone(self, user, t):
@@ -214,6 +217,3 @@ class AnalysisZone:
                 if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] - user.getTravelledDistance(minVal[1], maxVal[1]) and cp[2] == maxVal[1]):
                     return True
             return False
-
-    # def userTimeIntervalInAnalysisZone(self, user):
-    #     for

@@ -21,8 +21,11 @@ class NewellMovingObject(moving.MovingObject):
         self.comingUser = None
         self.amberProbability = amberProbability
 
+    def getLeaderGeometry(self):
+        return self.leader.geometry
+
     def orderUsersByPositionAtInstant(self, other, instant):
-        # todo : modifier byPosition
+        """order users by ascending distance at instant"""
         d1 = self.getDistanceFromOriginAtInstant(instant)[0]
         d2 = other.getDistanceFromOriginAtInstant(instant)[0]
         if d1 > d2:
@@ -42,10 +45,12 @@ class NewellMovingObject(moving.MovingObject):
         return self.alignments[-1]
 
     def addVisitedAlignment(self, al):
+        """adds alignment to list of visited alignment by user"""
         if al != self.getCurrentAlignment():  # allow to visit alignment again
             self.alignments.append(al)
 
     def setArrivalInstantAtControlDevice(self, instant):
+        """sets arrival instant at control device"""
         # it could be interesting to store the cd at which the user stops
         if self.arrivalInstantAtControlDevice is None:
             self.arrivalInstantAtControlDevice = instant
@@ -56,12 +61,12 @@ class NewellMovingObject(moving.MovingObject):
     def getWaitingTimeAtControlDevice(self, instant):
         return instant-self.arrivalInstantAtControlDevice
         
-    def getDistanceFromOriginAt(self, idx):
-
+    def getDistanceFromOriginAt(self, t):
+        """return distance from starting point of agent"""
         path = []
         distance = 0
         k = 0
-        s = self.getCurvilinearPositionAt(idx)
+        s = self.getCurvilinearPositionAt(t)
         while self.alignments[k].idx != s[2]:
             path.append(self.alignments[k])
             k += 1
@@ -71,9 +76,6 @@ class NewellMovingObject(moving.MovingObject):
         distance += s[0]
 
         return [distance, s[1], s[2]]
-
-    def getLeaderGeometry(self):
-        return self.leader.geometry
 
     def getDistanceFromOriginAtInstant(self, instant):
         return self.getDistanceFromOriginAt(instant - self.getFirstInstant())
