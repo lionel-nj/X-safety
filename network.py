@@ -123,15 +123,15 @@ class TrafficLight(ControlDevice):
         self.reset()
 
     def drawInitialState(self):
-        i = stats.randint(0,3).rvs()
+        i = stats.randint(0, 2).rvs()
         self.state = TrafficLight.states[i]
     
     def getState(self):
-        """ returns art for the current color """
+        """ returns the current color """
         return self.state
 
     def switch(self):
-        """ swith state to next state in the sequence """
+        """ switches state to next state in the sequence """
         if self.state == 'red':
             self.state = 'green'
         elif self.state == 'amber':
@@ -186,6 +186,7 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
+            print(world.estimateGap(user, instant, timeStep, self.idx)/timeStep)
             if world.estimateGap(user, instant, timeStep, self.idx)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
@@ -470,7 +471,6 @@ class World:
         # compute cumulative distances for each alignment :
         for al in self.alignments:
             al.points.computeCumulativeDistances()
-            al.currentUsers = {}
 
         # resetting all control devices to default values
         self.resetControlDevices()
@@ -562,18 +562,9 @@ class World:
         and the distance remaining to the center of the intersection"""
         incomingUser = self.getCrossingUser(user, instant)
         if incomingUser is not None:
-        #     if crossingUsers[0].num == user.num:
-        #         incomingUser = crossingUsers[1]
-        #     else:
-        #         incomingUser = crossingUsers[0]
-
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
-
             if v != 0:
-                d = self.distanceAtInstant(incomingUser, user, instant - 2, 'curvilinear')
-                # cp = user.getCurvilinearPositionAtInstant(instant - 1)
-                # d -= self.alignments[cp[2]].getTotalDistance() - cp[0]
-                d -= self.distanceToCrossing(user, instant-1, cdIdx)
+                d = self.distanceToCrossing(incomingUser, instant-1, cdIdx)
                 return d / v
             else:
                 return float('inf')
@@ -668,17 +659,43 @@ class World:
             for u in self.users:
                 if u.timeInterval is not None:
                     if instant in list(u.timeInterval):
-                        if any(al in transversalAlignments for al in u.alignments):
+                        if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
                             potentialTransversalUsers.append(u)
-
-            potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)
             if potentialTransversalUsers != []:
+                potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)
                 return potentialTransversalUsers[0]
             else:
                 return None
         else:
             return None
 
+        #####
+        # cp = user.getCurvilinearPositionAtInstant(instant-1)
+        # transversalAlignments = self.alignments[cp[2]].transversalAlignments
+        # potentialTransversalUsers = []
+        # if transversalAlignments != []:
+        #     for u in self.users:
+        #         if u.timeInterval is not None:
+        #             if instant in list(u.timeInterval):
+        #                 if any(al in transversalAlignments for al in u.alignments):
+        #                     potentialTransversalUsers.append(u)
+        #     potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=False)
+        #     if potentialTransversalUsers != []:
+        #         crossingUser = None
+        #         for u in potentialTransversalUsers:
+        #             crossingUser = u
+        #             if crossingUser.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
+        #                 potentialTransversalUsers.remove(crossingUser)
+        #         if potentialTransversalUsers != []:
+        #             crossingUser = potentialTransversalUsers[0]
+        #         # if user.num ==2:
+        #         #     print(crossingUser.num)
+        #         return crossingUser
+        #     else:
+        #         return None
+        # else:
+        #     return None
+            #######
         # for al in self.alignments:
         #     if len(al.getConnectedAlignmentIndices()) > 1:
         #         break
