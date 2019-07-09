@@ -650,17 +650,24 @@ class World:
     #     else:
     #         return []
 
-    def getCrossingUser(self, user, instant):
+    def getCrossingUser(self, user, instant, withCompleted=False):
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
         cp = user.getCurvilinearPositionAtInstant(instant-1)
         transversalAlignments = self.alignments[cp[2]].transversalAlignments
         potentialTransversalUsers = []
         if transversalAlignments is not None:
-            for u in self.users:
-                if u.timeInterval is not None:
-                    if instant in list(u.timeInterval):
-                        if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
-                            potentialTransversalUsers.append(u)
+            if withCompleted:
+                for u in self.users + self.completed:
+                    if u.timeInterval is not None:
+                        if instant in list(u.timeInterval):
+                            if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
+                                potentialTransversalUsers.append(u)
+            else:
+                for u in self.users:
+                    if u.timeInterval is not None:
+                        if instant in list(u.timeInterval):
+                            if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
+                                potentialTransversalUsers.append(u)
             if potentialTransversalUsers != []:
                 potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)
                 return potentialTransversalUsers[0]
