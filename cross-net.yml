@@ -63,9 +63,12 @@ alignments:
       - 1000.0
   width: null
 controlDevices:
-- !!python/object:network.StopSign
+- !!python/object:network.TrafficLight
   alignmentIdx: 0
   idx: 0
+  redTime: 10
+  greenTime: 15
+  amberTime: 12
   stopDuration: 2
 
 userInputs:
