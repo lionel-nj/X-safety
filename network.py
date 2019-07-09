@@ -114,14 +114,18 @@ class ControlDevice:
 
 
 class TrafficLight(ControlDevice):
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, initialState):
+    states = ['green', 'amber', 'red']
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime):
         super(TrafficLight, self).__init__(idx, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
-        self.initialState = initialState
         self.reset()
 
+    def drawInitialState(self):
+        i = stats.randint(0,3).rvs()
+        self.state = TrafficLight.states[i]
+    
     def getState(self):
         """ returns art for the current color """
         return self.state
@@ -157,14 +161,13 @@ class TrafficLight(ControlDevice):
                 self.remainingAmber = self.amberTime
 
     def reset(self):
-        """ resets the defaut parameters of a traffic light .. useful to avoid different initial
-        state between two replications of a same simulation """
-        self.state = self.initialState
+        """ resets the defaut parameters of a traffic light"""
         self.remainingRed = self.redTime
         self.remainingAmber = self.amberTime
         self.remainingGreen = self.greenTime
+        self.drawInitialState()
 
-    def permissionToGo(self, instant):
+    def permissionToGo(self, instant, user, world, timeStep):
         if self.state == 'green':
             return True
         elif self.state == 'amber':
@@ -183,7 +186,7 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            if world.estimateGap(user, instant, timeStep)/timeStep > user.getCriticalGap()/timeStep:
+            if world.estimateGap(user, instant, timeStep, self.idx)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
                 return False
@@ -317,12 +320,29 @@ class World:
 
     def initGraph(self):
         """sets graph attribute to self"""
-        G = nx.DiGraph()
+        G = nx.Graph()
         self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
+
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                controlDevice = "cd{}".format(cd.getIdx())
+                G.add_node(controlDevice)
+
+                for al in self.alignments:
+                    if al.transversalAlignments is not None:
+                        origin = al.getEntryNode()
+                        target = al.getExitNode()
+                        weight = al.getTotalDistance()
+                        G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
+                    # else:
+                    #     origin = al.getEntryNode()
+                    #     target = al.getExitNode()
+                    #     weight = al.getTotalDistance()
+                    #     G.add_weighted_edges_from([(origin, controlDevice, 0), (controlDevice, target, weight)])
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant, method):
@@ -353,11 +373,11 @@ class World:
 
                         G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
                         G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
-                        G.add_weighted_edges_from([(user1Target, 'user1', user1DownstreamDistance)])
+                        # G.add_weighted_edges_from([(user1Target, 'user1', user1DownstreamDistance)])
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                        G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
+                        # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
@@ -457,10 +477,18 @@ class World:
 
         # connecting alignments
         for al in self.alignments:
+            al.connectedAlignments = None
+            al.transversalAlignments = None
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
-            else:
-                al.connectedAlignments = None
+                # create list of transversal alignments
+                connectedAlignmentIndices = set(al.getConnectedAlignmentIndices())
+                for al2 in self.alignments:
+                    if al2 != al and al2.getConnectedAlignmentIndices() is not None and len(set(al2.getConnectedAlignmentIndices()).intersection(connectedAlignmentIndices)) > 0:
+                        if al.transversalAlignments is None:
+                            al.transversalAlignments = [al2]
+                        else:
+                            al.transversalAlignments.append(al2)
 
             # connecting control devices to their alignments
             if self.controlDevices is None:
@@ -503,27 +531,49 @@ class World:
 
     def getControlDevicePositionOnAlignment(self, alIdx):
         al = self.alignments[alIdx]
-        if al.controlDevice is None:
-            return 0
+        if al.transversalAlignments is None:
+            return [0, 0, al.idx]
         else:
-            return al.getTotalDistance()
+            return [al.getTotalDistance(), 0, al.idx]
 
-    def estimateGap(self, user, instant, timeStep):
+    def distanceToCrossing(self, user, instant, cdIdx):
+        """"returns distance to intersection based on control device position """
+        G = self.graph
+
+        G.add_node('user1')
+        cp = user.getCurvilinearPositionAtInstant(instant)
+
+        origin = self.alignments[cp[2]].entryNode
+        target = self.alignments[cp[2]].exitNode
+
+        upstreamDistance = user.getCurvilinearPositionAtInstant(instant)[0]
+        downstreamDistance = self.alignments[cp[2]].getTotalDistance() - upstreamDistance
+
+        G.add_weighted_edges_from([(origin, 'user', upstreamDistance)])
+        G.add_weighted_edges_from([('user', target, downstreamDistance)])
+
+        distance = nx.shortest_path_length(G, source='user', target="cd{}".format(cdIdx), weight='weight')
+        G.remove_node('user')
+
+        return distance
+
+    def estimateGap(self, user, instant, timeStep, cdIdx):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
-        and the distance remaining between the center of the intersection"""
-        crossingUsers = self.getCrossingUsers(instant)
-        if crossingUsers != (None, None):
-            if crossingUsers[0].num == user.num:
-                incomingUser = crossingUsers[1]
-            else:
-                incomingUser = crossingUsers[0]
+        and the distance remaining to the center of the intersection"""
+        incomingUser = self.getCrossingUser(user, instant)
+        if incomingUser is not None:
+        #     if crossingUsers[0].num == user.num:
+        #         incomingUser = crossingUsers[1]
+        #     else:
+        #         incomingUser = crossingUsers[0]
 
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
 
             if v != 0:
                 d = self.distanceAtInstant(incomingUser, user, instant - 2, 'curvilinear')
-                cp = user.getCurvilinearPositionAtInstant(instant - 1)
-                d -= self.alignments[cp[2]].getTotalDistance() - cp[0]
+                # cp = user.getCurvilinearPositionAtInstant(instant - 1)
+                # d -= self.alignments[cp[2]].getTotalDistance() - cp[0]
+                d -= self.distanceToCrossing(user, instant-1, cdIdx)
                 return d / v
             else:
                 return float('inf')
@@ -538,13 +588,6 @@ class World:
         for al in self.travelledAlignments(user, instant):
             s += al.getTotalDistance()
         return s
-
-    def isGapAcceptable(self, user, instant):
-        """determines if a gap is acceptable according to user critical gap value"""
-        if user.criticalGap < self.estimateGap(user, instant):
-            return True
-        else:
-            return False
 
     def isClearingTimeAcceptable(self, user, timeStep):
         """determines if intersection clearing time for user is acceptable"""
@@ -606,36 +649,54 @@ class World:
     def getGraph(self):
         return self.graph
 
-    def getUsersOnAlignmentAtInstant(self, alignmentIdx, instant):
-        '''returns a list of users that are on alignment at instant'''
-        if instant in self.alignments[alignmentIdx].currentUsers:
-            return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant]]
-        # else:
-        #     if instant-1 in self.alignments[alignmentIdx].currentUsers:
-        #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant-1]]
+    # def getUsersOnAlignmentAtInstant(self, alignmentIdx, instant):
+    #     '''returns a list of users that are on alignment at instant'''
+    #     if instant in self.alignments[alignmentIdx].currentUsers:
+    #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant]]
+    #     # else:
+    #     #     if instant-1 in self.alignments[alignmentIdx].currentUsers:
+    #     #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant-1]]
+    #     else:
+    #         return []
+
+    def getCrossingUser(self, user, instant):
+        '''returns None if no user is about to cross the intersection, else returns the transversal user'''
+        cp = user.getCurvilinearPositionAtInstant(instant-1)
+        transversalAlignments = self.alignments[cp[2]].transversalAlignments
+        potentialTransversalUsers = []
+        if transversalAlignments is not None:
+            for u in self.users:
+                if u.timeInterval is not None:
+                    if instant in list(u.timeInterval):
+                        if any(al in transversalAlignments for al in u.alignments):
+                            potentialTransversalUsers.append(u)
+
+            potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)
+            if potentialTransversalUsers != []:
+                return potentialTransversalUsers[0]
+            else:
+                return None
         else:
-            return []
+            return None
 
-    def getCrossingUsers(self, instant):
-        '''returns a tuple of two users that are about to cross each other path'''
-        for al in self.alignments:
-            if len(al.getConnectedAlignmentIndices()) > 1:
-                break
-        al1 = al
-
-        for alignment in self.alignments:
-            if alignment.idx != al1.idx:
-                if alignment.getConnectedAlignmentIndices() is not None:
-                    if len(alignment.getConnectedAlignmentIndices()) > 1:
-                        break
-        al2 = alignment
-
-        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant-1)
-        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant-1)
-        if len(userSet1) > 0 and len(userSet2) > 0:
-            return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0]
-        elif len(userSet1) == 0 or len(userSet2) == 0:
-            return None, None
+        # for al in self.alignments:
+        #     if len(al.getConnectedAlignmentIndices()) > 1:
+        #         break
+        # al1 = al
+        #
+        # for alignment in self.alignments:
+        #     if alignment.idx != al1.idx:
+        #         if alignment.getConnectedAlignmentIndices() is not None:
+        #             if len(alignment.getConnectedAlignmentIndices()) > 1:
+        #                 break
+        # al2 = alignment
+        #
+        # userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant-1)
+        # userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant-1)
+        # if len(userSet1) > 0 and len(userSet2) > 0:
+        #     return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0]
+        # elif len(userSet1) == 0 or len(userSet2) == 0:
+        #     return None, None
 
     def saveTrajectoriesToDB(self, dbName):
         self.saveCurvilinearTrajectoriesToSqlite(dbName)
