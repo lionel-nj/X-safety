@@ -628,35 +628,35 @@ class World:
         else:
             return [al.getTotalDistance(), 0, al.idx]
 
-    def distanceToCrossingAtInstant(self, user, instant):
+    def distanceToCrossingAtInstant(self, user, incomingUser, instant):
         """"returns distance to intersection based on control device position"""
         G = self.graph
 
-        G.add_node('user1')
-        cp = user.getCurvilinearPositionAtInstant(instant)
+        G.add_node('incomingUser')
+        cp = incomingUser.getCurvilinearPositionAtInstant(instant)
 
-        origin = self.alignments[cp[2]].entryNode
-        target = self.alignments[cp[2]].exitNode
+        origin = self.alignments[cp[2]].getEntryNode()
+        target = self.alignments[cp[2]].getExitNode()
 
-        upstreamDistance = user.getCurvilinearPositionAtInstant(instant)[0]
+        upstreamDistance = incomingUser.getCurvilinearPositionAtInstant(instant)[0]
         downstreamDistance = self.alignments[cp[2]].getTotalDistance() - upstreamDistance
 
-        G.add_weighted_edges_from([(origin, 'user', upstreamDistance)])
-        G.add_weighted_edges_from([('user', target, downstreamDistance)])
-        center = self.getCenterNode()
-        distance = nx.shortest_path_length(G, source='user', target=center, weight='weight')
-        G.remove_node('user')
+        G.add_weighted_edges_from([(origin, 'incomingUser', upstreamDistance)])
+        G.add_weighted_edges_from([('incomingUser', target, downstreamDistance)])
+        center = self.getNodesFromCrossingPoint(user, incomingUser, instant)[0]  # a modifier selon les un classement sur les probabilités
+        distance = nx.shortest_path_length(G, source='incomingUser', target=center, weight='weight')
+        G.remove_node('incomingUser')
 
         return distance
 
     def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
-        and the distance remaining to the center of the intersection"""
+        and the distance remaining to the crossing point of trajectories """
         incomingUser = self.getCrossingUser(user, instant)
         if incomingUser is not None:
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
             if v != 0:
-                d = self.distanceToCrossingAtInstant(incomingUser, instant - 1)
+                d = self.distanceToCrossingAtInstant(user, incomingUser, instant - 1)
                 return d / v
             else:
                 return float('inf')
@@ -853,13 +853,30 @@ class World:
 
     def getPredictedCrossingPoints(self, user, other, instant):
         """returns predicted crossing points for a pair of users"""
-        userPredictedTrajectories = self.getPossibleCurvilinearTrajectoriesToExitFromUserAtInstant(user, instant)
-        otherPredictedTrajectories = self.getPossibleCurvilinearTrajectoriesToExitFromUserAtInstant(other, instant)
+        userPredictedTrajectories = self.getPossibleTrajectoriesToExitFromUserAtInstant(user, instant)
+        otherPredictedTrajectories = self.getPossibleTrajectoriesToExitFromUserAtInstant(other, instant)
         predictedCrossingPoints = []
         for userPredictedTrajectory in userPredictedTrajectories:
             for otherPredictedTrajectory in otherPredictedTrajectories:
                 predictedCrossingPoints.append(userPredictedTrajectory.getIntersections(otherPredictedTrajectory[0], otherPredictedTrajectory[-1])[1])
         return sum(predictedCrossingPoints, [])
+
+    def getNodesFromCrossingPoint(self, user, other, instant):
+        """returns nodes of corresponding crossing points"""
+        crossingPoints = self.getPredictedCrossingPoints(user, other, instant)
+        nodes = []
+        if crossingPoints != []:
+            for cp in crossingPoints:
+                for al in self.alignments:
+                    if cp == al.points[0]:
+                        nodes.append(al.getEntryNode())
+                        break
+                    elif cp == al.points[-1]:
+                        nodes.append(al.getExitNode())
+                        break
+            return nodes
+        else:
+            return None
 
     def getParents(self, al):
         """returns parents alignments of alignment"""
