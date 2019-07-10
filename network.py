@@ -207,7 +207,8 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            if world.estimateGap(user, instant, timeStep, self.idx)/timeStep > user.getCriticalGap()/timeStep:
+            print(world.estimateGap(user, instant, timeStep)/timeStep)
+            if world.estimateGap(user, instant, timeStep)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
                 return False
@@ -618,8 +619,8 @@ class World:
         else:
             return [al.getTotalDistance(), 0, al.idx]
 
-    def distanceToCrossing(self, user, instant, cdIdx):
-        """"returns distance to intersection based on control device position """
+    def distanceToCrossingAtInstant(self, user, instant):
+        """"returns distance to intersection based on control device position"""
         G = self.graph
 
         G.add_node('user1')
@@ -633,21 +634,26 @@ class World:
 
         G.add_weighted_edges_from([(origin, 'user', upstreamDistance)])
         G.add_weighted_edges_from([('user', target, downstreamDistance)])
-
-        distance = nx.shortest_path_length(G, source='user', target="cd{}".format(cdIdx), weight='weight')
+        center = self.getCenterNode()
+        distance = nx.shortest_path_length(G, source='user', target=center, weight='weight')
         G.remove_node('user')
 
         return distance
 
-    def estimateGap(self, user, instant, timeStep, cdIdx):
+    def getCenterNode(self):
+        for ui in self.userInputs:
+            if ui.getIdx() != self.userInputs[0].getIdx():
+                centerNode = self.alignments[ui.getAlignmentIdx()].exitNode
+        return centerNode
+
+    def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining to the center of the intersection"""
         incomingUser = self.getCrossingUser(user, instant)
         if incomingUser is not None:
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
             if v != 0:
-                print(instant, incomingUser.num)
-                d = self.distanceToCrossing(incomingUser, instant-1, cdIdx)
+                d = self.distanceToCrossingAtInstant(incomingUser, instant - 1)
                 return d / v
             else:
                 return float('inf')
@@ -1010,11 +1016,11 @@ class Intersection:
     def setEntryAlignments(self, entryAlignments):
         self.entryAlignments = entryAlignments
 
-    def getEntryAlignments(self):
-        return self.entryAlignments
-
     def setExitAlignments(self, exitAlignments):
         self.entryAlignments = exitAlignments
+
+    def getEntryAlignments(self):
+        return self.entryAlignments
 
     def getExitAlignments(self):
         return self.exitAlignments
