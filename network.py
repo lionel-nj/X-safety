@@ -725,6 +725,7 @@ class World:
                     self.users.remove(u)
 
     def updateControlDevices(self, timeStep):
+        """updates state for control devices"""
         if self.controlDevices is not None:
             for cd in self.controlDevices:
                 cd.update(timeStep)
@@ -835,7 +836,7 @@ class World:
             return None
 
     def getUserReachableFinalNodesAtInstant(self, user, instant):
-        """returns  a list of reachable final nodes from user at instant, dependending of non zero probabilities for user to travel on alignments"""
+        """returns  a list of reachable final nodes from user at instant, depending of non zero probabilities for user to travel on alignments"""
         reachableAlignments = self.getUserReachableAlignmentsAtInstant(user, instant)
         nodes = []
         if reachableAlignments is not None:
@@ -847,7 +848,7 @@ class World:
 
     def getPossiblePathsToExitFromUserAtInstant(self, user, instant):
         """returns a list of possible paths from user position to every final alignments"""
-        finalNodes = self.getUserReachableFinalNodesAtInstant()
+        finalNodes = self.getUserReachableFinalNodesAtInstant(user, instant)
         cp = user.getCurvilinearPositionAtInstant(instant)
         G = self.getGraph()
 
@@ -865,10 +866,38 @@ class World:
         paths = []
         for node in finalNodes:
             for path in nx.all_simple_paths(G, source='user', target=node):
-                paths.append(path)
+                paths.append(path[1:])
 
         G.remove_node('user')
         return paths
+
+    def buildTrajectoryFromNodes(self, nodes):
+        trajectory = moving.Trajectory()
+        for k in range(len(nodes)-1):
+            entryNode, exitNode = nodes[k], nodes[k+1]
+            for al in self.alignments:
+                if al.getEntryNode() == entryNode and al.getExitNode() == exitNode:
+                    trajectory.append(al.points)
+        return trajectory
+
+    def getPossibleTrajectoriesToExitFromUserAtInstant(self, user, instant):
+        """returns a list of predicted trajectories for user, to exit network"""
+        predictedPaths = self.getPossiblePathsToExitFromUserAtInstant(user, instant)
+        trajectories = []
+        for path in predictedPaths:
+            trajectories.append(self.buildTrajectoryFromNodes(path))
+        return trajectories
+
+    def getPredictedCrossingPoints(self, user, other, instant):
+        """returns predicted crossing points for a pair of users"""
+        userPredictedTrajectories = self.getPossibleCurvilinearTrajectoriesToExitFromUserAtInstant(user, instant)
+        otherPredictedTrajectories = self.getPossibleCurvilinearTrajectoriesToExitFromUserAtInstant(other, instant)
+        predictedCrossingPoints = []
+        for userPredictedTrajectory in userPredictedTrajectories:
+            for otherPredictedTrajectory in otherPredictedTrajectories:
+                predictedCrossingPoints.append(userPredictedTrajectory.getIntersections(otherPredictedTrajectory[0], otherPredictedTrajectory[-1])[1])
+        return sum(predictedCrossingPoints, [])
+
 
     # def getClosestUserToCrossingPointOnAlignmentAtInstant(self, instant, alIdx):
     #     """return for a given alignment the user that is closer to crossing point"""
@@ -899,6 +928,7 @@ class World:
     #     return pair
 
     def getParents(self, al):
+        """returns parents alignments of alignment"""
         alignments = []
         for alignment in self.alignments:
             if alignment.idx != al.idx:
