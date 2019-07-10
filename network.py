@@ -358,17 +358,17 @@ class World:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
 
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                controlDevice = "cd{}".format(cd.getIdx())
-                G.add_node(controlDevice)
+        # if self.controlDevices is not None:
+        #     for cd in self.controlDevices:
+                # controlDevice = "cd{}".format(cd.getIdx())
+                # G.add_node(controlDevice)
 
-                for al in self.alignments:
-                    if al.transversalAlignments is not None:
-                        origin = al.getEntryNode()
-                        target = al.getExitNode()
-                        weight = al.getTotalDistance()
-                        G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
+                # for al in self.alignments:
+                #     if al.transversalAlignments is not None:
+                #         origin = al.getEntryNode()
+                #         target = al.getExitNode()
+                #         weight = al.getTotalDistance()
+                #         G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
                     # else:
                     #     origin = al.getEntryNode()
                     #     target = al.getExitNode()
@@ -813,33 +813,90 @@ class World:
         else:
             return None
 
-    def getClosestUserToCrossingPointOnAlignmentAtInstant(self, instant, alIdx):
-        """return for a given alignment the user that is closer to crossing point"""
-        users = []
-        for user in self.users + self.completed:
-            if user.timeInterval is not None:
-                if instant in list(user.timeInterval):
-                    cp = user.getCurvilinearPositionAtInstant(instant)
-                    if cp[2] == alIdx:
-                        users.append(user)
-        if len(users) > 0:
-            return sorted(users, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+    def getFinalNodes(self):
+        """returns a list of final nodes in the world"""
+        finalNodes = []
+        for al in self.alignments:
+            if al.getConnectedAlignments() is None:
+                finalNodes.append(al.getExitNode())
+        return finalNodes
+
+    def getUserReachableAlignmentsAtInstant(self, user, instant):
+        """returns a list of reachable alignments from user at instant, dependending of non zero probabilities for user to travel on alignments"""
+        cp = user.getCurvilinearPositionAtInstant(instant)
+        reachableAlignments = []
+        if self.alignments[cp[2]].getConnectedAlignments() is not None:
+            connectedAlignments = list(zip(self.alignments[cp[2]].getConnectedAlignments(), self.alignments[cp[2]].getConnectedAlignmentProbabilities()))
+            for pair in connectedAlignments:
+                if pair[1] != 0:
+                    reachableAlignments.append(pair[0])
+            return reachableAlignments
         else:
             return None
 
-    def getClosestUserToCrossingPointAtInstant(self, instant):
-        """returns the pair of user that is closest to the intersection"""
-        users = {}
-        for al in self.alignments:
-            if al.transversalAlignments is not None:
-                users[al.idx](self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx))
+    def getUserReachableFinalNodesAtInstant(self, user, instant):
+        """returns  a list of reachable final nodes from user at instant, dependending of non zero probabilities for user to travel on alignments"""
+        reachableAlignments = self.getUserReachableAlignmentsAtInstant(user, instant)
+        nodes = []
+        if reachableAlignments is not None:
+            for al in reachableAlignments:
+                nodes.append(al.exitNode)
+            return nodes
+        else:
+            return [self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getExitNode()]
 
-        users = {}
-        for al in self.alignments:
-            if al.transversalAlignments is not None:
-                users[al.idx] = self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx)
-        pair = [users[idx] for idx in users]
-        return pair
+    def getPossiblePathsToExitFromUserAtInstant(self, user, instant):
+        """returns a list of possible paths from user position to every final alignments"""
+        finalNodes = self.getUserReachableFinalNodesAtInstant()
+        cp = user.getCurvilinearPositionAtInstant(instant)
+        G = self.getGraph()
+
+        G.add_node('user')
+
+        origin = self.alignments[cp[2]].getEntryNode()
+        target = self.alignments[cp[2]].getExitNode()
+
+        upstreamDistance = cp[0]
+        downstreamDistance = self.alignments[cp[2]].getTotalDistance() - upstreamDistance
+
+        G.add_weighted_edges_from([(origin, 'user', upstreamDistance)])
+        G.add_weighted_edges_from([('user', target, downstreamDistance)])
+
+        paths = []
+        for node in finalNodes:
+            for path in nx.all_simple_paths(G, source='user', target=node):
+                paths.append(path)
+
+        G.remove_node('user')
+        return paths
+
+    # def getClosestUserToCrossingPointOnAlignmentAtInstant(self, instant, alIdx):
+    #     """return for a given alignment the user that is closer to crossing point"""
+    #     users = []
+    #     for user in self.users + self.completed:
+    #         if user.timeInterval is not None:
+    #             if instant in list(user.timeInterval):
+    #                 cp = user.getCurvilinearPositionAtInstant(instant)
+    #                 if cp[2] == alIdx:
+    #                     users.append(user)
+    #     if len(users) > 0:
+    #         return sorted(users, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+    #     else:
+    #         return None
+
+    # def getClosestUserToCrossingPointAtInstant(self, instant):
+    #     """returns the pair of user that is closest to the intersection"""
+    #     users = {}
+    #     for al in self.alignments:
+    #         if al.transversalAlignments is not None:
+    #             users[al.idx](self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx))
+    #
+    #     users = {}
+    #     for al in self.alignments:
+    #         if al.transversalAlignments is not None:
+    #             users[al.idx] = self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx)
+    #     pair = [users[idx] for idx in users]
+    #     return pair
 
     def getParents(self, al):
         alignments = []
