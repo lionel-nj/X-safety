@@ -7,7 +7,7 @@ import simulation
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 sim.run(world)
-world.plotUserTrajectories(sim.timeStep)
+# world.plotUserTrajectories(sim.timeStep)
 
 analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
 # analysis.evaluate(sim.timeStep, sim.duration)

@@ -85,6 +85,16 @@ class Alignment:
     def getConnectedAlignments(self):
         return self.connectedAlignments
 
+    def assignUserAtInstant(self, userNum, instant):
+        if instant in self.currentUsersNums:
+            self.currentUsersNums[instant].append(userNum)
+        else:
+            self.currentUsersNums[instant] = [userNum]
+
+    def getTransversalAlignments(self):
+        return self.getTransversalAlignments
+
+
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
@@ -186,7 +196,6 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
             return False
         else:
-            print(world.estimateGap(user, instant, timeStep, self.idx)/timeStep)
             if world.estimateGap(user, instant, timeStep, self.idx)/timeStep > user.getCriticalGap()/timeStep:
                 return True
             else:
@@ -321,7 +330,7 @@ class World:
 
     def initGraph(self):
         """sets graph attribute to self"""
-        G = nx.Graph()
+        G = nx.DiGraph()
         self.initNodesToAlignments()
         edgesProperties = []
         for al in self.alignments:
@@ -374,11 +383,12 @@ class World:
 
                         G.add_weighted_edges_from([(user1Origin, 'user1', user1UpstreamDistance)])
                         G.add_weighted_edges_from([('user1', user1Target, user1DownstreamDistance)])
-                        # G.add_weighted_edges_from([(user1Target, 'user1', user1DownstreamDistance)])
+                        G.add_path([user1Target, 'user1'], weight=user1DownstreamDistance)
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
                         # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
+                        G.add_path([user2Target, 'user2'], weight=user2DownstreamDistance)
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
 
@@ -479,6 +489,7 @@ class World:
         for al in self.alignments:
             al.connectedAlignments = None
             al.transversalAlignments = None
+            al.currentUsersNums = {}
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
                 # create list of transversal alignments
@@ -490,6 +501,7 @@ class World:
                         else:
                             al.transversalAlignments.append(al2)
 
+
             # connecting control devices to their alignments
             if self.controlDevices is None:
                 al.controlDevice = None
@@ -499,6 +511,53 @@ class World:
                         al.controlDevice = cd
                     else:
                         al.controlDevice = None
+
+        # connecting alignments to intersection
+        self.intersections = []
+        for al in self.alignments:
+            connectedAlignmentIndices = al.getConnectedAlignmentIndices()
+            if connectedAlignmentIndices is not None:
+                if len(connectedAlignmentIndices) > 1:
+                    entryAlignments = [al] + al.transversalAlignments
+                    exitAlignments = list(set(sum([al.getConnectedAlignments()] + [transversalAlignment.getConnectedAlignments() for transversalAlignment in al.transversalAlignments], [])))
+                    intersection = Intersection(entryAlignments, exitAlignments)
+                    _temp = True
+                    if self.intersections != []:
+                        i = 0
+                        while _temp:
+                            if set(entryAlignments) != set(intersection.getEntryAlignments()):
+                                i += 1
+                                intersection = self.intersection[i]
+                            else:
+                                _temp = False
+                        if _temp:
+                            self.intersections.append(intersection)
+                    else:
+                        self.intersections.append(intersection)
+
+                    al.exitIntersection = intersection
+                    al.entryIntersection = None
+                else:
+                    al.entryIntersection, al.exitIntersection = None, None
+            else:
+                exitAlignments = list(set(sum([alignment.getConnectedAlignments() for alignment in [self.getParents(al)[k] for k in range(len(self.getParents(al)))]], [])))
+                entryAlignments = self.getParents(al)
+                intersection = Intersection(entryAlignments, exitAlignments)
+                if self.intersections != []:
+                    i = 0
+                    while _temp:
+                        if set(entryAlignments) != set(intersection.getEntryAlignments()):
+                            i += 1
+                            intersection = self.intersection[i]
+                        else:
+                            _temp = False
+                    if _temp:
+                        self.intersections.append(intersection)
+                else:
+                    self.intersections.append(intersection)
+
+                al.exitIntersection = None
+                al.entryIntersection = intersection
 
         # linking self to its graph
         self.initGraph()
@@ -564,6 +623,7 @@ class World:
         if incomingUser is not None:
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
             if v != 0:
+                print(instant, incomingUser.num)
                 d = self.distanceToCrossing(incomingUser, instant-1, cdIdx)
                 return d / v
             else:
@@ -640,69 +700,125 @@ class World:
     def getGraph(self):
         return self.graph
 
-    # def getUsersOnAlignmentAtInstant(self, alignmentIdx, instant):
-    #     '''returns a list of users that are on alignment at instant'''
-    #     if instant in self.alignments[alignmentIdx].currentUsers:
-    #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant]]
-    #     # else:
-    #     #     if instant-1 in self.alignments[alignmentIdx].currentUsers:
-    #     #         return [self.getUserByNum(num) for num in self.alignments[alignmentIdx].currentUsers[instant-1]]
-    #     else:
-    #         return []
+    def getCrossingPair(self, instant):
+        for user in self.users + self.completed:
+            if user.timeInterval is not None:
+                if instant in list(user.timeInterval):
+                    cp = user.getCurvilinearPositionAtInstant(instant)
+                    if self.alignments[cp[2]].transversalAlignments is not None:
+                        if user.leader is not None:
+                            if user.leader.getCurvilinearPositionAtInstant(instant)[2] != cp[2]:
+                                transversalUsers = []
+                                for u in self.users + self.completed:
+                                    if u.num != user.num:
+                                        if u.timeInterval is not None:
+                                            if instant in list(u.timeInterval):
+                                                if u.getCurvilinearPositionAtInstant(instant)[2] in self.alignments[cp[2]].transversalAlignments:
+                                                    transversalUsers.append(u)
+                                if transversalUsers != []:
+                                    return user, sorted(transversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+                                else:
+                                    return None, None
+                            else:
+                                return None, None
+
+                        else:
+                            transversalUsers = []
+                            for u in self.users + self.completed:
+                                if u.num != user.num:
+                                    if u.timeInterval is not None:
+                                        if instant in list(u.timeInterval):
+                                            if u.getCurvilinearPositionAtInstant(instant)[2] in self.alignments[cp[2]].transversalAlignments:
+                                                transversalUsers.append(u)
+                            if transversalUsers != []:
+                                return user, sorted(transversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+                            else:
+                                return None, None
+                    else:
+                        return None, None
+
+    def userOnTransversalAlignmentsAtInstant(self, user, other, instant):
+        """determines if other is on transversal alignment of user at instant"""
+        cp = user.getCurvilinearPositionAtInstant(instant)
+        if self.alignments[cp[2]].transversalAlignments is not None:
+            if other.getCurvilinearPositionAtInstant(instant)[2] in [al.idx for al in self.alignments[cp[2]].transversalAlignments]:
+                return True
+        else:
+            return False
 
     def getCrossingUser(self, user, instant, withCompleted=False):
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
         cp = user.getCurvilinearPositionAtInstant(instant-1)
         transversalAlignments = self.alignments[cp[2]].transversalAlignments
+        if user.leader is not None:
+            if user.leader.getCurvilinearPositionAtInstant(instant)[2] != user.getCurvilinearPositionAtInstant(instant-1):
+                return self.scan(transversalAlignments, instant, withCompleted)
+            else:
+                return None
+        else:
+            self.scan(transversalAlignments, instant, withCompleted)
+
+    def scan(self, transversalAlignments, instant, withCompleted=False):
         potentialTransversalUsers = []
         if transversalAlignments is not None:
             if withCompleted:
                 for u in self.users + self.completed:
                     if u.timeInterval is not None:
                         if instant in list(u.timeInterval):
-                            if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
+                            if u.getCurvilinearPositionAtInstant(instant - 1)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             else:
                 for u in self.users:
                     if u.timeInterval is not None:
                         if instant in list(u.timeInterval):
-                            if u.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
+                            if u.getCurvilinearPositionAtInstant(instant - 1)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             if potentialTransversalUsers != []:
-                potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)
+                potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant - 1)[0], reverse=True)
                 return potentialTransversalUsers[0]
-            else:
-                return None
         else:
             return None
 
-        #####
-        # cp = user.getCurvilinearPositionAtInstant(instant-1)
-        # transversalAlignments = self.alignments[cp[2]].transversalAlignments
-        # potentialTransversalUsers = []
-        # if transversalAlignments != []:
-        #     for u in self.users:
-        #         if u.timeInterval is not None:
-        #             if instant in list(u.timeInterval):
-        #                 if any(al in transversalAlignments for al in u.alignments):
-        #                     potentialTransversalUsers.append(u)
-        #     potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=False)
-        #     if potentialTransversalUsers != []:
-        #         crossingUser = None
-        #         for u in potentialTransversalUsers:
-        #             crossingUser = u
-        #             if crossingUser.getCurvilinearPositionAtInstant(instant-1)[2] in [al.idx for al in transversalAlignments]:
-        #                 potentialTransversalUsers.remove(crossingUser)
-        #         if potentialTransversalUsers != []:
-        #             crossingUser = potentialTransversalUsers[0]
-        #         # if user.num ==2:
-        #         #     print(crossingUser.num)
-        #         return crossingUser
-        #     else:
-        #         return None
-        # else:
-        #     return None
-            #######
+    def getClosestUserToCrossingPointOnAlignmentAtInstant(self, instant, alIdx):
+        """return for a given alignment the user that is closer to crossing point"""
+        users = []
+        for user in self.users + self.completed:
+            if user.timeInterval is not None:
+                if instant in list(user.timeInterval):
+                    cp = user.getCurvilinearPositionAtInstant(instant)
+                    if cp[2] == alIdx:
+                        users.append(user)
+        if len(users) > 0:
+            return sorted(users, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+        else:
+            return None
+
+    def getClosestUserToCrossingPointAtInstant(self, instant):
+        """returns the pair of user that is closest to the intersection"""
+        users = {}
+        for al in self.alignments:
+            if al.transversalAlignments is not None:
+                users[al.idx](self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx))
+
+        users = {}
+        for al in self.alignments:
+            if al.transversalAlignments is not None:
+                users[al.idx] = self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx)
+        pair = [users[idx] for idx in users]
+        return pair
+
+    def getParents(self, al):
+        alignments = []
+        for alignment in self.alignments:
+            if alignment.idx != al.idx:
+                connectedAlignmentIndices = alignment.getConnectedAlignmentIndices()
+                if connectedAlignmentIndices is not None:
+                    if al.idx in connectedAlignmentIndices:
+                        alignments.append(alignment)
+        return alignments
+
+
+    #######
         # for al in self.alignments:
         #     if len(al.getConnectedAlignmentIndices()) > 1:
         #         break
@@ -861,6 +977,27 @@ class Distribution(object):
 
     def getMaxThreshold(self):
         return self.b
+
+
+class Intersection:
+    def __init__(self, entryAlignments, exitAlignments):
+        self.entryAlignments = entryAlignments
+        self.exitAlignments = exitAlignments
+
+    def setEntryAlignments(self, entryAlignments):
+        self.entryAlignments = entryAlignments
+
+    def getEntryAlignments(self):
+        return self.entryAlignments
+
+    def setExitAlignments(self, exitAlignments):
+        self.entryAlignments = exitAlignments
+
+    def getExitAlignments(self):
+        return self.exitAlignments
+
+    def getIdx(self):
+        return self.idx
 
 
 def getItemByIdx(items, idx):

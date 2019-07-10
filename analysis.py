@@ -75,20 +75,28 @@ class Analysis:
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
-        idx +=1
-        for t in range(int(np.floor(duration / timeStep))):
-            roadUser1, roadUser2 = self.world.getCrossingUsers(t+1)
-            if (roadUser1, roadUser2) != (None, None):
-                if roadUser1.timeInterval is not None and roadUser2.timeInterval is not None:
-                    if (roadUser1.num, roadUser2.num) not in self.interactions:
-                        idx += 1
-                        i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
-                        i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False)    )
-                        i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
+        idx += 1
 
-                    i.computeDistanceAtInstant(self.world, t, 'euclidian')
-                    i.computeTTCAtInstant(self.world, timeStep, t)
-                    self.interactions[(roadUser1.num, roadUser2.num)] = i 
+        # for user in self.world.completed + self.world.users:
+        #     if user.timeInterval is not None:
+
+        alIdx = 0  # todo: a changer
+        for t in range(int(np.floor(duration / timeStep))):
+            user = self.world.getClosestUserToCrossingPointOnAlignmentAtInstant(t, alIdx)
+            if user is not None:
+                if user.timeInterval is not None:
+                    if t in list(user.timeInterval):
+                        crossingUser = self.world.getCrossingUser(user, t, withCompleted=True)
+                        if crossingUser is not None:
+                            if (user.num, crossingUser.num) not in self.interactions or (crossingUser.num, user.num) not in self.interactions:
+                                idx += 1
+                                i = events.Interaction(num=idx, roadUser1=user, roadUser2=crossingUser, useCurvilinear=True)
+                                i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False))
+                                i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
+
+                            i.computeDistanceAtInstant(self.world, t, 'euclidian')
+                            i.computeTTCAtInstant(self.world, timeStep, t)
+                            self.interactions[(user.num, crossingUser.num)] = i
 
         for key in self.interactions:
             if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
