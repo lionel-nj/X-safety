@@ -779,13 +779,16 @@ class World:
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
         cp = user.getCurvilinearPositionAtInstant(instant-1)
         transversalAlignments = self.alignments[cp[2]].transversalAlignments
-        if user.leader is not None:
-            if user.leader.getCurvilinearPositionAtInstant(instant)[2] != user.getCurvilinearPositionAtInstant(instant-1):
-                return self.scan(transversalAlignments, instant, withCompleted)
+        if transversalAlignments is not None:
+            if user.leader is not None:
+                if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
+                    return self.scan(transversalAlignments, instant - 1, withCompleted)
+                else:
+                    return None
             else:
-                return None
+                self.scan(transversalAlignments, instant, withCompleted)
         else:
-            self.scan(transversalAlignments, instant, withCompleted)
+            return None
 
     def scan(self, transversalAlignments, instant, withCompleted=False):
         potentialTransversalUsers = []
@@ -794,17 +797,19 @@ class World:
                 for u in self.users + self.completed:
                     if u.timeInterval is not None:
                         if instant in list(u.timeInterval):
-                            if u.getCurvilinearPositionAtInstant(instant - 1)[2] in [al.idx for al in transversalAlignments]:
+                            if u.getCurvilinearPositionAtInstant(instant)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             else:
                 for u in self.users:
                     if u.timeInterval is not None:
                         if instant in list(u.timeInterval):
-                            if u.getCurvilinearPositionAtInstant(instant - 1)[2] in [al.idx for al in transversalAlignments]:
+                            if u.getCurvilinearPositionAtInstant(instant)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             if potentialTransversalUsers != []:
-                potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant - 1)[0], reverse=True)
+                potentialTransversalUsers = sorted(potentialTransversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)
                 return potentialTransversalUsers[0]
+            else:
+                return None
         else:
             return None
 
