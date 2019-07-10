@@ -15,12 +15,13 @@ class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
-    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None):
+    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None, authorizedTrafficFromAlignmentIndices=None):
         self.idx = idx
         self.width = width
         self.points = points
         self.controlDevice = controlDevice
         self.connectedAlignmentIndices = connectedAlignmentIndices
+        self.authorizedTrafficFromAlignmentIndices = authorizedTrafficFromAlignmentIndices
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -503,6 +504,7 @@ class World:
             al.transversalAlignments = None
             al.currentUsersNums = {}
             if al.getConnectedAlignmentIndices() is not None:
+                al.connectedAlignmentProbabilities = []
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
                 # create list of transversal alignments
                 connectedAlignmentIndices = set(al.getConnectedAlignmentIndices())
@@ -512,9 +514,18 @@ class World:
                             al.transversalAlignments = [al2]
                         else:
                             al.transversalAlignments.append(al2)
+                if len(al.connectedAlignmentProbabilities) == 1:
+                    al.connectedAlignmentProbabilities = [1]
+                else:
+                    for connectedAlignment in al.getConnectedAlignments():
+                        if al.idx in connectedAlignment.authorizedTrafficFromAlignmentIndices:
+                            al.connectedAlignmentProbabilities.append(1) # todo : change to random draw from uniform probability distribution
+                        else:
+                            al.connectedAlignmentProbabilities.append(0)
+            else:
+                al.connectedAlignmentProbabilities = None
 
-
-            # connecting control devices to their alignments
+                # connecting control devices to their alignments
             if self.controlDevices is None:
                 al.controlDevice = None
             else:
