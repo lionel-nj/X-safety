@@ -730,43 +730,6 @@ class World:
             for cd in self.controlDevices:
                 cd.update(timeStep)
 
-    def getCrossingPair(self, instant):
-        for user in self.users + self.completed:
-            if user.timeInterval is not None:
-                if instant in list(user.timeInterval):
-                    cp = user.getCurvilinearPositionAtInstant(instant)
-                    if self.alignments[cp[2]].transversalAlignments is not None:
-                        if user.leader is not None:
-                            if user.leader.getCurvilinearPositionAtInstant(instant)[2] != cp[2]:
-                                transversalUsers = []
-                                for u in self.users + self.completed:
-                                    if u.num != user.num:
-                                        if u.timeInterval is not None:
-                                            if instant in list(u.timeInterval):
-                                                if u.getCurvilinearPositionAtInstant(instant)[2] in self.alignments[cp[2]].transversalAlignments:
-                                                    transversalUsers.append(u)
-                                if transversalUsers != []:
-                                    return user, sorted(transversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
-                                else:
-                                    return None, None
-                            else:
-                                return None, None
-
-                        else:
-                            transversalUsers = []
-                            for u in self.users + self.completed:
-                                if u.num != user.num:
-                                    if u.timeInterval is not None:
-                                        if instant in list(u.timeInterval):
-                                            if u.getCurvilinearPositionAtInstant(instant)[2] in self.alignments[cp[2]].transversalAlignments:
-                                                transversalUsers.append(u)
-                            if transversalUsers != []:
-                                return user, sorted(transversalUsers, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
-                            else:
-                                return None, None
-                    else:
-                        return None, None
-
     def userOnTransversalAlignmentsAtInstant(self, user, other, instant):
         """determines if other is on transversal alignment of user at instant"""
         cp = user.getCurvilinearPositionAtInstant(instant)
@@ -897,35 +860,6 @@ class World:
             for otherPredictedTrajectory in otherPredictedTrajectories:
                 predictedCrossingPoints.append(userPredictedTrajectory.getIntersections(otherPredictedTrajectory[0], otherPredictedTrajectory[-1])[1])
         return sum(predictedCrossingPoints, [])
-
-
-    # def getClosestUserToCrossingPointOnAlignmentAtInstant(self, instant, alIdx):
-    #     """return for a given alignment the user that is closer to crossing point"""
-    #     users = []
-    #     for user in self.users + self.completed:
-    #         if user.timeInterval is not None:
-    #             if instant in list(user.timeInterval):
-    #                 cp = user.getCurvilinearPositionAtInstant(instant)
-    #                 if cp[2] == alIdx:
-    #                     users.append(user)
-    #     if len(users) > 0:
-    #         return sorted(users, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
-    #     else:
-    #         return None
-
-    # def getClosestUserToCrossingPointAtInstant(self, instant):
-    #     """returns the pair of user that is closest to the intersection"""
-    #     users = {}
-    #     for al in self.alignments:
-    #         if al.transversalAlignments is not None:
-    #             users[al.idx](self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx))
-    #
-    #     users = {}
-    #     for al in self.alignments:
-    #         if al.transversalAlignments is not None:
-    #             users[al.idx] = self.getClosestUserToCrossingPointOnAlignmentAtInstant(instant, al.idx)
-    #     pair = [users[idx] for idx in users]
-    #     return pair
 
     def getParents(self, al):
         """returns parents alignments of alignment"""
