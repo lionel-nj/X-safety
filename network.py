@@ -47,16 +47,18 @@ class Alignment:
             # TODO use proportions at connection
             # TODO check control devices
             cd = self.getControlDevice()
+            nextAlignment = [x[1] for x in list(zip(self.getConnectedAlignmentProbabilities(), self.getConnectedAlignments())) if x[0] == 1][0]
             if cd is not None:
                 # cd.setUser(user)
                 user.setArrivalInstantAtControlDevice(instant)
                 if cd.permissionToGo(instant, user, world, timeStep):
                     user.resetArrivalInstantAtControlDevice()
-                    alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
+                    # nextAlignment = list(zip(self.connectedAlignmentProbabilities, self.connectedAlignmentIndices))
+                    alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
                     alignments, s = [self], self.getTotalDistance()
             else:
-                alignments, s = self.connectedAlignments[0].getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
+                alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
             return [self] + alignments, s
         else:  # simulation finished, exited network
             return None, None
@@ -94,6 +96,14 @@ class Alignment:
     def getTransversalAlignments(self):
         return self.getTransversalAlignments
 
+    def setProbabilities(self, probabilities):
+        if self.getConnectedAlignment() is not None:
+            self.connectedAlignmentProbabilities = probabilities
+        else:
+            self.connectedAlignmentProbabilities = None
+
+    def getConnectedAlignmentProbabilities(self):
+        return self.connectedAlignmentProbabilities
 
 
 class ControlDevice:
@@ -450,6 +460,8 @@ class World:
         - links the alignments using connectedAlignments
         - links controlDevices to their alignments
         - initializes lists of users
+        - creates intersections objects and links them to the corresponding alignments
+        - sets probabilities of travel for connected alignments
         - initializes the graph
 
         TODO move checks to other checks, eg that no alignment is so short that is can be bypassed by fast user'''
