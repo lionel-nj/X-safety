@@ -296,6 +296,15 @@ class World:
             for cd in self.controlDevices:
                 cd.reset()
 
+    def getGraph(self):
+        return self.graph
+
+    def getCenterNode(self):
+        for ui in self.userInputs:
+            if ui.getIdx() != self.userInputs[0].getIdx():
+                centerNode = self.alignments[ui.getAlignmentIdx()].exitNode
+        return centerNode
+
     def getUserByNum(self, userNum):
         """returns an user given its num"""
         for user in self.users+self.completed:
@@ -640,12 +649,6 @@ class World:
 
         return distance
 
-    def getCenterNode(self):
-        for ui in self.userInputs:
-            if ui.getIdx() != self.userInputs[0].getIdx():
-                centerNode = self.alignments[ui.getAlignmentIdx()].exitNode
-        return centerNode
-
     def estimateGap(self, user, instant, timeStep):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining to the center of the intersection"""
@@ -725,9 +728,6 @@ class World:
         if self.controlDevices is not None:
             for cd in self.controlDevices:
                 cd.update(timeStep)
-
-    def getGraph(self):
-        return self.graph
 
     def getCrossingPair(self, instant):
         for user in self.users + self.completed:
@@ -846,26 +846,33 @@ class World:
                         alignments.append(alignment)
         return alignments
 
+    def getCrossingUsers(self, instant):
+        '''detection of users for post simulation computation of indicators'''
+        for al in self.alignments:
+            if len(al.getConnectedAlignmentIndices()) > 1:
+                break
+        al1 = al
 
-    #######
-        # for al in self.alignments:
-        #     if len(al.getConnectedAlignmentIndices()) > 1:
-        #         break
-        # al1 = al
-        #
-        # for alignment in self.alignments:
-        #     if alignment.idx != al1.idx:
-        #         if alignment.getConnectedAlignmentIndices() is not None:
-        #             if len(alignment.getConnectedAlignmentIndices()) > 1:
-        #                 break
-        # al2 = alignment
-        #
-        # userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant-1)
-        # userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant-1)
-        # if len(userSet1) > 0 and len(userSet2) > 0:
-        #     return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant-1)[0], reverse=True)[0]
-        # elif len(userSet1) == 0 or len(userSet2) == 0:
-        #     return None, None
+        for alignment in self.alignments:
+            if alignment.idx != al1.idx:
+                if alignment.getConnectedAlignmentIndices() is not None:
+                    if len(alignment.getConnectedAlignmentIndices()) > 1:
+                        break
+        al2 = alignment
+
+        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant)
+        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant)
+        if len(userSet1) > 0 and len(userSet2) > 0:
+            return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
+        elif len(userSet1) == 0 or len(userSet2) == 0:
+            return None, None
+
+    def getUsersOnAlignmentAtInstant(self, alIdx, instant):
+        ''''returns users on alignment at instant'''
+        if instant in self.alignments[alIdx].currentUsersNums:
+            return [self.getUserByNum(num) for num in self.alignments[alIdx].currentUsersNums[instant]]
+        else:
+            return []
 
     def saveTrajectoriesToDB(self, dbName):
         self.saveCurvilinearTrajectoriesToSqlite(dbName)
