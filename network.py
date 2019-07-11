@@ -1,5 +1,4 @@
 import itertools
-import random
 import sqlite3
 
 import matplotlib.pyplot as plt
@@ -15,13 +14,12 @@ class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
-    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None, authorizedTrafficFromAlignmentIndices=None):
+    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None):
         self.idx = idx
         self.width = width
         self.points = points
         self.controlDevice = controlDevice
         self.connectedAlignmentIndices = connectedAlignmentIndices
-        self.authorizedTrafficFromAlignmentIndices = authorizedTrafficFromAlignmentIndices
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -32,7 +30,7 @@ class Alignment:
 
     def plot(self, options='', **kwargs):
         self.points.plot(options, **kwargs)
-        if random.random() < 0.5:
+        if stats.randint(0, 1).rvs() == 1:
             p = self.points[0]
         else:
             p = self.points[1]
@@ -48,7 +46,7 @@ class Alignment:
             # TODO use proportions at connection
             # TODO check control devices
             cd = self.getControlDevice()
-            nextAlignment = [x[1] for x in list(zip(self.getConnectedAlignmentProbabilities(), self.getConnectedAlignments())) if x[0] == 1][0]
+            nextAlignment = self.drawNextAlignment(world)
             if cd is not None:
                 # cd.setUser(user)
                 user.setArrivalInstantAtControlDevice(instant)
@@ -82,8 +80,20 @@ class Alignment:
     def getExitNode(self):
         return self.exitNode
 
-    def getConnectedAlignmentIndices(self):
+    def getConnectedAlignmentIndicesAndMovementProportions(self):
         return self.connectedAlignmentIndices
+
+    def getConnectedAlignmentIndices(self):
+        if self.connectedAlignmentIndices is not None:
+            return [item for item in self.connectedAlignmentIndices]
+        else:
+            return None
+
+    def getConnectedAlignmentMovementProportions(self):
+        if self.connectedAlignmentIndices is not None:
+            return [self.connectedAlignmentIndices[item] for item in self.connectedAlignmentIndices]
+        else:
+            return None
 
     def getConnectedAlignments(self):
         return self.connectedAlignments
@@ -105,6 +115,22 @@ class Alignment:
 
     def getConnectedAlignmentProbabilities(self):
         return self.connectedAlignmentProbabilities
+
+    def drawNextAlignment(self, world):
+        randomValue = stats.uniform.rvs()
+        possibleAlignments = [idx for idx in self.getConnectedAlignmentIndices() if self.getConnectedAlignmentIndicesAndMovementProportions()[idx] != 0]
+        probabilityIntervals = {}
+        k = -1
+        possibleAlignments
+        n = len(possibleAlignments)
+        for idx in possibleAlignments:
+            k += 1
+            probabilityIntervals[idx] = [k / n, (k + 1) / n]
+        for item in probabilityIntervals:
+            if toolkit.isFloatInInterval(randomValue, probabilityIntervals[item]):
+                nextAlignment = world.alignments[item]
+                break
+        return nextAlignment
 
 
 class ControlDevice:
@@ -144,7 +170,7 @@ class TrafficLight(ControlDevice):
         self.reset()
 
     def drawInitialState(self):
-        i = stats.randint(0, 2).rvs()
+        i = stats.randint(0,3).rvs()
         self.state = TrafficLight.states[i]
     
     def getState(self):
@@ -336,18 +362,40 @@ class World:
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
-        al = self.alignments[self.userInputs[0].getAlignmentIdx()]
-        al.entryNode = al.idx
-        al.exitNode = al.idx + 1
-        if al.getConnectedAlignmentIndices() is not None:
-            for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
-                self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
-                self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
-            centerNode = al.exitNode
-        for ui in self.userInputs:
-            if ui.getIdx() != self.userInputs[0].getIdx():
-                self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
-                self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
+        # al = self.alignments[self.userInputs[0].getAlignmentIdx()]
+        # al.entryNode = al.idx
+        # al.exitNode = al.idx + 1
+        # if al.getConnectedAlignmentIndices() is not None:
+        #     for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
+        #         self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
+        #         self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
+        #     centerNode = al.exitNode
+        # for ui in self.userInputs:
+        #     if ui.getIdx() != self.userInputs[0].getIdx():
+        #         self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
+        #         self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
+        # idx = 0
+        nodeIdx = 0
+        for intersection in self.intersections:
+            for al in intersection.entryAlignments:
+                al.exitNode = 'intersection'+str(nodeIdx)
+                if al.entryNode is None:
+                    al.entryNode = al.idx
+            for al in intersection.exitAlignments:
+                al.entryNode = 'intersection'+str(nodeIdx)
+                if al.exitNode is None:
+                    al.exitNode = al.idx
+            nodeIdx += 1
+
+
+        # for connectedAlignment in al.getConnectedAlignments():
+        #     connectedAlignment.entryNode = al.exitNode
+        #     if al.transversalAlignments is not None:
+        #         for transversalAlignment in al.transversalAlignments:
+        #             transversalAlignment.exitNode = al.exitNode
+
+
+
 
     def initGraph(self):
         """sets graph attribute to self"""
@@ -508,14 +556,20 @@ class World:
         # resetting all control devices to default values
         self.resetControlDevices()
 
+        self.intersections = []
         # connecting alignments
         for al in self.alignments:
+            al.entryNode = None
+            al.exitNode = None
             al.connectedAlignments = None
             al.transversalAlignments = None
             al.currentUsersNums = {}
+
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignmentProbabilities = []
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
+                print(al.idx, al.connectedAlignments)
+
                 # create list of transversal alignments
                 connectedAlignmentIndices = set(al.getConnectedAlignmentIndices())
                 for al2 in self.alignments:
@@ -524,16 +578,41 @@ class World:
                             al.transversalAlignments = [al2]
                         else:
                             al.transversalAlignments.append(al2)
+
+                        entryAlignments = [al] + al.transversalAlignments
+                        print(entryAlignments)
+                        exitAlignments = al.getConnectedAlignments()
+                        intersection = Intersection(entryAlignments, exitAlignments)
+                        al.exitIntersection = intersection
+                        al2.exitIntersection = intersection
+                        parentsAl = self.getParents(al)
+                        parentsAl2 = self.getParents(al2)
+
+                        if parentsAl == []:
+                            al.entryIntersection = None
+                        else:
+                            al.entryIntersection = parentsAl[0].exitIntersection
+
+                        if parentsAl2 == []:
+                            al2.entryIntersection = None
+                        else:
+                            al.entryIntersection = parentsAl2[0].exitIntersection
+
+                        if not(set(entryAlignments) <= set(sum([inter.entryAlignments for inter in self.intersections], []))):
+                            self.intersections.append(intersection)
+
                 if len(al.connectedAlignmentProbabilities) == 1:
                     al.connectedAlignmentProbabilities = [1]
                 else:
                     for connectedAlignment in al.getConnectedAlignments():
-                        if al.idx in connectedAlignment.authorizedTrafficFromAlignmentIndices:
-                            al.connectedAlignmentProbabilities.append(1) # todo : change to random draw from uniform probability distribution
+                        if al.connectedAlignmentIndices[connectedAlignment.idx] != 0:
+                            al.connectedAlignmentProbabilities.append(1)
                         else:
                             al.connectedAlignmentProbabilities.append(0)
             else:
                 al.connectedAlignmentProbabilities = None
+                al.exitIntersection = None
+                al.entryIntersection = self.getParents(al)[0].exitIntersection
 
                 # connecting control devices to their alignments
             if self.controlDevices is None:
@@ -544,53 +623,6 @@ class World:
                         al.controlDevice = cd
                     else:
                         al.controlDevice = None
-
-        # connecting alignments to intersection
-        self.intersections = []
-        for al in self.alignments:
-            connectedAlignmentIndices = al.getConnectedAlignmentIndices()
-            if connectedAlignmentIndices is not None:
-                if len(connectedAlignmentIndices) > 1:
-                    entryAlignments = [al] + al.transversalAlignments
-                    exitAlignments = list(set(sum([al.getConnectedAlignments()] + [transversalAlignment.getConnectedAlignments() for transversalAlignment in al.transversalAlignments], [])))
-                    intersection = Intersection(entryAlignments, exitAlignments)
-                    _temp = True
-                    if self.intersections != []:
-                        i = 0
-                        while _temp:
-                            if set(entryAlignments) != set(intersection.getEntryAlignments()):
-                                i += 1
-                                intersection = self.intersection[i]
-                            else:
-                                _temp = False
-                        if _temp:
-                            self.intersections.append(intersection)
-                    else:
-                        self.intersections.append(intersection)
-
-                    al.exitIntersection = intersection
-                    al.entryIntersection = None
-                else:
-                    al.entryIntersection, al.exitIntersection = None, None
-            else:
-                exitAlignments = list(set(sum([alignment.getConnectedAlignments() for alignment in [self.getParents(al)[k] for k in range(len(self.getParents(al)))]], [])))
-                entryAlignments = self.getParents(al)
-                intersection = Intersection(entryAlignments, exitAlignments)
-                if self.intersections != []:
-                    i = 0
-                    while _temp:
-                        if set(entryAlignments) != set(intersection.getEntryAlignments()):
-                            i += 1
-                            intersection = self.intersection[i]
-                        else:
-                            _temp = False
-                    if _temp:
-                        self.intersections.append(intersection)
-                else:
-                    self.intersections.append(intersection)
-
-                al.exitIntersection = None
-                al.entryIntersection = intersection
 
         # linking self to its graph
         self.initGraph()
@@ -1059,7 +1091,7 @@ class Distribution(object):
 
 
 class Intersection:
-    def __init__(self, entryAlignments, exitAlignments):
+    def __init__(self, entryAlignments = None, exitAlignments = None):
         self.entryAlignments = entryAlignments
         self.exitAlignments = exitAlignments
 
@@ -1074,9 +1106,6 @@ class Intersection:
 
     def getExitAlignments(self):
         return self.exitAlignments
-
-    def getIdx(self):
-        return self.idx
 
 
 def getItemByIdx(items, idx):

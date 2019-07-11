@@ -192,6 +192,11 @@ def plotVariations(indicatorValues, fileName, figName):
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
+def isFloatInInterval(floatValue, interval):
+    if interval[0] <= floatValue  and floatValue <= interval[-1]:
+        return True
+    else:
+        return False
 
 if __name__ == "__main__":
     import doctest
