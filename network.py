@@ -561,6 +561,8 @@ class World:
         for al in self.alignments:
             al.entryNode = None
             al.exitNode = None
+            al.entryIntersectiom = None
+            al.exitIntersection = None
             al.connectedAlignments = None
             al.transversalAlignments = None
             al.currentUsersNums = {}
@@ -568,7 +570,6 @@ class World:
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignmentProbabilities = []
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
-                print(al.idx, al.connectedAlignments)
 
                 # create list of transversal alignments
                 connectedAlignmentIndices = set(al.getConnectedAlignmentIndices())
@@ -580,7 +581,6 @@ class World:
                             al.transversalAlignments.append(al2)
 
                         entryAlignments = [al] + al.transversalAlignments
-                        print(entryAlignments)
                         exitAlignments = al.getConnectedAlignments()
                         intersection = Intersection(entryAlignments, exitAlignments)
                         al.exitIntersection = intersection
@@ -612,6 +612,7 @@ class World:
             else:
                 al.connectedAlignmentProbabilities = None
                 al.exitIntersection = None
+                print(al.idx)
                 al.entryIntersection = self.getParents(al)[0].exitIntersection
 
                 # connecting control devices to their alignments
@@ -661,7 +662,7 @@ class World:
             return [al.getTotalDistance(), 0, al.idx]
 
     def distanceToCrossingAtInstant(self, user, incomingUser, instant):
-        """"returns distance to intersection based on control device position"""
+        """"returns distance to intersection"""
         G = self.graph
 
         G.add_node('incomingUser')
@@ -817,33 +818,55 @@ class World:
                 finalNodes.append(al.getExitNode())
         return finalNodes
 
-    def getUserReachableAlignmentsAtInstant(self, user, instant):
-        """returns a list of reachable alignments from user at instant, dependending of non zero probabilities for user to travel on alignments"""
-        cp = user.getCurvilinearPositionAtInstant(instant)
-        reachableAlignments = []
-        if self.alignments[cp[2]].getConnectedAlignments() is not None:
-            connectedAlignments = list(zip(self.alignments[cp[2]].getConnectedAlignments(), self.alignments[cp[2]].getConnectedAlignmentProbabilities()))
-            for pair in connectedAlignments:
-                if pair[1] != 0:
-                    reachableAlignments.append(pair[0])
-            return reachableAlignments
-        else:
-            return None
+    def getFinalAlignments(self):
+        """returns a list of final alignments to exit network"""
+        finalNodes = self.getFinalNodes()
+        finalAlignments = []
+        for al in self.alignments:
+            for node in finalNodes:
+                if node == al.exitNode:
+                    finalAlignments.append(al)
+        return finalAlignments
 
-    def getUserReachableFinalNodesAtInstant(self, user, instant):
+    def getReachableAlignmentsFromAlignment(self, al, reachableAlignments=None):
+        """returns a list of reachable aligments from an alignment .. based on non zero movement proportions
+        recursive method !! """
+        # todo : tester sur des reseaux plus complexes
+        if reachableAlignments is None:
+            reachableAlignments = []
+        connectedAlignmentsAndMovementProportions = al.getConnectedAlignmentIndicesAndMovementProportions()
+        if connectedAlignmentsAndMovementProportions is not None:
+            for alIdx in connectedAlignmentsAndMovementProportions:
+                if connectedAlignmentsAndMovementProportions[alIdx] != 0:
+                    reachableAlignments = reachableAlignments + [self.alignments[alIdx]]
+                    return self.getReachableAlignmentsFromAlignment(self.alignments[alIdx], reachableAlignments)
+        return reachableAlignments
+
+    def getUserReachableAlignmentsAtInstant(self, user, instant):
+        """returns a list of reachable alignments from user at instant, dependending of non zero movement proportions"""
+        cp = user.getCurvilinearPositionAtInstant(instant)
+        return self.getReachableAlignmentsFromAlignment(self.alignments[cp[2]])
+
+    # def getFinalReachableAlignmentsFromAlignment(self):
+    #     reachableAlignments = self.getReachableAlignmentsFromAlignment(self)
+    #     finalAlignments = self.getFinalAlignments()
+    #     return list(set(reachableAlignments).intersection(finalAlignments))
+    #
+    # def getUserFinalReachableAlignmentsAtInstant(self, user, instant):
+    #     cp = user.getCurvilinearPositionAtInstant(instant)
+    #     return self.getFinalReachableAlignmentsFromAlignment(cp[2])
+
+    def getUserFinalReachableNodesAtInstant(self, user, instant):
         """returns  a list of reachable final nodes from user at instant, depending of non zero probabilities for user to travel on alignments"""
-        reachableAlignments = self.getUserReachableAlignmentsAtInstant(user, instant)
         nodes = []
-        if reachableAlignments is not None:
-            for al in reachableAlignments:
-                nodes.append(al.exitNode)
-            return nodes
-        else:
-            return [self.alignments[user.getCurvilinearPositionAtInstant(instant)[2]].getExitNode()]
+        finalReachableAlignments = self.getUserReachableAlignmentsAtInstant(user, instant)
+        for al in finalReachableAlignments:
+            nodes.append(al.getExitNode())
+        return nodes
 
     def getPossiblePathsToExitFromUserAtInstant(self, user, instant):
         """returns a list of possible paths from user position to every final alignments"""
-        finalNodes = self.getUserReachableFinalNodesAtInstant(user, instant)
+        finalNodes = self.getUserFinalReachableNodesAtInstant(user, instant)
         cp = user.getCurvilinearPositionAtInstant(instant)
         G = self.getGraph()
 
@@ -865,6 +888,15 @@ class World:
 
         G.remove_node('user')
         return paths
+
+    def getIntersectionAlignmentsPaths(self, user, instant):
+        paths = self.getPossiblePathsToExitFromUserAtInstant(user, instant)
+        intersections = []
+        alignments = []
+        for path in paths:
+            intersections.append(self.intersections[int(path[0][-1])])
+            alignments.append(self.alignments[path[1]])
+        return intersections, alignments
 
     def buildTrajectoryFromNodes(self, nodes):
         trajectory = moving.Trajectory()
