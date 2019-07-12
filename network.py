@@ -34,7 +34,7 @@ class Alignment:
             p = self.points[0]
         else:
             p = self.points[1]
-        plt.text(p.x+5, p.y+5, str(self.idx))
+        plt.text(p.x + 5, p.y + 5, str(self.idx))
 
     def getNextAlignment(self, nextS, user, instant, world, timeStep):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
@@ -98,11 +98,11 @@ class Alignment:
     def getConnectedAlignments(self):
         return self.connectedAlignments
 
-    def assignUserAtInstant(self, userNum, instant):
-        if instant in self.currentUsersNums:
-            self.currentUsersNums[instant].append(userNum)
+    def assignUserAtInstant(self, user, instant):
+        if instant in self.currentUsers:
+            self.currentUsers[instant].append(user)
         else:
-            self.currentUsersNums[instant] = [userNum]
+            self.currentUsers[instant] = [user]
 
     def getTransversalAlignments(self):
         return self.getTransversalAlignments
@@ -131,6 +131,13 @@ class Alignment:
                 nextAlignment = world.alignments[item]
                 break
         return nextAlignment
+
+    def getUsersOnAlignmentAtInstant(self, instant):
+        ''''returns users on alignment at instant'''
+        if instant in self.currentUsers:
+            return self.currentUsers[instant]
+        else:
+            return []
 
 
 class ControlDevice:
@@ -162,6 +169,7 @@ class ControlDevice:
 
 class TrafficLight(ControlDevice):
     states = ['green', 'amber', 'red']
+
     def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime):
         super(TrafficLight, self).__init__(idx, alignmentIdx)
         self.redTime = redTime
@@ -170,9 +178,9 @@ class TrafficLight(ControlDevice):
         self.reset()
 
     def drawInitialState(self):
-        i = stats.randint(0,3).rvs()
+        i = stats.randint(0, 3).rvs()
         self.state = TrafficLight.states[i]
-    
+
     def getState(self):
         """ returns the current color """
         return self.state
@@ -230,11 +238,11 @@ class StopSign(ControlDevice):
         self.stopDuration = stopDuration
 
     def permissionToGo(self, instant, user, world, timeStep):
-        if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration/timeStep:
+        if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration / timeStep:
             return False
         else:
-            print(world.estimateGap(user, instant, timeStep)/timeStep)
-            if world.estimateGap(user, instant, timeStep)/timeStep > user.getCriticalGap()/timeStep:
+            print(world.estimateGap(user, instant, timeStep) / timeStep)
+            if world.estimateGap(user, instant, timeStep) / timeStep > user.getCriticalGap() / timeStep:
                 return True
             else:
                 return False
@@ -274,8 +282,7 @@ class World:
 
     def saveCurvilinearTrajectoriesToSqlite(self, db):
         connection = sqlite3.connect(db)
-        storage.saveTrajectoriesToTable(connection, [user for user in self.completed+self.users if user.timeInterval is not None], 'curvilinear')
-
+        storage.saveTrajectoriesToTable(connection, [user for user in self.completed + self.users if user.timeInterval is not None], 'curvilinear')
 
     @staticmethod
     def takeEntry(elem):
@@ -333,7 +340,7 @@ class World:
 
     def getUserByNum(self, userNum):
         """returns an user given its num"""
-        for user in self.users+self.completed:
+        for user in self.users + self.completed:
             if user.num == userNum:
                 return user
         print("userNum does not match any existing user")
@@ -378,24 +385,20 @@ class World:
         nodeIdx = 0
         for intersection in self.intersections:
             for al in intersection.entryAlignments:
-                al.exitNode = 'intersection'+str(nodeIdx)
+                al.exitNode = 'intersection' + str(nodeIdx)
                 if al.entryNode is None:
                     al.entryNode = al.idx
             for al in intersection.exitAlignments:
-                al.entryNode = 'intersection'+str(nodeIdx)
+                al.entryNode = 'intersection' + str(nodeIdx)
                 if al.exitNode is None:
                     al.exitNode = al.idx
             nodeIdx += 1
-
 
         # for connectedAlignment in al.getConnectedAlignments():
         #     connectedAlignment.entryNode = al.exitNode
         #     if al.transversalAlignments is not None:
         #         for transversalAlignment in al.transversalAlignments:
         #             transversalAlignment.exitNode = al.exitNode
-
-
-
 
     def initGraph(self):
         """sets graph attribute to self"""
@@ -408,20 +411,20 @@ class World:
 
         # if self.controlDevices is not None:
         #     for cd in self.controlDevices:
-                # controlDevice = "cd{}".format(cd.getIdx())
-                # G.add_node(controlDevice)
+        # controlDevice = "cd{}".format(cd.getIdx())
+        # G.add_node(controlDevice)
 
-                # for al in self.alignments:
-                #     if al.transversalAlignments is not None:
-                #         origin = al.getEntryNode()
-                #         target = al.getExitNode()
-                #         weight = al.getTotalDistance()
-                #         G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
-                    # else:
-                    #     origin = al.getEntryNode()
-                    #     target = al.getExitNode()
-                    #     weight = al.getTotalDistance()
-                    #     G.add_weighted_edges_from([(origin, controlDevice, 0), (controlDevice, target, weight)])
+        # for al in self.alignments:
+        #     if al.transversalAlignments is not None:
+        #         origin = al.getEntryNode()
+        #         target = al.getExitNode()
+        #         weight = al.getTotalDistance()
+        #         G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
+        # else:
+        #     origin = al.getEntryNode()
+        #     target = al.getExitNode()
+        #     weight = al.getTotalDistance()
+        #     G.add_weighted_edges_from([(origin, controlDevice, 0), (controlDevice, target, weight)])
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant, method):
@@ -484,13 +487,13 @@ class World:
                 p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in self.alignments])
                 situation, _ = self.getUsersSituationAtInstant(user1, user2, instant)
                 if situation == 'CF':
-                    distance = (p1-p2).norm2() - user1.geometry
+                    distance = (p1 - p2).norm2() - user1.geometry
                 else:
-                    distance = (p1-p2).norm2()
+                    distance = (p1 - p2).norm2()
                 return distance
         else:
             print('user do not coexist, therefore can not compute distance')
-            
+
     def travelledAlignments(self, user, instant):
         """"returns a list of the alignments that user travelled on"""
         if instant is not None:
@@ -565,7 +568,7 @@ class World:
             al.exitIntersection = None
             al.connectedAlignments = None
             al.transversalAlignments = None
-            al.currentUsersNums = {}
+            al.currentUsers = {}
 
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignmentProbabilities = []
@@ -598,7 +601,7 @@ class World:
                         else:
                             al.entryIntersection = parentsAl2[0].exitIntersection
 
-                        if not(set(entryAlignments) <= set(sum([inter.entryAlignments for inter in self.intersections], []))):
+                        if not (set(entryAlignments) <= set(sum([inter.entryAlignments for inter in self.intersections], []))):
                             self.intersections.append(intersection)
 
                 if len(al.connectedAlignmentProbabilities) == 1:
@@ -774,7 +777,7 @@ class World:
 
     def getCrossingUser(self, user, instant, withCompleted=False):
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
-        cp = user.getCurvilinearPositionAtInstant(instant-1)
+        cp = user.getCurvilinearPositionAtInstant(instant - 1)
         transversalAlignments = self.alignments[cp[2]].transversalAlignments
         if transversalAlignments is not None:
             if user.leader is not None:
@@ -900,8 +903,8 @@ class World:
 
     def buildTrajectoryFromNodes(self, nodes):
         trajectory = moving.Trajectory()
-        for k in range(len(nodes)-1):
-            entryNode, exitNode = nodes[k], nodes[k+1]
+        for k in range(len(nodes) - 1):
+            entryNode, exitNode = nodes[k], nodes[k + 1]
             for al in self.alignments:
                 if al.getEntryNode() == entryNode and al.getExitNode() == exitNode:
                     trajectory.append(al.points)
@@ -967,19 +970,13 @@ class World:
                         break
         al2 = alignment
 
-        userSet1 = self.getUsersOnAlignmentAtInstant(al1.idx, instant)
-        userSet2 = self.getUsersOnAlignmentAtInstant(al2.idx, instant)
+        userSet1 = al1.getUsersOnAlignmentAtInstant(instant)
+        userSet2 = al2.getUsersOnAlignmentAtInstant(instant)
         if len(userSet1) > 0 and len(userSet2) > 0:
             return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
         elif len(userSet1) == 0 or len(userSet2) == 0:
             return None, None
 
-    def getUsersOnAlignmentAtInstant(self, alIdx, instant):
-        ''''returns users on alignment at instant'''
-        if instant in self.alignments[alIdx].currentUsersNums:
-            return [self.getUserByNum(num) for num in self.alignments[alIdx].currentUsersNums[instant]]
-        else:
-            return []
 
     def saveTrajectoriesToDB(self, dbName):
         self.saveCurvilinearTrajectoriesToSqlite(dbName)
@@ -988,7 +985,7 @@ class World:
         with sqlite3.connect(dbName) as connection:
             cursor = connection.cursor()
             objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?,?,?)"
-            for obj in self.users+self.completed:
+            for obj in self.users + self.completed:
                 if obj.timeInterval is not None:
                     cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
                     connection.commit()
@@ -1123,7 +1120,7 @@ class Distribution(object):
 
 
 class Intersection:
-    def __init__(self, entryAlignments = None, exitAlignments = None):
+    def __init__(self, entryAlignments=None, exitAlignments=None):
         self.entryAlignments = entryAlignments
         self.exitAlignments = exitAlignments
 
@@ -1162,4 +1159,5 @@ def createNewellMovingObjectsTable(db):
 
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

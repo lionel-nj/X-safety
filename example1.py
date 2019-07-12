@@ -10,7 +10,7 @@ sim.run(world)
 # world.plotUserTrajectories(sim.timeStep)
 
 analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
-# analysis.evaluate(sim.timeStep, sim.duration)
+analysis.evaluate(sim.timeStep, sim.duration)
 # if sim.dbName is not None :
 #     network.createNewellMovingObjectsTable(sim.dbName)
 #     world.saveObjects(sim.dbName)
