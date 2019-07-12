@@ -128,6 +128,19 @@ class Alignment:
             if connectedAlignment.idx == alIdx:
                 return connectedAlignment
 
+    def getPossiblePathsFromAlignment(self, path=[]):
+        path = path + [self]
+        if self.getConnectedAlignments() is None:
+            return [path, self.exitIntersection]
+        else:
+            paths = []
+            for connectedAlignment in self.getConnectedAlignments():
+                if connectedAlignment not in path:
+                    newpaths = connectedAlignment.getPossiblePathsFromAlignment(path)
+                    for newpath in newpaths:
+                        paths.append(newpath)
+            return paths
+
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
@@ -358,30 +371,33 @@ class World:
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
-        # al = self.alignments[self.userInputs[0].getAlignmentIdx()]
-        # al.entryNode = al.idx
-        # al.exitNode = al.idx + 1
-        # if al.getConnectedAlignmentIndices() is not None:
-        #     for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
-        #         self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
-        #         self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
-        #     centerNode = al.exitNode
-        # for ui in self.userInputs:
-        #     if ui.getIdx() != self.userInputs[0].getIdx():
-        #         self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
-        #         self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
+
+        if self.intersections == []:
+            al = self.alignments[self.userInputs[0].getAlignmentIdx()]
+            al.entryNode = al.idx
+            al.exitNode = al.idx + 1
+            if al.getConnectedAlignmentIndices() is not None:
+                for connectedAlignmentIdx in al.getConnectedAlignmentIndices():
+                    self.alignments[connectedAlignmentIdx].entryNode = al.exitNode
+                    self.alignments[connectedAlignmentIdx].exitNode = connectedAlignmentIdx + 1
+                centerNode = al.exitNode
+            for ui in self.userInputs:
+                if ui.getIdx() != self.userInputs[0].getIdx():
+                    self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
+                    self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
+        else:
         # idx = 0
-        nodeIdx = 0
-        for intersection in self.intersections:
-            for al in intersection.entryAlignments:
-                al.exitNode = 'intersection' + str(nodeIdx)
-                if al.entryNode is None:
-                    al.entryNode = al.idx
-            for al in intersection.exitAlignments:
-                al.entryNode = 'intersection' + str(nodeIdx)
-                if al.exitNode is None:
-                    al.exitNode = al.idx
-            nodeIdx += 1
+            nodeIdx = 0
+            for intersection in self.intersections:
+                for al in intersection.entryAlignments:
+                    al.exitNode = 'intersection' + str(nodeIdx)
+                    if al.entryNode is None:
+                        al.entryNode = al.idx
+                for al in intersection.exitAlignments:
+                    al.entryNode = 'intersection' + str(nodeIdx)
+                    if al.exitNode is None:
+                        al.exitNode = al.idx
+                nodeIdx += 1
 
         # for connectedAlignment in al.getConnectedAlignments():
         #     connectedAlignment.entryNode = al.exitNode
@@ -554,7 +570,7 @@ class World:
         for al in self.alignments:
             al.entryNode = None
             al.exitNode = None
-            al.entryIntersectiom = None
+            al.entryIntersection = None
             al.exitIntersection = None
             al.connectedAlignments = None
             al.transversalAlignments = None
@@ -564,39 +580,29 @@ class World:
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
 
                 # create list of transversal alignments
-                connectedAlignmentsProperties = set(al.getConnectedAlignmentIndices())
+                connectedAlignmentsIndices = set(al.getConnectedAlignmentIndices())
                 for al2 in self.alignments:
-                    if al2 != al and al2.getConnectedAlignmentIndices() is not None and len(set(al2.getConnectedAlignmentIndices()).intersection(connectedAlignmentsProperties)) > 0:
+                    if al2 != al and al2.getConnectedAlignmentIndices() is not None and len(set(al2.getConnectedAlignmentIndices()).intersection(connectedAlignmentsIndices)) > 0:
                         if al.transversalAlignments is None:
                             al.transversalAlignments = [al2]
                         else:
                             al.transversalAlignments.append(al2)
 
-                        entryAlignments = [al] + al.transversalAlignments
-                        exitAlignments = al.getConnectedAlignments()
-                        intersection = Intersection(entryAlignments, exitAlignments)
-                        al.exitIntersection = intersection
-                        al2.exitIntersection = intersection
-                        parentsAl = self.getParents(al)
-                        parentsAl2 = self.getParents(al2)
+                if len(al.getConnectedAlignments()) > 1:
+                    entryAlignments = [al]
+                    exitAlignments = al.getConnectedAlignments()
+                    if al.transversalAlignments is not None:
+                        entryAlignments += al.transversalAlignments
+                    intersection = Intersection(entryAlignments, exitAlignments)
 
-                        if parentsAl == []:
-                            al.entryIntersection = None
-                        else:
-                            al.entryIntersection = parentsAl[0].exitIntersection
+                    _temp = False
+                    i = 0
+                    while _temp == False and i <len(self.intersections):
+                        _temp = set(entryAlignments) <= set(self.intersections[i].entryAlignments)
+                        i +=1
+                    if _temp == False:
+                        self.intersections.append(intersection)
 
-                        if parentsAl2 == []:
-                            al2.entryIntersection = None
-                        else:
-                            al.entryIntersection = parentsAl2[0].exitIntersection
-
-                        if not (set(entryAlignments) <= set(sum([inter.entryAlignments for inter in self.intersections], []))):
-                            self.intersections.append(intersection)
-
-            else:
-                al.exitIntersection = None
-                print(al.idx)
-                al.entryIntersection = self.getParents(al)[0].exitIntersection
             if al.getConnectedAlignments() is not None:
                 possibleAlignments = [alignment for alignment in al.getConnectedAlignments() if al.getConnectedAlignmentIndicesAndMovementProportions()[alignment.idx] != 0]
                 alIndices = range(len(possibleAlignments))
@@ -611,6 +617,12 @@ class World:
                         al.controlDevice = cd
                     else:
                         al.controlDevice = None
+
+        for intersection in self.intersections:
+            for entryAl in intersection.entryAlignments:
+                entryAl.exitIntersection = intersection
+            for exitAl in intersection.exitAlignments:
+                exitAl.entryIntersection = intersection
 
         # linking self to its graph
         self.initGraph()
@@ -815,19 +827,47 @@ class World:
                     finalAlignments.append(al)
         return finalAlignments
 
-    def getReachableAlignmentsFromAlignment(self, al, reachableAlignments=None):
-        """returns a list of reachable aligments from an alignment .. based on non zero movement proportions
-        recursive method !! """
-        # todo : tester sur des reseaux plus complexes
-        if reachableAlignments is None:
-            reachableAlignments = []
-        connectedAlignmentsAndMovementProportions = al.getConnectedAlignmentIndicesAndMovementProportions()
-        if connectedAlignmentsAndMovementProportions is not None:
-            for alIdx in connectedAlignmentsAndMovementProportions:
-                if connectedAlignmentsAndMovementProportions[alIdx] != 0:
-                    reachableAlignments = reachableAlignments + [self.alignments[alIdx]]
-                    return self.getReachableAlignmentsFromAlignment(self.alignments[alIdx], reachableAlignments)
-        return reachableAlignments
+    # def getReachableAlignmentsFromAlignment(self, al, reachableAlignments=None):
+    #     """returns a list of reachable aligments from an alignment .. based on non zero movement proportions
+    #     recursive method !! """
+    #     # todo : tester sur des reseaux plus complexes
+    #     # if reachableAlignments is None:
+    #     #     reachableAlignments = None
+    #     connectedAlignmentsProperties = al.getConnectedAlignmentIndicesAndMovementProportions()
+    #     if connectedAlignmentsProperties is not None:
+    #         for alIdx in connectedAlignmentsProperties:
+    #             if connectedAlignmentsProperties[alIdx] != 0:
+    #                 reachableAlignments = reachableAlignments + [self.alignments[alIdx]]
+    #                 return self.getReachableAlignmentsFromAlignment(self.alignments[alIdx], reachableAlignments)
+    #     return reachableAlignments
+    #
+    #     connectedAlignmentsProperties = al.getConnectedAlignmentIndicesAndMovementProportions()
+    #     if reachableAlignments is None:
+    #         reachableAlignments = []
+    #     if connectedAlignmentsProperties is not None:
+    #         for alIdx in connectedAlignmentsProperties:
+    #             if connectedAlignmentsProperties[alIdx] != 0:
+    #                 reachableAlignments.append(self.alignments[alIdx] + self.getReachableAlignmentsFromAlignment(self).alignments[alIdx], reachableAlignments)
+    #         # return reachableAlignments
+    #     return reachableAlignments
+        #
+        # paths = []
+        # connectedAlignments = al.getConnectedAlignments()
+        # visited = [al]
+        #
+        # if connectedAlignments is not None:
+        #     for connectedAlignment in al.getConnectedAlignments():
+        #         path = [connectedAlignment]
+        #         if connectedAlignment.getConnectedAlignmentIndicesAndMovementProportions() is not None:
+        #             path.append(connectedAlignment)
+        #         else:
+        #             pass
+        #     paths.append(path)
+        # return paths
+        # reachableAlignments = self.get
+        # for alIdx in connectedAlignmentsProperties:
+        #     if connectedAlignmentsProperties[alIdx] != 0:
+
 
     def getUserReachableAlignmentsAtInstant(self, user, instant):
         """returns a list of reachable alignments from user at instant, dependending of non zero movement proportions"""
@@ -850,6 +890,8 @@ class World:
         for al in finalReachableAlignments:
             nodes.append(al.getExitNode())
         return nodes
+
+    # def getPossible
 
     def getPossiblePathsToExitFromUserAtInstant(self, user, instant):
         """returns a list of possible paths from user position to every final alignments"""
@@ -904,6 +946,11 @@ class World:
 
     def getPredictedCrossingPoints(self, user, other, instant):
         """returns predicted crossing points for a pair of users"""
+        userPredictedTrajectories = self.computePossibleUserPathsAtInstant(user, instant)
+        otherPredictedTrajectories = self.computePossibleUserPathsAtInstant(other, instant)
+
+
+        #######
         userPredictedTrajectories = self.getPossibleTrajectoriesToExitFromUserAtInstant(user, instant)
         otherPredictedTrajectories = self.getPossibleTrajectoriesToExitFromUserAtInstant(other, instant)
         predictedCrossingPoints = []
@@ -928,6 +975,10 @@ class World:
             return nodes
         else:
             return None
+
+    def computePossibleUserPathsAtInstant(self, user, instant):
+        cp = user.getCurvilinearPositionAtInstant(instant)
+        return self.alignments[cp[2]].getPossiblePathsFromAlignment()
 
     def getParents(self, al):
         """returns parents alignments of alignment"""
