@@ -46,7 +46,7 @@ class Alignment:
             # TODO use proportions at connection
             # TODO check control devices
             cd = self.getControlDevice()
-            nextAlignment = self.drawNextAlignment(world)
+            nextAlignment = self.drawNextAlignment()
             if cd is not None:
                 # cd.setUser(user)
                 user.setArrivalInstantAtControlDevice(instant)
@@ -116,28 +116,26 @@ class Alignment:
     def getConnectedAlignmentProbabilities(self):
         return self.connectedAlignmentProbabilities
 
-    def drawNextAlignment(self, world):
-        randomValue = stats.uniform.rvs()
-        possibleAlignments = [idx for idx in self.getConnectedAlignmentIndices() if self.getConnectedAlignmentIndicesAndMovementProportions()[idx] != 0]
-        probabilityIntervals = {}
-        k = -1
-        possibleAlignments
-        n = len(possibleAlignments)
-        for idx in possibleAlignments:
-            k += 1
-            probabilityIntervals[idx] = [k / n, (k + 1) / n]
-        for item in probabilityIntervals:
-            if toolkit.isFloatInInterval(randomValue, probabilityIntervals[item]):
-                nextAlignment = world.alignments[item]
-                break
+    def drawNextAlignment(self):
+        possibleAlignments = [al for al in self.getConnectedAlignments() if self.getConnectedAlignmentIndicesAndMovementProportions()[al.idx] != 0]
+        randomIdx = self.getDistribution().rvs()
+        nextAlignment = possibleAlignments[randomIdx]
         return nextAlignment
 
+    def getDistribution(self):
+        return self.distribution
+
     def getUsersOnAlignmentAtInstant(self, instant):
-        ''''returns users on alignment at instant'''
+        '''returns users on alignment at instant'''
         if instant in self.currentUsers:
             return self.currentUsers[instant]
         else:
             return []
+
+    def getConnectedAlignmentsByIdx(self, alIdx):
+        for connectedAlignment in self.getConnectedAlignments():
+            if connectedAlignment.idx == alIdx:
+                return connectedAlignment
 
 
 class ControlDevice:
@@ -556,6 +554,7 @@ class World:
         for al in self.alignments:
             al.points.computeCumulativeDistances()
 
+
         # resetting all control devices to default values
         self.resetControlDevices()
 
@@ -617,6 +616,10 @@ class World:
                 al.exitIntersection = None
                 print(al.idx)
                 al.entryIntersection = self.getParents(al)[0].exitIntersection
+            if al.getConnectedAlignments() is not None:
+                possibleAlignments = [alignment for alignment in al.getConnectedAlignments() if al.getConnectedAlignmentIndicesAndMovementProportions()[alignment.idx] != 0]
+                alIndices = range(len(possibleAlignments))
+                al.distribution = stats.rv_discrete(name='custm', values=(range(len(possibleAlignments)), [al.getConnectedAlignmentProbabilities()[k] for k in alIndices]))
 
                 # connecting control devices to their alignments
             if self.controlDevices is None:
