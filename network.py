@@ -14,12 +14,12 @@ class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
-    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None):
+    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentsProperties=None):
         self.idx = idx
         self.width = width
         self.points = points
         self.controlDevice = controlDevice
-        self.connectedAlignmentIndices = connectedAlignmentIndices
+        self.connectedAlignmentsProperties = connectedAlignmentsProperties
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -52,7 +52,7 @@ class Alignment:
                 user.setArrivalInstantAtControlDevice(instant)
                 if cd.permissionToGo(instant, user, world, timeStep):
                     user.resetArrivalInstantAtControlDevice()
-                    # nextAlignment = list(zip(self.connectedAlignmentProbabilities, self.connectedAlignmentIndices))
+                    # nextAlignment = list(zip(self.connectedAlignmentProbabilities, self.connectedAlignmentsProperties))
                     alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
                     alignments, s = [self], self.getTotalDistance()
@@ -81,17 +81,17 @@ class Alignment:
         return self.exitNode
 
     def getConnectedAlignmentIndicesAndMovementProportions(self):
-        return self.connectedAlignmentIndices
+        return self.connectedAlignmentsProperties
 
     def getConnectedAlignmentIndices(self):
-        if self.connectedAlignmentIndices is not None:
-            return [item for item in self.connectedAlignmentIndices]
+        if self.connectedAlignmentsProperties is not None:
+            return [item for item in self.connectedAlignmentsProperties]
         else:
             return None
 
     def getConnectedAlignmentMovementProportions(self):
-        if self.connectedAlignmentIndices is not None:
-            return [self.connectedAlignmentIndices[item] for item in self.connectedAlignmentIndices]
+        if self.connectedAlignmentsProperties is not None:
+            return [self.connectedAlignmentsProperties[item] for item in self.connectedAlignmentsProperties]
         else:
             return None
 
@@ -106,15 +106,6 @@ class Alignment:
 
     def getTransversalAlignments(self):
         return self.getTransversalAlignments
-
-    def setProbabilities(self, probabilities):
-        if self.getConnectedAlignment() is not None:
-            self.connectedAlignmentProbabilities = probabilities
-        else:
-            self.connectedAlignmentProbabilities = None
-
-    def getConnectedAlignmentProbabilities(self):
-        return self.connectedAlignmentProbabilities
 
     def drawNextAlignment(self):
         possibleAlignments = [al for al in self.getConnectedAlignments() if self.getConnectedAlignmentIndicesAndMovementProportions()[al.idx] != 0]
@@ -570,13 +561,12 @@ class World:
             al.currentUsers = {}
 
             if al.getConnectedAlignmentIndices() is not None:
-                al.connectedAlignmentProbabilities = []
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
 
                 # create list of transversal alignments
-                connectedAlignmentIndices = set(al.getConnectedAlignmentIndices())
+                connectedAlignmentsProperties = set(al.getConnectedAlignmentIndices())
                 for al2 in self.alignments:
-                    if al2 != al and al2.getConnectedAlignmentIndices() is not None and len(set(al2.getConnectedAlignmentIndices()).intersection(connectedAlignmentIndices)) > 0:
+                    if al2 != al and al2.getConnectedAlignmentIndices() is not None and len(set(al2.getConnectedAlignmentIndices()).intersection(connectedAlignmentsProperties)) > 0:
                         if al.transversalAlignments is None:
                             al.transversalAlignments = [al2]
                         else:
@@ -603,23 +593,14 @@ class World:
                         if not (set(entryAlignments) <= set(sum([inter.entryAlignments for inter in self.intersections], []))):
                             self.intersections.append(intersection)
 
-                if len(al.connectedAlignmentProbabilities) == 1:
-                    al.connectedAlignmentProbabilities = [1]
-                else:
-                    for connectedAlignment in al.getConnectedAlignments():
-                        if al.connectedAlignmentIndices[connectedAlignment.idx] != 0:
-                            al.connectedAlignmentProbabilities.append(1)
-                        else:
-                            al.connectedAlignmentProbabilities.append(0)
             else:
-                al.connectedAlignmentProbabilities = None
                 al.exitIntersection = None
                 print(al.idx)
                 al.entryIntersection = self.getParents(al)[0].exitIntersection
             if al.getConnectedAlignments() is not None:
                 possibleAlignments = [alignment for alignment in al.getConnectedAlignments() if al.getConnectedAlignmentIndicesAndMovementProportions()[alignment.idx] != 0]
                 alIndices = range(len(possibleAlignments))
-                al.distribution = stats.rv_discrete(name='custm', values=(range(len(possibleAlignments)), [al.getConnectedAlignmentProbabilities()[k] for k in alIndices]))
+                al.distribution = stats.rv_discrete(name='custm', values=(range(len(possibleAlignments)), [al.getConnectedAlignmentIndicesAndMovementProportions()[possibleAlignments[k].idx] for k in alIndices]))
 
                 # connecting control devices to their alignments
             if self.controlDevices is None:
@@ -953,9 +934,9 @@ class World:
         alignments = []
         for alignment in self.alignments:
             if alignment.idx != al.idx:
-                connectedAlignmentIndices = alignment.getConnectedAlignmentIndices()
-                if connectedAlignmentIndices is not None:
-                    if al.idx in connectedAlignmentIndices:
+                connectedAlignmentsProperties = alignment.getConnectedAlignmentIndices()
+                if connectedAlignmentsProperties is not None:
+                    if al.idx in connectedAlignmentsProperties:
                         alignments.append(alignment)
         return alignments
 
