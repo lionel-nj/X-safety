@@ -32,7 +32,7 @@ class NewellMovingObject(moving.MovingObject):
             return max(loc for loc, val in enumerate(self.curvilinearPositions.lanes) if val == lane) + self.getFirstInstant() + 1
         else:
             lane = cp[2]
-            return min(loc for loc, val in enumerate(self.curvilinearPositions) if (cp[0] - 2 <= val[0] <= cp[0]) and val[2] == lane) + self.getFirstInstant()
+            return min(loc for loc, val in enumerate(self.curvilinearPositions) if (cp[0] - 1 <= val[0] <= cp[0]) and val[2] == lane) + self.getFirstInstant() + 1
 
     def orderUsersByDistanceToPointAtInstant(self, world, other, instant):
         d1 = world.distanceToCrossingAtInstant(self, other, instant)
