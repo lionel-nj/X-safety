@@ -230,6 +230,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
 
     def computePETAtInstant(self, world):
+        pet = {}
         instant = self.timeInterval.first
         crossingPoints = world.getCrossingPointCurvilinearPosition(self.roadUser1, self.roadUser2, instant=instant)
         if crossingPoints is not None:
@@ -239,12 +240,10 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                     cp1 = cp
                 if cp[2] == roadUser2.getCurvilinearPositionAtInstant(instant)[2]:
                     cp2 = cp
-
             t1 = roadUser1.getInstantAtCurvilinearPosition(cp1)
             t2 = roadUser2.getInstantAtCurvilinearPosition(cp2)
-            return abs(t1 - t2)
-
-
+            pet[instant] = abs(t1 - t2)
+            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[10], pet, mostSevereIsMax=False))
 
     # @staticmethod
     # def computePET(obj1, obj2, collisionDistanceThreshold):
