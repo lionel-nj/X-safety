@@ -131,7 +131,7 @@ class Alignment:
     def getPossiblePathsFromAlignment(self, path=[]):
         path = path + [self]
         if self.getConnectedAlignments() is None:
-            return [path, self.exitIntersection]
+            return [path]
         else:
             paths = []
             for connectedAlignment in self.getConnectedAlignments():
@@ -140,6 +140,18 @@ class Alignment:
                     for newpath in newpaths:
                         paths.append(newpath)
             return paths
+
+    @staticmethod
+    def getAlignmentIntersectionSequence(path):
+        result = []
+        for item in path:
+            result.append(item)
+            result.append(item.exitIntersection)
+        return result
+
+    def getAllPossibleAlignmentIntersectionSequences(self):
+        paths = self.getPossiblePathsFromAlignment()
+        return [self.getAlignmentIntersectionSequence(path) for path in paths]
 
 
 class ControlDevice:
@@ -547,15 +559,15 @@ class World:
                 self.alignments.sort(key=lambda cd: cd.idx)
 
         # initialize user inputs
-        for ui in self.userInputs:
-            ui.generatedNums = []
-            ui.lastGeneratedUser = None
-            # link to alignment
-            for al in self.alignments:
-                if al.idx == ui.alignmentIdx:
-                    ui.alignment = al
-            ui.initDistributions()
-            ui.generateHeadways(duration)
+        # for ui in self.userInputs:
+        #     ui.generatedNums = []
+        #     ui.lastGeneratedUser = None
+        #     # link to alignment
+        #     for al in self.alignments:
+        #         if al.idx == ui.alignmentIdx:
+        #             ui.alignment = al
+        #     ui.initDistributions()
+        #     ui.generateHeadways(duration)
 
         # compute cumulative distances for each alignment :
         for al in self.alignments:
@@ -890,8 +902,6 @@ class World:
         for al in finalReachableAlignments:
             nodes.append(al.getExitNode())
         return nodes
-
-    # def getPossible
 
     def getPossiblePathsToExitFromUserAtInstant(self, user, instant):
         """returns a list of possible paths from user position to every final alignments"""
