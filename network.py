@@ -863,10 +863,6 @@ class World:
         else:
             return None
 
-    # def computePossibleUserPathsAtInstant(self, user, instant):
-    #     cp = user.getCurvilinearPositionAtInstant(instant)
-    #     return self.alignments[cp[2]].getPossiblePathsFromAlignment()
-
     def getCrossingUsers(self, instant):
         '''detection of users for post simulation computation of indicators'''
         for al in self.alignments:
