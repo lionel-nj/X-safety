@@ -200,23 +200,24 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method)
         self.getIndicator('Distance').values[instant] = distance
 
-    def computeTTCAtInstant(self, world, timeStep, instant):
+    def computeTTCAtInstant(self, world, timeStep, instant, buffer=0):
+        crossingPoints = world.getNodesFromCrossingPoints(self.roadUser1, self.roadUser2, instant)[0]
+        if crossingPoints is not None:
 
-        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, 'curvilinear')
-        cp1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
-        cp2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
+            v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
+            v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
 
-        v1 = self.roadUser1.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
-        v2 = self.roadUser2.getCurvilinearVelocityAtInstant(instant)[0] / timeStep
+            if v1 > 0 and v2 > 0:
 
-        d1 = world.alignments[cp1[2]].getTotalDistance() - self.roadUser1.getCurvilinearPositionAtInstant(instant)[0]
-        d2 = world.alignments[cp2[2]].getTotalDistance() - self.roadUser2.getCurvilinearPositionAtInstant(instant)[0]
+                d1 = world.distanceToCrossingAtInstant(self.roadUser1, self.roadUser2, instant)
+                d2 = world.distanceToCrossingAtInstant(self.roadUser2, self.roadUser1, instant)
 
-        if v1 > 0 and v2 > 0:
-            t1 = (distance - d1) / v1
-            t2 = (distance - d2) / v2
-            ttc = min(t1, t2)
-            self.getIndicator('Time to Collision').values[instant] = ttc
+                t1 = moving.Interval(d1 / v1, (d1 + self.roadUser1.geometry + buffer) / v1)
+                t2 = moving.Interval(d2 / v2, (d2 + self.roadUser2.geometry + buffer) / v2)
+
+                if moving.Interval.intersection(t1, t2).first <= moving.Interval.intersection(t1, t2).last:
+                    ttc = min(t1.first, t2.first)
+                    self.getIndicator('Time to Collision').values[instant] = ttc
 
     def computeTTC(self, timeStep):
         ttc = {}
@@ -227,6 +228,23 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             if v2 > v1:
                 ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
+
+    def computePETAtInstant(self, world):
+        instant = self.timeInterval.first
+        crossingPoints = world.getCrossingPointCurvilinearPosition(self.roadUser1, self.roadUser2, instant=instant)
+        if crossingPoints is not None:
+            roadUser1, roadUser2 = self.roadUser1.orderUsersByDistanceToPointAtInstant(world, self.roadUser2, instant)
+            for cp in crossingPoints:
+                if cp[2] == roadUser1.getCurvilinearPositionAtInstant(instant)[2]:
+                    cp1 = cp
+                if cp[2] == roadUser2.getCurvilinearPositionAtInstant(instant)[2]:
+                    cp2 = cp
+
+            t1 = roadUser1.getInstantAtCurvilinearPosition(cp1)
+            t2 = roadUser2.getInstantAtCurvilinearPosition(cp2)
+            return abs(t1 - t2)
+
+
 
     # @staticmethod
     # def computePET(obj1, obj2, collisionDistanceThreshold):

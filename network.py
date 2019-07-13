@@ -623,10 +623,10 @@ class World:
 
                     _temp = False
                     i = 0
-                    while _temp == False and i <len(self.intersections):
+                    while _temp is False and i < len(self.intersections):
                         _temp = set(entryAlignments) <= set(self.intersections[i].entryAlignments)
                         i +=1
-                    if _temp == False:
+                    if _temp is False:
                         self.intersections.append(intersection)
 
             if al.getConnectedAlignments() is not None:
@@ -714,7 +714,7 @@ class World:
         if incomingUser is not None:
             v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
             if v != 0:
-                d = self.distanceToCrossingAtInstant(user, incomingUser, instant - 1)
+                d = self.distanceToCrossingAtInstant(user, incomingUser, instant - 2)
                 return d / v
             else:
                 return float('inf')
@@ -813,6 +813,7 @@ class World:
             return None
 
     def scan(self, transversalAlignments, instant, withCompleted=False):
+        """ returns users on transversal alignment ordered by ascending curvilinear position at instant on alignment"""
         potentialTransversalUsers = []
         if transversalAlignments is not None:
             if withCompleted:
@@ -862,6 +863,18 @@ class World:
             return nodes
         else:
             return None
+
+    def getCrossingPointCurvilinearPosition(self, user, other, instant):
+        crossingPoints = self.getPredictedCrossingPoints(user, other, instant)
+        if crossingPoints != set():
+            curvilinearPositions = []
+            for intersection in crossingPoints:
+                curvilinearPositions.extend([[entryAlignment.getTotalDistance(), 0, entryAlignment.idx] for entryAlignment in intersection.entryAlignments])
+
+            return curvilinearPositions
+        else:
+            return None
+
 
     def getCrossingUsers(self, instant):
         '''detection of users for post simulation computation of indicators'''

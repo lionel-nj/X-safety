@@ -24,6 +24,24 @@ class NewellMovingObject(moving.MovingObject):
     def getLeaderGeometry(self):
         return self.leader.geometry
 
+    def getInstantAtCurvilinearPosition(self, cp, first=True):
+        """"returns instant at curvilinear position, if first is true, returns the first instant
+        else returns the last instant at curvilinear position"""
+        if not(first):
+            lane = cp[2]
+            return max(loc for loc, val in enumerate(self.curvilinearPositions.lanes) if val == lane) + self.getFirstInstant() + 1
+        else:
+            lane = cp[2]
+            return min(loc for loc, val in enumerate(self.curvilinearPositions) if (cp[0] - 2 <= val[0] <= cp[0]) and val[2] == lane) + self.getFirstInstant()
+
+    def orderUsersByDistanceToPointAtInstant(self, world, other, instant):
+        d1 = world.distanceToCrossingAtInstant(self, other, instant)
+        d2 = world.distanceToCrossingAtInstant(other, self, instant)
+        if d1 > d2:
+            return self, other
+        else:
+            return other, self
+
     def orderUsersByPositionAtInstant(self, other, instant):
         """order users by ascending distance at instant"""
         d1 = self.getDistanceFromOriginAtInstant(instant)[0]
