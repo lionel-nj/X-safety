@@ -92,6 +92,7 @@ class Analysis:
 
                 i.computeDistanceAtInstant(self.world, t, 'euclidian')
                 i.computeTTCAtInstant(self.world, timeStep, t)
+                i.computePETAtInstant(self.world)
 
 
         # for key in self.interactions:

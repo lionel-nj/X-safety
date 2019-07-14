@@ -242,7 +242,8 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                     cp2 = cp
             t1 = roadUser1.getInstantAtCurvilinearPosition(cp1)
             t2 = roadUser2.getInstantAtCurvilinearPosition(cp2)
-            pet[instant] = abs(t1 - t2)
+            if t1 is not None and t2 is not None :
+                pet[instant] = abs(t1 - t2)
             self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[10], pet, mostSevereIsMax=False))
 
     # @staticmethod
