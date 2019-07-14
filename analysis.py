@@ -80,7 +80,7 @@ class Analysis:
         # alIdx = 0  # todo: a changer
         for t in range(int(np.floor(duration / timeStep))):
             user, crossingUser = self.world.getCrossingUsers(t)
-            if (user, crossingUser) != (None, None):
+            if user is not None and crossingUser is not None:
                 if not ((user.num, crossingUser.num) in self.interactions):# or not ((crossingUser.num, user.num) in self.interactions):
                     idx += 1
                     i = events.Interaction(num=idx, roadUser1=user, roadUser2=crossingUser, useCurvilinear=True)
@@ -92,6 +92,7 @@ class Analysis:
 
                 i.computeDistanceAtInstant(self.world, t, 'euclidian')
                 i.computeTTCAtInstant(self.world, timeStep, t)
+
 
         # for key in self.interactions:
         #     if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:

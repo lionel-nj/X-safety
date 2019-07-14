@@ -2,12 +2,12 @@
 
 alignments:
 - !!python/object:network.Alignment
-  connectedAlignmentIndices: null
+  connectedAlignmentsProperties:
+    1: 1
   controlDeviceIndices:
   - 0
   idx: 0
-  movementProportions:
-    - 1
+
   points: !!python/object:trafficintelligence.moving.Trajectory
     positions:
     - - -100.0
@@ -18,12 +18,10 @@ alignments:
       - 0.0
   width: null
 - !!python/object:network.Alignment
-  connectedAlignmentIndices: null
+  connectedAlignmentsProperties: null
   controlDeviceIndices: null
   idx: 1
-  movementProportions:
-    - 1
-    - 0
+
   points: !!python/object:trafficintelligence.moving.Trajectory
     positions:
     - - 400.0

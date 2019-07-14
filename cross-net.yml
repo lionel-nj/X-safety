@@ -58,9 +58,8 @@ alignments:
   width: null
 
 controlDevices:
-- !!python/object:network.StopSign
+- !!python/object:network.YieldSign
   idx: 0
-  stopDuration: 2
   alignmentIdx: 0
 
 userInputs:

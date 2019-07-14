@@ -48,11 +48,9 @@ class Alignment:
             cd = self.getControlDevice()
             nextAlignment = self.drawNextAlignment()
             if cd is not None:
-                # cd.setUser(user)
                 user.setArrivalInstantAtControlDevice(instant)
                 if cd.permissionToGo(instant, user, world, timeStep):
                     user.resetArrivalInstantAtControlDevice()
-                    # nextAlignment = list(zip(self.connectedAlignmentProbabilities, self.connectedAlignmentsProperties))
                     alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
                 else:
                     alignments, s = [self], self.getTotalDistance()
@@ -279,6 +277,13 @@ class StopSign(ControlDevice):
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
         super(YieldSign, self).__init__(idx, alignmentIdx)
+        self.user = None
+
+    def permissionToGo(self, instant, user, world, timeStep):
+        if world.estimateGap(user, instant, timeStep) / timeStep > user.getCriticalGap() / timeStep:
+            return True
+        else:
+            return False
 
 
 # class ETC(ControlDevice):
@@ -879,14 +884,19 @@ class World:
     def getCrossingUsers(self, instant):
         '''detection of users for post simulation computation of indicators'''
         for al in self.alignments:
-            if len(al.getConnectedAlignmentIndices()) > 1:
-                break
+            connectedAlignmentIndices = al.getConnectedAlignmentIndices()
+            if connectedAlignmentIndices is not None:
+                if len(connectedAlignmentIndices) > 1:
+                    break
+            else:
+                return None, None
         al1 = al
 
         for alignment in self.alignments:
             if alignment.idx != al1.idx:
-                if alignment.getConnectedAlignmentIndices() is not None:
-                    if len(alignment.getConnectedAlignmentIndices()) > 1:
+                connectedAlignmentIndices = alignment.getConnectedAlignmentIndices()
+                if connectedAlignmentIndices is not None:
+                    if len(connectedAlignmentIndices) > 1:
                         break
         al2 = alignment
 
