@@ -14,12 +14,12 @@ class Alignment:
     """Description of road lanes (centre line of a lane)
     point represents the lane geometry (type is moving.Trajectory) """
 
-    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentsProperties=None):
+    def __init__(self, idx=None, points=None, width=None, controlDevice=None, connectedAlignmentIndices=None):
         self.idx = idx
         self.width = width
         self.points = points
         self.controlDevice = controlDevice
-        self.connectedAlignmentsProperties = connectedAlignmentsProperties
+        self.connectedAlignmentIndices = connectedAlignmentIndices
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -78,18 +78,26 @@ class Alignment:
     def getExitNode(self):
         return self.exitNode
 
-    def getConnectedAlignmentIndicesAndMovementProportions(self):
-        return self.connectedAlignmentsProperties
-
+    def initConnectedAlignmentDistribution(self):
+        connectedAlignmentIndices = self.getConnectedAlignmentIndices()
+        if connectedAlignmentIndices is not None:
+            self.connectedAlignmentDistribution = stats.rv_discrete(name='custm', values = (list(range(len(connectedAlignmentIndices))), self.getConnectedAlignmentMovementProportions()))
+    
+    def getConnectedAlignmentMovementProportion(self, i):
+        if self.connectedAlignmentIndices is None:
+            return None
+        else:
+            return self.connectedAlignmentIndices[i]
+    
     def getConnectedAlignmentIndices(self):
-        if self.connectedAlignmentsProperties is not None:
-            return [item for item in self.connectedAlignmentsProperties]
+        if self.connectedAlignmentIndices is not None:
+            return list(self.connectedAlignmentIndices.keys())
         else:
             return None
 
     def getConnectedAlignmentMovementProportions(self):
-        if self.connectedAlignmentsProperties is not None:
-            return [self.connectedAlignmentsProperties[item] for item in self.connectedAlignmentsProperties]
+        if self.connectedAlignmentIndices is not None:
+            return list(self.connectedAlignmentIndices.values())
         else:
             return None
 
@@ -106,13 +114,7 @@ class Alignment:
         return self.getTransversalAlignments
 
     def drawNextAlignment(self):
-        possibleAlignments = [al for al in self.getConnectedAlignments() if self.getConnectedAlignmentIndicesAndMovementProportions()[al.idx] != 0]
-        randomIdx = self.getDistribution().rvs()
-        nextAlignment = possibleAlignments[randomIdx]
-        return nextAlignment
-
-    def getDistribution(self):
-        return self.distribution
+        return self.connectedAlignments[self.connectedAlignmentDistribution.rvs()]
 
     def getUsersOnAlignmentAtInstant(self, instant):
         '''returns users on alignment at instant'''
@@ -560,9 +562,7 @@ class World:
         - initializes lists of users
         - creates intersections objects and links them to the corresponding alignments
         - sets probabilities of travel for connected alignments
-        - initializes the graph
-
-        TODO move checks to other checks, eg that no alignment is so short that is can be bypassed by fast user'''
+        - initializes the graph'''
 
         # verify alignments and controlDevices are stored in order
         i = 0
@@ -592,7 +592,6 @@ class World:
         for al in self.alignments:
             al.points.computeCumulativeDistances()
 
-
         # resetting all control devices to default values
         self.resetControlDevices()
 
@@ -619,27 +618,25 @@ class World:
                         else:
                             al.transversalAlignments.append(al2)
 
-                if len(al.getConnectedAlignments()) > 1:
+                # start creation of intersection
+                if len(connectedAlignmentsIndices) > 1:
                     entryAlignments = [al]
                     exitAlignments = al.getConnectedAlignments()
                     if al.transversalAlignments is not None:
                         entryAlignments += al.transversalAlignments
                     intersection = Intersection(entryAlignments, exitAlignments)
 
-                    _temp = False
+                    entryAlignmentsAlreadyInIntersections = False
                     i = 0
-                    while _temp is False and i < len(self.intersections):
-                        _temp = set(entryAlignments) <= set(self.intersections[i].entryAlignments)
+                    while not entryAlignmentsAlreadyInIntersections and i < len(self.intersections):
+                        entryAlignmentsAlreadyInIntersections = set(entryAlignments) <= set(self.intersections[i].entryAlignments)
                         i +=1
-                    if _temp is False:
+                    if not entryAlignmentsAlreadyInIntersections:
                         self.intersections.append(intersection)
 
-            if al.getConnectedAlignments() is not None:
-                possibleAlignments = [alignment for alignment in al.getConnectedAlignments() if al.getConnectedAlignmentIndicesAndMovementProportions()[alignment.idx] != 0]
-                alIndices = range(len(possibleAlignments))
-                al.distribution = stats.rv_discrete(name='custm', values=(range(len(possibleAlignments)), [al.getConnectedAlignmentIndicesAndMovementProportions()[possibleAlignments[k].idx] for k in alIndices]))
+                al.initConnectedAlignmentDistribution()
 
-                # connecting control devices to their alignments
+            # connecting control devices to their alignments
             if self.controlDevices is None:
                 al.controlDevice = None
             else:
@@ -657,8 +654,6 @@ class World:
 
         # linking self to its graph
         self.initGraph()
-
-        # TODO verify consistency, users cannot pass more than one alignment in one step
 
         # initializing the lists of users
         self.users = []
@@ -846,8 +841,8 @@ class World:
         cp1 = user.getCurvilinearPositionAtInstant(instant)
         cp2 = other.getCurvilinearPositionAtInstant(instant)
 
-        userPredictedTrajectories = self.alignments[cp1[2]].getAllPossibleIntersectionSequences()
-        otherPredictedTrajectories = self.alignments[cp2[2]].getAllPossibleIntersectionSequences()
+        userPredictedTrajectories = self.alignments[cp1[2]].getAllPossibleAlignmentIntersectionSequences()
+        otherPredictedTrajectories = self.alignments[cp2[2]].getAllPossibleAlignmentIntersectionSequences()
 
         crossingPoints = []
         for userTrajectory in userPredictedTrajectories:
