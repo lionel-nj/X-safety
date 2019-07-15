@@ -123,11 +123,6 @@ class Alignment:
         else:
             return []
 
-    # def getConnectedAlignmentsByIdx(self, alIdx):
-    #     for connectedAlignment in self.getConnectedAlignments():
-    #         if connectedAlignment.idx == alIdx:
-    #             return connectedAlignment
-
     def getPossiblePathsFromAlignment(self, path=[]):
         path = path + [self]
         if self.getConnectedAlignments() is None:
@@ -419,7 +414,6 @@ class World:
                     self.alignments[ui.getAlignmentIdx()].entryNode = ui.getAlignmentIdx() + 1
                     self.alignments[ui.getAlignmentIdx()].exitNode = centerNode
         else:
-        # idx = 0
             nodeIdx = 0
             for intersection in self.intersections:
                 for al in intersection.entryAlignments:
@@ -432,12 +426,6 @@ class World:
                         al.exitNode = al.idx
                 nodeIdx += 1
 
-        # for connectedAlignment in al.getConnectedAlignments():
-        #     connectedAlignment.entryNode = al.exitNode
-        #     if al.transversalAlignments is not None:
-        #         for transversalAlignment in al.transversalAlignments:
-        #             transversalAlignment.exitNode = al.exitNode
-
     def initGraph(self):
         """sets graph attribute to self"""
         G = nx.DiGraph()
@@ -446,23 +434,6 @@ class World:
         for al in self.alignments:
             edgesProperties.append((al.getEntryNode(), al.getExitNode(), al.getTotalDistance()))
         G.add_weighted_edges_from(edgesProperties)
-
-        # if self.controlDevices is not None:
-        #     for cd in self.controlDevices:
-        # controlDevice = "cd{}".format(cd.getIdx())
-        # G.add_node(controlDevice)
-
-        # for al in self.alignments:
-        #     if al.transversalAlignments is not None:
-        #         origin = al.getEntryNode()
-        #         target = al.getExitNode()
-        #         weight = al.getTotalDistance()
-        #         G.add_weighted_edges_from([(origin, controlDevice, weight), (controlDevice, target, 0)])
-        # else:
-        #     origin = al.getEntryNode()
-        #     target = al.getExitNode()
-        #     weight = al.getTotalDistance()
-        #     G.add_weighted_edges_from([(origin, controlDevice, 0), (controlDevice, target, weight)])
         self.graph = G
 
     def distanceAtInstant(self, user1, user2, instant, method):
