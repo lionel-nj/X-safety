@@ -2,7 +2,7 @@
 duration: 200
 timeStep: 0.1
 verbose: False
-seed: 42
+seed: 70
 increment: 4
 rep: 12
 dbName: world.db

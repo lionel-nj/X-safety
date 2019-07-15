@@ -28,13 +28,13 @@ class NewellMovingObject(moving.MovingObject):
         """"returns instant at curvilinear position, if first is true, returns the first instant
         else returns the last instant at curvilinear position"""
         if len(set(self.curvilinearPositions.lanes)) > 1:
-            if not(first):
+            if first:
                 lane = cp[2]
-                return max(loc for loc, val in enumerate(self.curvilinearPositions.lanes) if val == lane) + self.getFirstInstant() + 1
+                return self.curvilinearPositions.positions[0].index([x for x in self.curvilinearPositions if x[0] <= cp[0] and x[2] == lane][-1][0]) + self.getFirstInstant()
             else:
                 lane = cp[2]
-                print(self.num)
-                return min(loc for loc, val in enumerate(self.curvilinearPositions) if (cp[0] - 1.5 <= val[0] <= cp[0]) and val[2] == lane) + self.getFirstInstant() + 1
+                return max(loc for loc, val in enumerate(self.curvilinearPositions.lanes) if val == lane) + self.getFirstInstant() + 1
+                # return min(loc for loc, val in enumerate(self.curvilinearPositions) if (cp[0] - 1.5 <= val[0] <= cp[0]) and val[2] == lane) + self.getFirstInstant() + 1
         else:
             return None
 
@@ -213,9 +213,6 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
-                # bug vitesse negative : voir interpolateCurvi...
-                # if s2 - s1 < 0:
-                #     print('wesfiuwhfgr', self.num, s2, s1, s2onNextAlignment, freeFlowCoord, constrainedCoord, instant)
 
                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
                 self.setLastInstant(instant)

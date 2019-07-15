@@ -71,13 +71,14 @@ class Analysis:
                 if roadUser2.timeInterval is not None:
                     i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
                     i.computeDistance(self.world)
-                    i.computeTTC(timeStep)
+                    i.computeTTC(timeStep, 20)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         minTTCValues = []
         idx += 1
 
         # alIdx = 0  # todo: a changer
+        crossingInteractions = []
         for t in range(int(np.floor(duration / timeStep))):
             user, crossingUser = self.world.getCrossingUsers(t)
             if user is not None and crossingUser is not None:
@@ -87,13 +88,18 @@ class Analysis:
                     i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False))
                     i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
                     self.interactions[(user.num, crossingUser.num)] = i
+                    crossingInteractions.append(i)
                 else:
                     i = self.interactions[(user.num, crossingUser.num)]
 
-                i.computeDistanceAtInstant(self.world, t, 'euclidian')
-                i.computeTTCAtInstant(self.world, timeStep, t)
-                i.computePETAtInstant(self.world)
+                i.computeTTCAtInstant(self.world, timeStep, t, 20)
 
+        for inter in crossingInteractions:
+           inter.computeDistance(self.world)
+           inter.computePETAtInstant(self.world, timeStep)
+
+        #     self.interactions[inter].computeTTCAtInstant(self.world, timeStep, t, 20)
+        #     self.interactions[inter].computePETAtInstant(self.world)
 
         # for key in self.interactions:
         #     if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:

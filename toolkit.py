@@ -144,7 +144,7 @@ def inverseDict(dictValues, keysSet1, keysSet2):
 def callWhenDone():
     from twilio.rest import Client
     account_sid = 'AC75e40f32bb2c24f9f11d71e000465147'
-    auth_token = 'c9a80bdc3a33cdea435c25dec282c095'
+    auth_token = '86f9972b7dc9a1688335382226346251'
     client = Client(account_sid, auth_token)
     client.calls.create(url='http://demo.twilio.com/docs/voice.xml',
                         to='+15145715064',
@@ -191,12 +191,6 @@ def plotVariations(indicatorValues, fileName, figName):
 
 
 flatten = lambda l: [item for sublist in l for item in sublist]
-
-def isFloatInInterval(floatValue, interval):
-    if interval[0] <= floatValue  and floatValue <= interval[-1]:
-        return True
-    else:
-        return False
 
 if __name__ == "__main__":
     import doctest

@@ -264,7 +264,6 @@ class StopSign(ControlDevice):
         if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration / timeStep:
             return False
         else:
-            print(world.estimateGap(user, instant, timeStep) / timeStep)
             if world.estimateGap(user, instant, timeStep) / timeStep > user.getCriticalGap() / timeStep:
                 return True
             else:
@@ -468,7 +467,6 @@ class World:
 
                         G.add_weighted_edges_from([(user2Origin, 'user2', user2UpstreamDistance)])
                         G.add_weighted_edges_from([('user2', user2Target, user2DownstreamDistance)])
-                        # G.add_weighted_edges_from([(user2Target, 'user2', user2DownstreamDistance)])
                         G.add_path([user2Target, 'user2'], weight=user2DownstreamDistance)
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
@@ -772,14 +770,18 @@ class World:
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
         cp = user.getCurvilinearPositionAtInstant(instant - 1)
         transversalAlignments = self.alignments[cp[2]].transversalAlignments
-        if transversalAlignments is not None:
-            if user.leader is not None:
-                if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
-                    return self.scan(transversalAlignments, instant - 1, withCompleted)
+        if instant in user.timeInterval:
+            if transversalAlignments is not None:
+                if user.leader is not None:
+                    print(user.num, user.timeInterval, instant)
+                    if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
+                        return self.scan(transversalAlignments, instant - 1, withCompleted)
+                    else:
+                        return None
                 else:
-                    return None
+                    self.scan(transversalAlignments, instant, withCompleted)
             else:
-                self.scan(transversalAlignments, instant, withCompleted)
+                return None
         else:
             return None
 
@@ -790,13 +792,13 @@ class World:
             if withCompleted:
                 for u in self.users + self.completed:
                     if u.timeInterval is not None:
-                        if instant in list(u.timeInterval):
+                        if instant in u.timeInterval:
                             if u.getCurvilinearPositionAtInstant(instant)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             else:
                 for u in self.users:
                     if u.timeInterval is not None:
-                        if instant in list(u.timeInterval):
+                        if instant in u.timeInterval:
                             if u.getCurvilinearPositionAtInstant(instant)[2] in [al.idx for al in transversalAlignments]:
                                 potentialTransversalUsers.append(u)
             if potentialTransversalUsers != []:
