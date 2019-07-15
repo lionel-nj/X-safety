@@ -1,9 +1,9 @@
 !!python/object:simulation.Simulation
-duration: 200
+duration: 600
 timeStep: 0.1
 verbose: False
 seed: 70
 increment: 4
-rep: 12
+rep: 6
 dbName: world.db
 collisionThreshold: 1

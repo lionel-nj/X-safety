@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 import analysis as an
@@ -43,6 +44,15 @@ for seed in seeds:
         nInter5[seed] = [(np.array(minDistanceValues[seed]) <= 5).sum()]
         nInter10[seed] = [(np.array(minDistanceValues[seed]) <= 10).sum()]
         nInter15[seed] = [(np.array(minDistanceValues[seed]) <= 15).sum()]
+
+    cumulatedExitedUsers = [k for k in range(len(world.completed))]
+    instant = [u.getLastInstant() for u in world.completed]
+    print(instant)
+    print(cumulatedExitedUsers)
+    plt.plot(instant, cumulatedExitedUsers)
+
+plt.savefig('test.pdf')
+plt.close()
 
 # toolkit.plotVariations(meanDistanceValues,'meanDistance.pdf', 'mean intervehicular distances (m)')
 toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s)')

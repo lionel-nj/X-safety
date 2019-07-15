@@ -33,7 +33,6 @@ class Analysis:
 
     def getInteractionsProperties(self, analysisZone=None):
         # todo : docstrings
-        duration = []
         minDistance = []
         meanDistance = []
         for key in self.interactions:
@@ -59,11 +58,12 @@ class Analysis:
 
         return minDistance, meanDistance
 
-    def evaluate(self, timeStep, duration):
+    def evaluate(self, timeStep, duration):#, initTime=None):
         # todo : docstrings
         self.interactions = {}
         idx = 0
         for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
+            # if len(user.timeInterval) > initTime:
             idx += 1
             if user.leader is not None:
                 roadUser1 = user.leader
@@ -74,14 +74,13 @@ class Analysis:
                     i.computeTTC(timeStep, 20)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
-        minTTCValues = []
         idx += 1
 
-        # alIdx = 0  # todo: a changer
         crossingInteractions = []
         for t in range(int(np.floor(duration / timeStep))):
             user, crossingUser = self.world.getCrossingUsers(t)
             if user is not None and crossingUser is not None:
+                # if len(user.timeInterval) > initTime and len(crossingUser.timeInterval) > initTime:
                 if not ((user.num, crossingUser.num) in self.interactions):# or not ((crossingUser.num, user.num) in self.interactions):
                     idx += 1
                     i = events.Interaction(num=idx, roadUser1=user, roadUser2=crossingUser, useCurvilinear=True)
@@ -97,20 +96,6 @@ class Analysis:
         for inter in crossingInteractions:
            inter.computeDistance(self.world)
            inter.computePETAtInstant(self.world, timeStep)
-
-        #     self.interactions[inter].computeTTCAtInstant(self.world, timeStep, t, 20)
-        #     self.interactions[inter].computePETAtInstant(self.world)
-
-        # for key in self.interactions:
-        #     if len(self.interactions[key].getIndicator('Time to Collision').getValues()) > 0:
-        #         filteredList = self.interactions[key].getIndicator('Time to Collision').getValues(withNone=False)
-        #         if len(filteredList) > 0:
-        #             value = min(self.interactions[key].getIndicator('Time to Collision'))
-        #             minTTCValues.append(value)
-        #
-        # minDistances, meanDistances = self.getInteractionsProperties()
-        #
-        # return minTTCValues, minDistances, meanDistances
 
     @staticmethod
     def store(evaluationOutput):
