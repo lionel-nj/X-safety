@@ -2,7 +2,7 @@
 
 alignments:
 - !!python/object:network.Alignment
-  connectedAlignmentsProperties:
+  connectedAlignmentIndices:
     1: 1
   controlDeviceIndices:
   - 0
@@ -18,7 +18,7 @@ alignments:
       - 0.0
   width: null
 - !!python/object:network.Alignment
-  connectedAlignmentsProperties: null
+  connectedAlignmentIndices: null
   controlDeviceIndices: null
   idx: 1
 
