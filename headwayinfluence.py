@@ -24,7 +24,7 @@ for headway in headways:
         analysis.evaluate(sim.timeStep, sim.duration)
         world.saveObjects(sim.dbName, seed, anIdx)
         world.saveTrajectoriesToDB(sim.dbName, seed, anIdx)
-        analysis.createAnalysisTable(sim.dbName)
+        an.createAnalysisTable(sim.dbName)
         analysis.saveIndicators(sim.dbName)
     analysis.saveParametersToTable(sim.dbName)
     anIdx += 1

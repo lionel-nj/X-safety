@@ -190,17 +190,23 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
 
     #
-    def computeDistance(self, world):
+    def computeDistance(self, world, analysisZone):
         distances = {}
-        for instant in self.timeInterval:
-            distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
-        self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
+        if analysisZone is None:
+            for instant in self.timeInterval:
+                distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
+            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
+        else:
+            for instant in self.timeInterval:
+                if analysisZone.userInAnalysisZoneAtInstant(self.roadUser1, instant) and analysisZone.userInAnalysisZoneAtInstant(self.roadUser2, instant):
+                    distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
+            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
 
-    def computeDistanceAtInstant(self, world, instant, method):
-        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method)
+    def computeDistanceAtInstant(self, world, instant, method, analysisZone=None):
+        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method, analysisZone)
         self.getIndicator('Distance').values[instant] = distance
 
-    def computeTTCAtInstant(self, world, timeStep, instant, maxValue, buffer=0):
+    def computeTTCAtInstant(self, world, timeStep, instant, maxValue, buffer=0, analysisZone=None):
         crossingPoints = world.getNodesFromCrossingPoints(self.roadUser1, self.roadUser2, instant)[0]
         if crossingPoints is not None:
 
@@ -211,16 +217,21 @@ class Interaction(moving.STObject, VideoFilenameAddable):
 
                 d1 = world.distanceToCrossingAtInstant(self.roadUser1, self.roadUser2, instant)
                 d2 = world.distanceToCrossingAtInstant(self.roadUser2, self.roadUser1, instant)
-
+                print(self.roadUser1.geometry, self.roadUser1.num, buffer, d1, self.roadUser1.timeInterval, instant)
                 t1 = moving.Interval(d1 / v1, (d1 + self.roadUser1.geometry + buffer) / v1)
                 t2 = moving.Interval(d2 / v2, (d2 + self.roadUser2.geometry + buffer) / v2)
 
                 if moving.Interval.intersection(t1, t2).first <= moving.Interval.intersection(t1, t2).last:
                     ttc = min(t1.first, t2.first)
                     if ttc <= maxValue:
-                        self.getIndicator('Time to Collision').values[instant] = ttc
+                        if analysisZone is None:
+                            self.getIndicator('Time to Collision').values[instant] = ttc
+                        else:
+                            if analysisZone.userInAnalysisZoneAtInstant(self.roadUser1, instant) and analysisZone.userInAnalysisZoneAtInstant(self.roadUser, instant):
+                                self.getIndicator('Time to Collision').values[instant] = ttc
 
-    def computeTTC(self, timeStep, maxValue):
+
+    def computeTTC(self, timeStep, maxValue, analysisZone=None):
         ttc = {}
         for instant in self.timeInterval:
             self.roadUser1, self.roadUser2 = self.roadUser1.orderUsersByPositionAtInstant(self.roadUser2, instant)
@@ -230,7 +241,11 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 if v2 > v1:
                     value = self.indicators['Distance'].values[instant] / (v2 - v1)
                     if value <= maxValue:
-                        ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
+                        if analysisZone is None:
+                            ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
+                        else:
+                            if analysisZone.userInAnalysisZoneAtInstant(self.roadUser1, instant) and analysisZone.userInAnalysisZoneAtInstant(self.roadUser, instant):
+                                ttc[instant] = self.indicators['Distance'].values[instant] / (v2 - v1)
 
         self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[7], ttc, mostSevereIsMax=False))
 

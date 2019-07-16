@@ -24,6 +24,12 @@ class Analysis:
     def save(self, filename):
         toolkit.saveYaml(filename, self)
 
+    def getAnalysisZoneArea(self):
+        if self.analysisZone is None:
+            return None
+        else:
+            return self.analysisZone.getArea()
+
     @staticmethod
     def load(filename):
         toolkit.loadYaml(filename)
@@ -31,34 +37,7 @@ class Analysis:
     def getInteractions(self):
         return list(self.interactions.values())
 
-    def getInteractionsProperties(self, analysisZone=None):
-        # todo : docstrings
-        minDistance = []
-        meanDistance = []
-        for key in self.interactions:
-            if analysisZone is not None:
-                pass
-                # if (analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser1) is not None and
-                #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser2) is not None):
-                #     timeInterval = moving.TimeInterval.intersection(
-                #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser1),
-                #         analysisZone.getUserTimeIntervalInAZ(interactions[key][0].roadUser2))
-                # else:
-                #     timeInterval = None
-                # if timeInterval is not None:
-                #     val = interactions[key][0].getIndicatorValuesInTimeInterval(timeInterval, 'Distance')
-                #     if not (None in val):
-                #         number.append(len(toolkit.groupOnCriterion(val, distance)))
-            # else:
-            # for item in toolkit.groupOnCriterion(self.interactions[key].getIndicators('Distance').getValues(), distance):
-            #     duration.append(len(item))
-            # pass
-            minDistance.append(min(self.interactions[key].getIndicator('Distance').getValues()))
-            meanDistance.append(np.mean(list(self.interactions[key].indicators['Distance'].getValues())))
-
-        return minDistance, meanDistance
-
-    def evaluate(self, timeStep, duration):#, initTime=None):
+    def evaluate(self, timeStep, duration, analysisZone=None):#, initTime=None):
         # todo : docstrings
         self.interactions = {}
         idx = 0
@@ -70,8 +49,8 @@ class Analysis:
                 roadUser2 = user
                 if roadUser2.timeInterval is not None:
                     i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
-                    i.computeDistance(self.world)
-                    i.computeTTC(timeStep, 20)
+                    i.computeDistance(self.world, analysisZone)
+                    i.computeTTC(timeStep, 20, analysisZone)
                     self.interactions[(roadUser1.num, roadUser2.num)] = i
 
         idx += 1
@@ -91,10 +70,10 @@ class Analysis:
                 else:
                     i = self.interactions[(user.num, crossingUser.num)]
 
-                i.computeTTCAtInstant(self.world, timeStep, t, 20)
+                i.computeTTCAtInstant(self.world, timeStep, t, 20, 0, analysisZone)
 
         for inter in crossingInteractions:
-           inter.computeDistance(self.world)
+           inter.computeDistance(self.world, analysisZone)
            inter.computePETAtInstant(self.world, timeStep)
 
     @staticmethod
@@ -128,7 +107,7 @@ class Analysis:
         connection = sqlite3.connect(fileName)
         cursor = connection.cursor()
         for ui in self.world.userInputs:
-            values = [self.idx, ui.idx]
+            values = [self.idx, self.getAnalysisZoneArea(), ui.idx]
             for distribution in ui.distributions:
                 dist = ui.distributions[distribution]
                 values.extend([dist.getType(), dist.getName(), dist.getLoc(), dist.getScale(), dist.getMinThreshold(), dist.getMaxThreshold(), dist.getCdf()])
@@ -136,14 +115,6 @@ class Analysis:
             query = query[:-1]
             query += ")"
             cursor.execute(query, values)
-        connection.commit()
-
-    def createAnalysisTable(self, fileName):
-        # Todo : ajouter la colonne degenerated constant pour chaque distribution
-        connection = sqlite3.connect(fileName)
-        cursor = connection.cursor()
-        tableName = 'analysis'
-        cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, userInput_id INTEGER, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, amberDistribution_type TEXT, amberDistribution__name TEXT, amberDistribution_loc REAL, amberDistribution_scale REAL, amberDistribution_a REAL,amberDistribution_b REAL, amberDistribution_cdf LIST, PRIMARY KEY(analysis_id, userInput_id))")
         connection.commit()
 
     def saveIndicatorsToSqlite(self, filename, interactions, indicatorNames=events.Interaction.indicatorNames):
@@ -202,7 +173,7 @@ class AnalysisZone:
         """returns center of analysis zone"""
         return self.intersection
 
-    def userInAnalysisZone(self, user, t):
+    def userInAnalysisZoneAtInstant(self, user, t):
         """determines if a user is inside a predetermined analysis zone"""
         if t in list(user.timeInterval):
             cp = user.getCurvilinearPositionAtInstant(t)
@@ -210,3 +181,11 @@ class AnalysisZone:
                 if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] and cp[2] == maxVal[1]):
                     return True
             return False
+
+def createAnalysisTable(fileName):
+    # Todo : ajouter la colonne degenerated constant pour chaque distribution
+    connection = sqlite3.connect(fileName)
+    cursor = connection.cursor()
+    tableName = 'analysis'
+    cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, area REAL, userInput_id INTEGER, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, amberDistribution_type TEXT, amberDistribution__name TEXT, amberDistribution_loc REAL, amberDistribution_scale REAL, amberDistribution_a REAL,amberDistribution_b REAL, amberDistribution_cdf LIST, PRIMARY KEY(analysis_id, area, userInput_id))")
+    connection.commit()

@@ -25,9 +25,9 @@ for seed in seeds:
     anIdx = 0
     for surface in surfaces:
         analysis = an.Analysis(idx=anIdx, seed=seed, world=world)
-        analysisZone = an.AnalysisZone(world, surface)
-        analysis.evaluate(sim.timeStep, sim.duration)
-        analysis.createAnalysisTable(sim.dbName)
+        analysisZone = an.AnalysisZone(world.intersections[0], surface)
+        analysis.evaluate(sim.timeStep, sim.duration, analysisZone)
+        an.createAnalysisTable(sim.dbName)
         analysis.saveIndicators(sim.dbName)
 
     analysis.saveParametersToTable(sim.dbName)
