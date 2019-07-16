@@ -24,6 +24,7 @@ an.createAnalysisTable(sim.dbName)
 for surface in surfaces:
 
     for seed in seeds:
+        world = network.World.load('cross-net.yml')
         sim.run(world)
         analysisZone = an.AnalysisZone(world.intersections[0], surface)
         analysis = an.Analysis(idx=anIdx, seed=seed, world=world, analysisZone=analysisZone)
