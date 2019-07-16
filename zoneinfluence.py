@@ -1,8 +1,6 @@
 import argparse
 
-import pandas
-
-import analysis
+import analysis as an
 import network
 import simulation
 import toolkit
@@ -13,34 +11,26 @@ parser.add_argument("--area", type=int, help="analysis zone area")
 parser.add_argument("--duration", type=int, help="duration of each experiment in seconds")
 args = parser.parse_args()
 
-TTC = {}
-PET = {}
-userCount = {}
+world = network.World.load('cross-net.yml')
 minDistance = {}
-meanDistance = {}
-meanConflictNumber5 = {}
-meanConflictNumber10 = {}
-meanConflictNumber15 = {}
+sim = simulation.Simulation.load('config.yml')
+seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
+surfaces = [400, 1000, 10000]
 
-for k in range(0, args.rep):
-    world = network.World.load('cross-net.yml')
-    for ui in world.userInputs:
-        ui.distributions['headway'].scale = 1
-    sim = simulation.Simulation.load('config.yml')
-    sim.duration = args.duration
-    simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, zoneArea=args.area, file='zi')
+for seed in seeds:
+    sim.run(world)
+    world.saveObjects(sim.dbName, seed, seed)
+    world.saveTrajectoriesToDB(sim.dbName, seed, seed)
 
-    TTC[k] = simOutput[0]
-    minDistance[k] = simOutput[1]
-    meanDistance[k] = simOutput[2]
-    userCount[k] = simOutput[3]
-    meanConflictNumber5[k] = simOutput[4]
-    meanConflictNumber10[k] = simOutput[5]
-    meanConflictNumber15[k] = simOutput[6]
-    PET[k] = simOutput[7]
+    anIdx = 0
+    for surface in surfaces:
+        analysis = an.Analysis(idx=anIdx, seed=seed, world=world)
+        analysisZone = an.AnalysisZone(world, surface)
+        analysis.evaluate(sim.timeStep, sim.duration)
+        analysis.createAnalysisTable(sim.dbName)
+        analysis.saveIndicators(sim.dbName)
 
-data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15, PET],
-                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15', 'PET(min)'])
+    analysis.saveParametersToTable(sim.dbName)
+    anIdx += 1
 
-data.to_csv('outputData/zone-influence/data{}m2.csv'.format(args.area))
 toolkit.callWhenDone()

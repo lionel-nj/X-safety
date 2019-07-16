@@ -11,9 +11,6 @@ sim = simulation.Simulation.load('config.yml')
 args = parser.parse_args()
 
 headways = [k/10 for k in range(15, 17)]
-TTC = {}
-PET = {}
-minDistance = {}
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 anIdx = 0
 network.createNewellMovingObjectsTable(sim.dbName)

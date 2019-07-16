@@ -180,18 +180,15 @@ class Analysis:
 
 
 class AnalysisZone:
-    def __init__(self, world, area):
-        self.center = world.getIntersectionXYcoords()  # moving.Point
-        if self.center is None:
-            self.center = world.alignments[world.userInputs[0].alignmentIdx].points[-1]
+    def __init__(self, intersection, area):
+        self.intersection = intersection  # moving.Point
         self.minAlignment = []
         self.maxAlignment = []
         self.area = area
-        for al in world.alignments:
-            if al.connectedAlignmentIndices is not None:
-                self.minAlignment.append([al.getTotalDistance() - self.area ** .5, al.idx])
-            else:
-                self.maxAlignment.append([self.minAlignment[-1][0] + 2 * (self.area ** .5), al.idx])
+        for entryAlignment in intersection.entryAlignments:
+            self.minAlignment.append([entryAlignment.getTotalDistance() - self.area ** .5, entryAlignment.idx])
+        for exitAlignment in intersection.exitAlignments:
+            self.maxAlignment.append([self.area ** .5, exitAlignment.idx])
 
     def getLimits(self):
         """return limits of analysis zone"""
