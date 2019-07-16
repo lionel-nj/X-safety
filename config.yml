@@ -4,6 +4,6 @@ timeStep: 0.1
 verbose: False
 seed: 70
 increment: 4
-rep: 6
+rep: 4
 dbName: world.db
 collisionThreshold: 1

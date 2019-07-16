@@ -1,52 +1,36 @@
 import argparse
 
-import pandas
-
-import analysis
+import analysis as an
 import network
 import simulation
-import toolkit
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--rep", type=int, help="number of replications")
-parser.add_argument("--area", type=int, help="analysis zone area", default=None)
-parser.add_argument("--headway", type=float, help="mean headway")
 parser.add_argument("--duration", type=int, help="duration of each experiment in seconds")
-parser.add_argument("--cross", type=int, help="world has intersection or no?")
-
+parser.add_argument("--rep", type=int, help="number of replications")
+sim = simulation.Simulation.load('config.yml')
 args = parser.parse_args()
 
+headways = [k/10 for k in range(15, 17)]
 TTC = {}
 PET = {}
-userCount = {}
 minDistance = {}
-meanDistance = {}
-meanConflictNumber5 = {}
-meanConflictNumber10 = {}
-meanConflictNumber15 = {}
-
-for k in range(0, args.rep):
-    if args.cross == 1:
+seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
+anIdx = 0
+network.createNewellMovingObjectsTable(sim.dbName)
+for headway in headways:
+    for seed in seeds:
         world = network.World.load('cross-net.yml')
-        world.userInputs[1].distributions['headway'].scale = args.headway - 1
-    else:
-        world = network.World.load('simple-net.yml')
-        world.userInputs[0].distributions['headway'].scale = args.headway - 1
-    sim = simulation.Simulation.load('config.yml')
-    sim.duration = args.duration
-    simOutput = analysis.evaluateModel(world=world, sim=sim, k=k, zoneArea=args.area, file='hi')
+        world.userInputs[1].distributions['headway'].scale = headway - 1
+        sim.duration = args.duration
+        analysis = an.Analysis(idx=anIdx, seed=seed, world=world)
+        sim.run(world)
+        analysis.evaluate(sim.timeStep, sim.duration)
+        world.saveObjects(sim.dbName, seed, anIdx)
+        world.saveTrajectoriesToDB(sim.dbName, seed, anIdx)
+        analysis.createAnalysisTable(sim.dbName)
+        analysis.saveIndicators(sim.dbName)
+    analysis.saveParametersToTable(sim.dbName)
+    anIdx += 1
 
-    TTC[k] = simOutput[0]
-    minDistance[k] = simOutput[1]
-    meanDistance[k] = simOutput[2]
-    userCount[k] = simOutput[3]
-    meanConflictNumber5[k] = simOutput[4]
-    meanConflictNumber10[k] = simOutput[5]
-    meanConflictNumber15[k] = simOutput[6]
-    PET[k] = simOutput[7]
 
-data = pandas.DataFrame(data=[TTC, minDistance, meanDistance, userCount, meanConflictNumber5, meanConflictNumber10, meanConflictNumber15, PET],
-                        index=['TTC', 'minDistance', 'meanDistance', 'userCount', 'meanConflictNumber5', 'meanConflictNumber10', 'meanConflictNumber15', 'pet (min)'])
-
-data.to_csv('outputData/headway-influence/data{}s-crossing={}.csv'.format(args.headway, args.cross))
-toolkit.callWhenDone()
+# toolkit.callWhenDone()

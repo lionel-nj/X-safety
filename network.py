@@ -4,7 +4,7 @@ import sqlite3
 import matplotlib.pyplot as plt
 import networkx as nx
 from scipy import stats
-from trafficintelligence import utils, moving, storage
+from trafficintelligence import utils, moving
 
 import agents
 import toolkit
@@ -309,9 +309,9 @@ class World:
         """saves data to yaml file"""
         toolkit.saveYaml(filename, self)
 
-    def saveCurvilinearTrajectoriesToSqlite(self, db):
+    def saveCurvilinearTrajectoriesToSqlite(self, db, seed, analysisId):
         connection = sqlite3.connect(db)
-        storage.saveTrajectoriesToTable(connection, [user for user in self.completed + self.users if user.timeInterval is not None], 'curvilinear')
+        saveTrajectoriesToTable(connection, [user for user in self.completed + self.users if user.timeInterval is not None], 'curvilinear',  seed, analysisId)
 
     @staticmethod
     def takeEntry(elem):
@@ -876,16 +876,16 @@ class World:
             return None, None
 
 
-    def saveTrajectoriesToDB(self, dbName):
-        self.saveCurvilinearTrajectoriesToSqlite(dbName)
+    def saveTrajectoriesToDB(self, dbName, seed, analysisId):
+        self.saveCurvilinearTrajectoriesToSqlite(dbName, seed, analysisId)
 
-    def saveObjects(self, dbName):
+    def saveObjects(self, dbName, seed, analysisId):
         with sqlite3.connect(dbName) as connection:
             cursor = connection.cursor()
-            objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?,?,?)"
+            objectQuery = "INSERT INTO objects VALUES (?,?,?,?,?,?,?,?,?,?)"
             for obj in self.users + self.completed:
                 if obj.timeInterval is not None:
-                    cursor.execute(objectQuery, (obj.getNum(), obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
+                    cursor.execute(objectQuery, (obj.getNum(), seed, analysisId, obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
                     connection.commit()
 
 
@@ -1048,12 +1048,32 @@ def getItemByIdx(items, idx):
 
 
 def createNewellMovingObjectsTable(db):
+
+    def createCurvilinearTrajectoryTable(cursor):
+        cursor.execute("CREATE TABLE IF NOT EXISTS curvilinear_positions (trajectory_id INTEGER, seed INTEGER, analysis_id INTEGER, frame_number INTEGER, s_coordinate REAL, y_coordinate REAL, lane TEXT, PRIMARY KEY(trajectory_id, seed, analysis_id, frame_number))")
+
     connection = sqlite3.connect(db)
     cursor = connection.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, first_instant, last_instant, PRIMARY KEY(object_id))")
-    storage.createCurvilinearTrajectoryTable(cursor)
+    cursor.execute("CREATE TABLE IF NOT EXISTS objects (object_id INTEGER, seed INTEGER, analysis_id INTEGER, road_user_type INTEGER, tau REAL, d REAL, desired_speed REAL, geometry REAL, first_instant, last_instant, PRIMARY KEY(object_id, seed, analysis_id))")
+    createCurvilinearTrajectoryTable(cursor)
     connection.commit()
 
+
+def saveTrajectoriesToTable(connection, objects, trajectoryType, seed, analysisId):
+    'Saves trajectories in table tableName'
+    cursor = connection.cursor()
+    if(trajectoryType == 'curvilinear'):
+        # createNewellMovingObjectsTable(cursor)
+        curvilinearQuery = "INSERT INTO curvilinear_positions VALUES (?,?,?,?,?,?,?)"
+        for obj in objects:
+            num = obj.getNum()
+            frameNum = obj.getFirstInstant()
+            for p in obj.getCurvilinearPositions():
+                cursor.execute(curvilinearQuery, (num, seed, analysisId, frameNum, p[0], p[1], p[2]))
+                frameNum += 1
+    else:
+        print('Unknown trajectory type {}'.format(trajectoryType))
+    connection.commit()
 
 if __name__ == "__main__":
     import doctest

@@ -7,7 +7,7 @@ import network
 import simulation
 import toolkit
 
-world = network.World.load('cross-net.yml')
+world = network.World.load('simple-net.yml')
 interface = iface.Interface(world)
 interface.setInputsAsParameters()
 
@@ -27,7 +27,7 @@ for seed in seeds:
     pet[seed] = []
     print('{}'.format(seeds.index(seed)+1) + '/' + str(len(seeds)))
     sim.seed = seed
-    world = network.World.load('cross-net.yml')
+    world = network.World.load('simple-net.yml')
     sim.run(world)
     analysis = an.Analysis(idx=0, seed=seed, world=world)
     analysis.evaluate(sim.timeStep, sim.duration)

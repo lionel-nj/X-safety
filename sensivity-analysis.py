@@ -15,26 +15,28 @@ interface.setSensitivityAnalysisParameters()
 
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 
-c = 0
+anIdx = 0
 
-for distribution in world.userInputs[0].distributions:
-    print('ah')
-    world = network.World.load('simple-net.yml')
+for distribution in world.userInputs[1].distributions:
+    world = network.World.load('cross-net.yml')
+    analysis = an.Analysis(anIdx, world=world, seed=sim.seed)
+    analysis.createAnalysisTable(sim.dbName)
 
-    if world.userInputs[0].distributions[distribution].loc is not None:
-        world.userInputs[0].distributions[distribution].loc *= (1+interface.variationRate)
+    if world.userInputs[1].distributions[distribution].loc is not None:
+        world.userInputs[1].distributions[distribution].loc *= (1+interface.variationRate)
     else:
-        world.userInputs[0].distributions[distribution].degeneratedConstant *= (1 + interface.variationRate)
-    analysis = an.Analysis(c, world=world, seed=sim.seed)
+        world.userInputs[1].distributions[distribution].degeneratedConstant *= (1 + interface.variationRate)
+
     analysis.saveParametersToTable('world.db')
 
     for seed in seeds:
         analysis.seed = seed
         sim.seed = seed
-        print('ok')
         sim.run(world)
-        analysis.evaluate(ttcFilter=20, speedDifferential=1)
+        analysis.evaluate(sim.timeStep, sim.duration)
+        world.saveObjects(sim.dbName, seed, anIdx)
+        world.saveTrajectoriesToDB(sim.dbName, seed, anIdx)
         analysis.saveIndicators('world.db')
 
-    c += 1
-# toolkit.callWhenDone()
+    anIdx += 1
+    analysis.saveParametersToTable(sim.dbName)

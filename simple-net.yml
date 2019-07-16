@@ -4,8 +4,7 @@ alignments:
 - !!python/object:network.Alignment
   connectedAlignmentIndices:
     1: 1
-  controlDeviceIndices:
-  - 0
+  controlDeviceIndices: null
   idx: 0
 
   points: !!python/object:trafficintelligence.moving.Trajectory
@@ -64,14 +63,14 @@ userInputs:
       a: -2
       b: 2
     speed: !!python/object:network.Distribution
-      cdf: null
+      cdf: null9
       degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 14
       scale: 6
-      a: -2
-      b: 2
+      a: -1
+      b: 1
     tau: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
@@ -79,8 +78,8 @@ userInputs:
       distributionType: theoretic
       loc: 2
       scale: 0.5
-      a: -1
-      b: 1
+      a: -2
+      b: 2
     criticalGap: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: 5
