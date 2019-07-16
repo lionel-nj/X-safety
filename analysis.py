@@ -101,7 +101,7 @@ class Analysis:
         return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
 
     def saveIndicators(self, fileName):
-        self.saveIndicatorsToSqlite(fileName, self.getInteractions())
+        self.saveIndicatorsToSqlite(fileName, self.getInteractions(), self.idx, self.seed)
 
     def saveParametersToTable(self, fileName):
         connection = sqlite3.connect(fileName)
@@ -125,11 +125,11 @@ class Analysis:
                 self.createInteractionTable(cursor)
                 self.createIndicatorTable(cursor)
                 for inter in interactions:
-                    self.saveInteraction(cursor, inter)
+                    self.saveInteraction(cursor, inter, self.idx, self.seed)
                     for indicatorName in indicatorNames:
                         indicator = inter.getIndicator(indicatorName)
                         if indicator is not None:
-                           self.saveIndicator(cursor, inter.getNum(), indicator)
+                           self.saveIndicator(cursor, inter.getNum(), indicator, self.idx, self.seed)
             except sqlite3.OperationalError as error:
                 printDBError(error)
             connection.commit()
@@ -142,12 +142,12 @@ class Analysis:
 
     def saveInteraction(self, cursor, interaction):
         roadUserNumbers = list(interaction.getRoadUserNumbers())
-        cursor.execute('INSERT INTO interactions VALUES({}, {}, {}, {}, {}, {}, {})'.format(interaction.getNum(), self.idx, self.seed, roadUserNumbers[0], roadUserNumbers[1], interaction.getFirstInstant(), interaction.getLastInstant()))
+        cursor.execute('INSERT INTO interactions VALUES({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(interaction.getNum(), self.idx, self.seed, self.idx, self.seed, roadUserNumbers[0], roadUserNumbers[1], interaction.getFirstInstant(), interaction.getLastInstant()))
 
-    def saveIndicator(self, cursor, interactionNum, indicator):
+    def saveIndicator(self, cursor, interactionNum, indicator, seed):
         for instant in indicator.getTimeInterval():
             if indicator[instant]:
-                cursor.execute('INSERT INTO indicators VALUES({}, {}, {}, {}, {}, {})'.format(interactionNum, self.idx, self.seed, events.Interaction.indicatorNameToIndices[indicator.getName()], instant, indicator[instant]))
+                cursor.execute('INSERT INTO indicators VALUES({}, {}, {}, {}, {}, {}, {}, {}, {})'.format(interactionNum, self.idx, seed, self.idx, self.seed, events.Interaction.indicatorNameToIndices[indicator.getName()], instant, indicator[instant]))
 
 
 class AnalysisZone:
