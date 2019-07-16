@@ -1,11 +1,7 @@
-# import argparse
-#
-# import pandas as pd
 import analysis as an
 import interface as iface
 import network
 import simulation
-# import toolkit
 
 world = network.World.load('cross-net.yml')
 
