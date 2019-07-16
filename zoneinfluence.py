@@ -22,12 +22,11 @@ anIdx = 0
 network.createNewellMovingObjectsTable(sim.dbName)
 an.createAnalysisTable(sim.dbName)
 for surface in surfaces:
-    analysisZone = an.AnalysisZone(world.intersections[0], surface)
-    analysis = an.Analysis(idx=anIdx, seed=seed, world=world, analysisZone=analysisZone)
 
     for seed in seeds:
-
         sim.run(world)
+        analysisZone = an.AnalysisZone(world.intersections[0], surface)
+        analysis = an.Analysis(idx=anIdx, seed=seed, world=world, analysisZone=analysisZone)
         analysis.evaluate(sim.timeStep, sim.duration, analysisZone)
 
         world.saveObjects(sim.dbName, seed, anIdx)
