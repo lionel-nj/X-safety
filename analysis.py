@@ -198,15 +198,15 @@ class AnalysisZone:
         """returns area of analysis zone"""
         return self.area
 
-    def getCenter(self):
+    def getIntersection(self):
         """returns center of analysis zone"""
-        return self.center
+        return self.intersection
 
     def userInAnalysisZone(self, user, t):
         """determines if a user is inside a predetermined analysis zone"""
         if t in list(user.timeInterval):
             cp = user.getCurvilinearPositionAtInstant(t)
             for minVal, maxVal in zip(self.minAlignment, self.maxAlignment):
-                if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] - user.getTravelledDistance(minVal[1], maxVal[1]) and cp[2] == maxVal[1]):
+                if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] and cp[2] == maxVal[1]):
                     return True
             return False
