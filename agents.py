@@ -173,6 +173,8 @@ class NewellMovingObject(moving.MovingObject):
                         interaction = events.Interaction(num=self.num, roadUser1=self, roadUser2=other, useCurvilinear=True)
                         if not(interaction.roadUser2.num in [inter.roadUser2.num for inter in self.interactions]):
                             self.interactions.append(interaction)
+        for i in self.interactions:
+            i.updateTimeInterval()
 
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''
