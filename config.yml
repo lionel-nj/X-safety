@@ -6,4 +6,3 @@ seed: 70
 increment: 4
 rep: 4
 dbName: world.db
-collisionThreshold: 1

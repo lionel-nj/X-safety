@@ -11,10 +11,10 @@ sim.run(world)
 
 analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
 analysis.evaluate(sim.timeStep, sim.duration)
-# if sim.dbName is not None :
-#     network.createNewellMovingObjectsTable(sim.dbName)
-#     world.saveObjects(sim.dbName)
-#     world.saveTrajectoriesToDB(sim.dbName)
-#     analysis.createAnalysisTable(sim.dbName)
-#     analysis.saveParametersToTable(sim.dbName)
-#     analysis.saveIndicators(sim.dbName)
+if sim.dbName is not None :
+    network.createNewellMovingObjectsTable(sim.dbName)
+    world.saveObjects(sim.dbName)
+    world.saveTrajectoriesToDB(sim.dbName)
+    analysis.createAnalysisTable(sim.dbName)
+    analysis.saveParametersToTable(sim.dbName)
+    analysis.saveIndicators(sim.dbName)

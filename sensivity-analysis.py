@@ -39,3 +39,4 @@ for distribution in world.userInputs[1].distributions:
             analysis.saveIndicators(sim.dbName)
 
         anIdx += 1
+

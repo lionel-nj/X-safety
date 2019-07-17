@@ -53,6 +53,8 @@ userInputs:
       distributionType: theoretic
       loc: 0.8
       scale: 1.
+      a: null
+      b: null
     length: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: null
@@ -87,6 +89,8 @@ userInputs:
       distributionType: degenerated
       loc: null
       scale: null
+      a: null
+      b: null
     amberProbability: !!python/object:network.Distribution
       cdf: null
       degeneratedConstant: 5
@@ -94,4 +98,6 @@ userInputs:
       distributionType: degenerated
       loc: null
       scale: null
+      a: null
+      b: null
   idx: 0
