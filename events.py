@@ -148,6 +148,9 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         else:
             return None
 
+    def updateTimeInterval(self):
+        self.timeInterval = self.roadUser1.commonTimeInterval(self.roadUser2)
+
     def getIndicatorValuesAtInstant(self, instant):
         '''Returns list of indicator values at instant
         as dict (with keys from indicators dict)'''

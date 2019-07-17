@@ -57,7 +57,7 @@ class Analysis:
 
         crossingInteractions = []
         for t in range(int(np.floor(duration / timeStep))):
-            user, crossingUser = self.world.getCrossingUsers(t)
+            user, crossingUser = self.world.getCrossingPairAtInstant(t)
             if user is not None and crossingUser is not None:
                 # if len(user.timeInterval) > initTime and len(crossingUser.timeInterval) > initTime:
                 if not ((user.num, crossingUser.num) in self.interactions):# or not ((crossingUser.num, user.num) in self.interactions):
@@ -181,6 +181,7 @@ class AnalysisZone:
                 if (minVal[0] <= cp[0] and cp[2] == minVal[1]) or (cp[0] <= maxVal[0] and cp[2] == maxVal[1]):
                     return True
             return False
+
 
 def createAnalysisTable(fileName):
     # Todo : ajouter la colonne degenerated constant pour chaque distribution

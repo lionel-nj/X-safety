@@ -36,7 +36,7 @@ class Alignment:
             p = self.points[1]
         plt.text(p.x + 5, p.y + 5, str(self.idx))
 
-    def getNextAlignment(self, nextS, user, instant, world, timeStep):
+    def getNextAlignment(self, nextS, user, instant, world):
         '''Returns the list of alignments to the next alignment and longitudinal coordinate S on that alignment for objects finding their path'''
         # warning, recursive function
         alignmentDistance = self.getTotalDistance()
@@ -49,13 +49,13 @@ class Alignment:
             nextAlignment = self.drawNextAlignment()
             if cd is not None:
                 user.setArrivalInstantAtControlDevice(instant)
-                if cd.permissionToGo(instant, user, world, timeStep):
+                if cd.permissionToGo(instant, user, world):
                     user.resetArrivalInstantAtControlDevice()
-                    alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
+                    alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world)
                 else:
                     alignments, s = [self], self.getTotalDistance()
             else:
-                alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world, timeStep)
+                alignments, s = nextAlignment.getNextAlignment(nextS - alignmentDistance, user, instant, world)
             return [self] + alignments, s
         else:  # simulation finished, exited network
             return None, None
@@ -162,6 +162,9 @@ class Alignment:
             result.append(self.getIntersectionSequence(path))
         return result
 
+    def getFirstUser(self):
+        return self.firstUser
+
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
@@ -177,16 +180,16 @@ class ControlDevice:
     def getAlignmentIdx(self):
         return self.alignmentIdx
 
-    def reset(self):
+    def reset(self, timeStep):
         pass
 
     def getState(self):
         return None
 
-    def update(self, instant):
+    def update(self):
         pass
 
-    def permissionToGo(self, instant, user, world, timeStep):
+    def permissionToGo(self, instant, user, world):
         return None
 
 
@@ -198,7 +201,7 @@ class TrafficLight(ControlDevice):
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
-        self.reset()
+        #self.reset()
 
     def drawInitialState(self):
         i = stats.randint(0, 3).rvs()
@@ -217,70 +220,67 @@ class TrafficLight(ControlDevice):
         else:
             self.state = 'amber'
 
-    def update(self, timeStep):
+    def update(self):
         """Updates the current state for a TrafficLight object for the duration of state"""
         if self.state == 'green':
             if self.remainingGreen > 0:
-                self.remainingGreen -= timeStep
+                self.remainingGreen -= 1
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime
         elif self.state == 'red':
             if self.remainingRed > 0:
-                self.remainingRed -= timeStep
+                self.remainingRed -= 1
             else:
                 self.switch()
                 self.remainingRed = self.redTime
         else:
             if self.remainingAmber > 0:
-                self.remainingAmber -= timeStep
+                self.remainingAmber -= 1
             else:
                 self.switch()
                 self.remainingAmber = self.amberTime
 
-    def reset(self):
+    def reset(self, timeStep):
         """ resets the defaut parameters of a traffic light"""
-        self.remainingRed = self.redTime
-        self.remainingAmber = self.amberTime
-        self.remainingGreen = self.greenTime
+        self.remainingRed = self.redTime/timeStep
+        self.remainingAmber = self.amberTime/timeStep
+        self.remainingGreen = self.greenTime/timeStep
         self.drawInitialState()
 
-    def permissionToGo(self, instant, user, world, timeStep):
-        if self.state == 'green':
-            return True
-        elif self.state == 'amber':
+    def permissionToGo(self, instant, user, world):
+        if self.state in ['green', 'amber']:
             return True
         else:
             return False
-
 
 class StopSign(ControlDevice):
     def __init__(self, idx, alignmentIdx, stopDuration):
         super(StopSign, self).__init__(idx, alignmentIdx)
         self.user = None
         self.stopDuration = stopDuration
+        #self.reset()
 
-    def permissionToGo(self, instant, user, world, timeStep):
-        if user.getWaitingTimeAtControlDevice(instant) < self.stopDuration / timeStep:
+    def permissionToGo(self, instant, user, world):
+        if user.getWaitingTimeAtControlDevice(instant) < self.convertedStopDuration:
             return False
         else:
-            if world.estimateGap(user, instant, timeStep) / timeStep > user.getCriticalGap() / timeStep:
+            if world.estimateGap(user) > user.getCriticalGap(): # todo estimate time of arrival of vehicle
                 return True
             else:
                 return False
 
+    def reset(self, timeStep):
+        '''converts stop duration in simulation time'''
+        self.convertedStopDuration = self.stopDuration/timeStep
 
 class YieldSign(ControlDevice):
     def __init__(self, idx, alignmentIdx):
         super(YieldSign, self).__init__(idx, alignmentIdx)
         self.user = None
 
-    def permissionToGo(self, instant, user, world, timeStep):
-        if world.estimateGap(user, instant, timeStep) / timeStep > user.getCriticalGap() / timeStep:
-            return True
-        else:
-            return False
-
+    def permissionToGo(self, instant, user, world):
+        return world.estimateGap(user) > user.getCriticalGap()
 
 # class ETC(ControlDevice):
 #     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
@@ -347,17 +347,6 @@ class World:
             plt.ylabel('longitudinal coordinate (m)')
         plt.show()
 
-    def updateControlDevices(self, timeStep):
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                cd.update(timeStep)
-
-    def resetControlDevices(self):
-        """resets original information for traffic lights"""
-        if self.controlDevices is not None:
-            for cd in self.controlDevices:
-                cd.reset()
-
     def getGraph(self):
         return self.graph
 
@@ -375,23 +364,33 @@ class World:
         print("userNum does not match any existing user")
         return None
 
-    def initUsers(self, instant, timeStep, userNum):
+    def initUsers(self, instant, userNum):
         """Initializes new users """
         for ui in self.userInputs:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
-                if instant <= h / timeStep < instant + 1:
-                    self.users.append(ui.initUser(userNum, h))
+                if instant <= h < instant + 1:
+                    self.newUsers.append(ui.initUser(userNum, h))
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)
             ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
-    def updateUsers(self, instant, timeStep):
+    def setInserted(self, user):
+        self.inserted.append(user)
+    
+    def setNewlyCompleted(self, user):
+        self.newlyCompleted.append(user)
+    
+    def updateUsers(self, instant):
         self.newlyCompleted = []
-        for u in self.users:
-            u.updateCurvilinearPositions(instant, timeStep, self)
+        self.inserted = []
+        for u in self.newUsers+self.users:
+            u.updateCurvilinearPositions(instant, self)
+        for u in self.inserted:
+            self.newUsers.remove(u)
+            self.users.append(u)
         for u in self.newlyCompleted:
             self.users.remove(u)
             self.completed.append(u)
@@ -522,16 +521,18 @@ class World:
                 if len(user.curvilinearVelocities) > 0:
                     user.curvilinearVelocities.duplicateLastPosition()
 
-    def prepare(self, duration):
+    def prepare(self, timeStep, duration):
         '''Prepares the world before simulation
         - verify alignments and controlDevices are stored in order
         - init user inputs, links to alignments
         - links the alignments using connectedAlignments
-        - links controlDevices to their alignments
+        - resets and links controlDevices to their alignments
         - initializes lists of users
         - creates intersections objects and links them to the corresponding alignments
         - sets probabilities of travel for connected alignments
-        - initializes the graph'''
+        - initializes the graph
+
+        note: duration and timeStep are in usual time units (eg seconds)'''
 
         # verify alignments and controlDevices are stored in order
         i = 0
@@ -548,21 +549,22 @@ class World:
 
         # initialize user inputs
         for ui in self.userInputs:
-            ui.generatedNums = []
             ui.lastGeneratedUser = None
             # link to alignment
             for al in self.alignments:
                 if al.idx == ui.alignmentIdx:
                     ui.alignment = al
-            ui.initDistributions()
-            ui.generateHeadways(duration)
+            ui.initDistributions(timeStep)
+            ui.generateHeadways(duration/timeStep)
 
         # compute cumulative distances for each alignment :
         for al in self.alignments:
             al.points.computeCumulativeDistances()
 
         # resetting all control devices to default values
-        self.resetControlDevices()
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                cd.reset(timeStep)
 
         self.intersections = []
         # connecting alignments
@@ -574,6 +576,7 @@ class World:
             al.connectedAlignments = None
             al.transversalAlignments = None
             al.currentUsers = {}
+            al.firstUser = None
 
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
@@ -625,6 +628,7 @@ class World:
         self.initGraph()
 
         # initializing the lists of users
+        self.newUsers = []
         self.users = []
         self.completed = []
 
@@ -676,20 +680,25 @@ class World:
 
         return distance
 
-    def estimateGap(self, user, instant, timeStep):
+    def estimateGap(self, user):
         """returns an estimate of the gap at X intersection, based on the speed of the incoming vehicle,
         and the distance remaining to the crossing point of trajectories """
-        incomingUser = self.getCrossingUser(user, instant)
-        if incomingUser is not None:
-            v = incomingUser.getCurvilinearVelocityAtInstant(instant - 2)[0] / timeStep
-            if v != 0:
-                d = self.distanceToCrossingAtInstant(user, incomingUser, instant - 2)
-                return d / v
-            else:
-                return float('inf')
-        else:
-            return float('inf')
-
+        crossingUsers = self.getCrossingUsers(user.getCurrentAlignment())
+        gap = float('inf')
+        if crossingUsers is not None:
+            for al,crossingUser in crossingUsers.items():
+                if crossingUser is not None:
+                    p = crossingUser.getCurvilinearPositionAt(-1)
+                    if crossingUser.length() >= 2:
+                        velocity = crossingUser.getCurvilinearVelocityAt(-1)
+                        v = velocity[0]
+                    else:
+                        v = crossingUser.desiredSpeed
+                    if v != 0:
+                        d = crossingUser.getCurrentAlignment().getTotalDistance() - p[0]
+                        gap = min(gap, d/v)
+        return gap
+                                    
     def travelledAlignmentsDistanceAtInstant(self, user, instant):
         """returns travelled distance of user at instant
         0 if the user did not change alignment
@@ -751,11 +760,11 @@ class World:
                     self.completed.append(u)
                     self.users.remove(u)
 
-    def updateControlDevices(self, timeStep):
-        """updates state for control devices"""
+    def updateControlDevices(self):
+        '''updates state for control devices'''
         if self.controlDevices is not None:
             for cd in self.controlDevices:
-                cd.update(timeStep)
+                cd.update()
 
     def userOnTransversalAlignmentsAtInstant(self, user, other, instant):
         """determines if other is on transversal alignment of user at instant"""
@@ -766,24 +775,41 @@ class World:
         else:
             return False
 
-    def getCrossingUser(self, user, instant, withCompleted=False):
+    def getCrossingUsers(self, currentUserAlignment):
         '''returns None if no user is about to cross the intersection, else returns the transversal user'''
-        cp = user.getCurvilinearPositionAtInstant(instant - 1)
-        transversalAlignments = self.alignments[cp[2]].transversalAlignments
-        if instant in user.timeInterval:
-            if transversalAlignments is not None:
-                if user.leader is not None:
-                    print(user.num, user.timeInterval, instant)
-                    if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
-                        return self.scan(transversalAlignments, instant - 1, withCompleted)
-                    else:
-                        return None
-                else:
-                    self.scan(transversalAlignments, instant, withCompleted)
-            else:
-                return None
-        else:
+        if currentUserAlignment.transversalAlignments is None:
             return None
+        else:
+            crossingUsers = {}
+            for al in currentUserAlignment.transversalAlignments:
+                s = -1
+                crossingUser = None
+                for u in self.users:
+                    p = u.getCurvilinearPositionAt(-1)
+                    if p[2] == al.getIdx():
+                        if p[0] > s:
+                            s = p[0]
+                            crossingUser = u
+                crossingUsers[al] = crossingUser
+            return crossingUsers
+
+
+        # cp = user.getCurvilinearPositionAtInstant(instant - 1)
+        # transversalAlignments = self.alignments[cp[2]].transversalAlignments
+        # if instant in user.timeInterval:
+        #     if transversalAlignments is not None:
+        #         if user.leader is not None:
+        #             print(user.num, user.timeInterval, instant)
+        #             if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
+        #                 return self.scan(transversalAlignments, instant - 1, withCompleted)
+        #             else:
+        #                 return None
+        #         else:
+        #             self.scan(transversalAlignments, instant, withCompleted)
+        #     else:
+        #         return None
+        # else:
+        #     return None
 
     def scan(self, transversalAlignments, instant, withCompleted=False):
         """ returns users on transversal alignment ordered by ascending curvilinear position at instant on alignment"""
@@ -848,25 +874,26 @@ class World:
         else:
             return None
 
-
-    def getCrossingUsers(self, instant):
+    def getCrossingPairAtInstant(self, instant):
         '''detection of users for post simulation computation of indicators'''
-        for al in self.alignments:
-            connectedAlignmentIndices = al.getConnectedAlignmentIndices()
-            if connectedAlignmentIndices is not None:
-                if len(connectedAlignmentIndices) > 1:
-                    break
-            else:
-                return None, None
-        al1 = al
-
-        for alignment in self.alignments:
-            if alignment.idx != al1.idx:
-                connectedAlignmentIndices = alignment.getConnectedAlignmentIndices()
-                if connectedAlignmentIndices is not None:
-                    if len(connectedAlignmentIndices) > 1:
-                        break
-        al2 = alignment
+        al1 = self.intersections[0].entryAlignments[0]
+        al2 = self.intersections[0].entryAlignments[1]
+        # for al in self.alignments:
+        #     connectedAlignmentIndices = al.getConnectedAlignmentIndices()
+        #     if connectedAlignmentIndices is not None:
+        #         if len(connectedAlignmentIndices) > 1:
+        #             break
+        #     else:
+        #         return None, None
+        # al1 = al
+        #
+        # for alignment in self.alignments:
+        #     if alignment.idx != al1.idx:
+        #         connectedAlignmentIndices = alignment.getConnectedAlignmentIndices()
+        #         if connectedAlignmentIndices is not None:
+        #             if len(connectedAlignmentIndices) > 1:
+        #                 break
+        # al2 = alignment
 
         userSet1 = al1.getUsersOnAlignmentAtInstant(instant)
         userSet2 = al2.getUsersOnAlignmentAtInstant(instant)
@@ -874,7 +901,6 @@ class World:
             return sorted(userSet1, key=lambda x: x.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0], sorted(userSet2, key=lambda y: y.getCurvilinearPositionAtInstant(instant)[0], reverse=True)[0]
         elif len(userSet1) == 0 or len(userSet2) == 0:
             return None, None
-
 
     def saveTrajectoriesToDB(self, dbName, seed, analysisId):
         self.saveCurvilinearTrajectoriesToSqlite(dbName, seed, analysisId)
@@ -887,6 +913,21 @@ class World:
                 if obj.timeInterval is not None:
                     cursor.execute(objectQuery, (obj.getNum(), seed, analysisId, obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
                     connection.commit()
+
+    def updateInteractions(self):
+        for user in self.users:
+            user.updateInteractions()
+
+    def updateFirstUsers(self):
+        for al in self.alignments:
+            s = -1
+            for u in self.users:
+                p = u.getCurvilinearPositionAt(-1)
+                if p[2] == al.getIdx():
+                    if p[0] > s:
+                        s = p[0]
+                        al.firstUser = u
+            # al.firstUser = user
 
 
 class UserInput:
@@ -902,13 +943,13 @@ class UserInput:
     def load(filename):
         return toolkit.loadYaml(filename)
 
-    def initDistributions(self):
-        self.headwayDistribution = self.distributions['headway'].getDistribution()
+    def initDistributions(self, timeStep):
+        self.headwayDistribution = self.distributions['headway'].getDistribution(1./timeStep)
         self.lengthDistribution = self.distributions['length'].getDistribution()
-        self.speedDistribution = self.distributions['speed'].getDistribution()
-        self.tauDistribution = self.distributions['tau'].getDistribution()
+        self.speedDistribution = self.distributions['speed'].getDistribution(timeStep)
+        self.tauDistribution = self.distributions['tau'].getDistribution(1./timeStep)
         self.dDistribution = self.distributions['dn'].getDistribution()
-        self.gapDistribution = self.distributions['criticalGap'].getDistribution()
+        self.gapDistribution = self.distributions['criticalGap'].getDistribution(1./timeStep)
         self.amberProbabilityDistribution = self.distributions['amberProbability'].getDistribution()
 
     def generateHeadways(self, duration):
@@ -930,15 +971,15 @@ class UserInput:
                                         tau=self.tauDistribution.rvs(),
                                         d=self.dDistribution.rvs(),
                                         criticalGap=self.gapDistribution.rvs(),
-                                        # kj=120 veh/km
+                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
                                         initialAlignment=self.alignment,
                                         amberProbability=self.amberProbabilityDistribution.rvs())
+        obj.interactions = None
         if self.lastGeneratedUser is not None:
-            # obj.leader = self.generatedNum[-1]
             obj.leader = self.lastGeneratedUser
+            # print(obj.timeInterval)
         self.lastGeneratedUser = obj
-        self.generatedNums.append(obj.num)
         return obj
 
     def getAlignmentIdx(self):
@@ -973,22 +1014,24 @@ class Distribution(object):
     def load(fileName):
         return toolkit.loadYaml(fileName)
 
-    def getDistribution(self):
-        """returns the scipy.stats objects that corresponds to the parameters in Distribution object"""
+    def getDistribution(self, f = 1.):
+        """returns the scipy.stats objects that corresponds to the parameters in Distribution object
+
+        f is a multiplication factor for the distribution"""
 
         if self.distributionType == 'theoretic':
             if self.distributionName == 'norm':
-                return stats.norm(loc=self.loc, scale=self.scale)
+                return stats.norm(loc=self.loc*f, scale=self.scale*f)
             if self.distributionName == 'truncnorm':
-                return stats.truncnorm(loc=self.loc, scale=self.scale, a=self.a, b=self.b)
+                return stats.truncnorm(loc=self.loc*f, scale=self.scale*f, a=self.a, b=self.b)
             elif self.distributionName == 'expon':
-                return stats.expon(loc=self.loc, scale=self.scale)
+                return stats.expon(loc=self.loc*f, scale=self.scale*f)
             else:
                 raise NameError('error in distribution name')
         elif self.distributionType == 'empirical':
-            return utils.EmpiricalContinuousDistribution(self.cdf[0], self.cdf[1])
+            return utils.EmpiricalContinuousDistribution([x*f for x in self.cdf[0]], self.cdf[1])
         elif self.distributionType == 'degenerated':
-            return utils.ConstantDistribution(self.degeneratedConstant)
+            return utils.ConstantDistribution(self.degeneratedConstant*f)
         else:
             raise NameError('error in distribution type')
 
@@ -996,25 +1039,46 @@ class Distribution(object):
         return self.distributionType
 
     def getName(self):
-        return self.distributionName
+        if hasattr(self, 'distributionName'):
+            return self.distributionName
+        else:
+            return None
 
     def getScale(self):
-        return self.scale
+        if hasattr(self, 'scale'):
+            return self.scale
+        else:
+            return None
 
     def getLoc(self):
-        return self.loc
+        if hasattr(self, 'loc'):
+            return self.loc
+        else:
+            return None
 
     def getCdf(self):
-        return self.cdf
+        if hasattr(self, 'cdf'):
+            return self.cdf
+        else:
+            return None
 
     def getConstant(self):
-        return self.degeneratedConstant
+        if hasattr(self, 'degeneratedConstant'):
+            return self.degeneratedConstant
+        else:
+            return None
 
     def getMinThreshold(self):
-        return self.a
+        if hasattr(self, 'a'):
+            return self.a
+        else:
+            return None
 
     def getMaxThreshold(self):
-        return self.b
+        if hasattr(self, 'b'):
+            return self.b
+        else:
+            return None
 
 
 class Intersection:
@@ -1063,7 +1127,6 @@ def saveTrajectoriesToTable(connection, objects, trajectoryType, seed, analysisI
     'Saves trajectories in table tableName'
     cursor = connection.cursor()
     if(trajectoryType == 'curvilinear'):
-        # createNewellMovingObjectsTable(cursor)
         curvilinearQuery = "INSERT INTO curvilinear_positions VALUES (?,?,?,?,?,?,?)"
         for obj in objects:
             num = obj.getNum()
@@ -1074,6 +1137,7 @@ def saveTrajectoriesToTable(connection, objects, trajectoryType, seed, analysisI
     else:
         print('Unknown trajectory type {}'.format(trajectoryType))
     connection.commit()
+
 
 if __name__ == "__main__":
     import doctest

@@ -30,16 +30,18 @@ class Simulation(object):
         np.random.seed(self.seed)
 
         # preparing simulation
-        world.prepare(self.duration)
+        world.prepare(self.timeStep, self.duration)
 
         # main loop
         userNum = 0
         for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
-                print('simulation step {}'.format(i) + '/' + str(int(np.floor(self.duration / self.timeStep))))
-            world.updateControlDevices(self.timeStep)
-            userNum = world.initUsers(i, self.timeStep, userNum)
-            world.updateUsers(i, self.timeStep)
+                print('simulation step {}/{}'.format(i, int(np.floor(self.duration / self.timeStep))))
+            world.updateControlDevices()
+            userNum = world.initUsers(i, userNum)
+            world.updateUsers(i)
+            world.updateFirstUsers()
+            world.updateInteractions()
 
         world.duplicateLastVelocities()
         world.finalize(i)

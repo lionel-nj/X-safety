@@ -1,6 +1,8 @@
 import numpy as np
 from trafficintelligence import moving
 
+import events
+
 
 class NewellMovingObject(moving.MovingObject):
     def __init__(self, num=None, timeInterval=None, positions=None, velocities=None, geometry=None,
@@ -155,7 +157,24 @@ class NewellMovingObject(moving.MovingObject):
                 i += 1
             return s
 
-    def updateCurvilinearPositions(self, instant, timeStep, world, maxSpeed=None, acceleration=None):
+    def updateInteractions(self):
+        if self.interactions is None:
+            if self.leader is not None:
+                i = events.Interaction(num=self.num, roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
+                self.interactions = [i]
+            else:
+                self.interactions = []
+
+        if self.getCurrentAlignment().transversalAlignments is not None:
+            if self.getCurrentAlignment().getFirstUser().num == self.num:
+                for transversalAlignment in self.getCurrentAlignment().transversalAlignments:
+                    other = transversalAlignment.getFirstUser()
+                    if other is not None:
+                        interaction = events.Interaction(num=self.num, roadUser1=self, roadUser2=other, useCurvilinear=True)
+                        if not(interaction.roadUser2.num in [inter.roadUser2.num for inter in self.interactions]):
+                            self.interactions.append(interaction)
+
+    def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
         if self.curvilinearPositions is None:  # vehicle without positions
@@ -167,44 +186,39 @@ class NewellMovingObject(moving.MovingObject):
                     while self.leader.existsAtInstant(firstInstantAfterD) and self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD - 1)[0] > self.d:  # find first instant after d
                         firstInstantAfterD -= 1  # if not recorded position before self.d, we extrapolate linearly from first known position
                     leaderSpeed = self.leader.getCurvilinearVelocityAtInstant(firstInstantAfterD - 1)[0]
-                    self.instantAtS0 = self.tau + firstInstantAfterD * timeStep - (self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[0] - self.d) * timeStep / leaderSpeed  # second part is the time at which leader is at self.d
+                    self.instantAtS0 = self.tau + firstInstantAfterD - (self.leader.getCurvilinearPositionAtInstant(firstInstantAfterD)[0] - self.d) / leaderSpeed  # second part is the time at which leader is at self.d
                     if self.instantAtS0 < self.initialCumulatedHeadway:  # obj appears at instant initialCumulatedHeadway at x=0 with desiredSpeed
                         self.instantAtS0 = self.initialCumulatedHeadway
-            elif instant * timeStep > self.instantAtS0:
-                # firstInstant = int(ceil(self.instantAtS0/timeStep))# this first instant is instant by definition
-                leaderInstant = instant - self.tau / timeStep
+            elif instant > self.instantAtS0:
+                # firstInstant = int(ceil(self.instantAtS0))# this first instant is instant by definition
+                leaderInstant = instant - self.tau
                 if self.leader is None:
-                    s = (timeStep * instant - self.instantAtS0) * self.desiredSpeed
-                    self.timeInterval = moving.TimeInterval(instant, instant)
+                    s = (instant - self.instantAtS0) * self.desiredSpeed
                     self.curvilinearPositions = moving.CurvilinearTrajectory([s], [0.], [self.getInitialAlignment().idx])
-                    self.curvilinearVelocities = moving.CurvilinearTrajectory()
-                    self.getInitialAlignment().assignUserAtInstant(self, instant)
-
                 elif self.leader.existsAtInstant(leaderInstant):
-                    self.timeInterval = moving.TimeInterval(instant, instant)
-                    freeFlowCoord = (instant * timeStep - self.instantAtS0) * self.desiredSpeed
-                    # constrainedCoord at instant = xn-1(t = instant*timeStep-self.tau)-self.d
+                    freeFlowCoord = (instant - self.instantAtS0) * self.desiredSpeed
+                    # constrainedCoord at instant = xn-1(t = instant-self.tau)-self.d
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
                     self.curvilinearPositions = moving.CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.], [self.getInitialAlignment().idx])
-                    self.curvilinearVelocities = moving.CurvilinearTrajectory()
-                    self.getInitialAlignment().assignUserAtInstant(self, instant)
-
-
+                self.timeInterval = moving.TimeInterval(instant, instant)
+                self.curvilinearVelocities = moving.CurvilinearTrajectory()
+                world.setInserted(self)
+                self.getInitialAlignment().assignUserAtInstant(self, instant)
         else:
             s1 = self.curvilinearPositions.getSCoordAt(-1)
-            freeFlowCoord = s1 + self.desiredSpeed * timeStep
+            freeFlowCoord = s1 + self.desiredSpeed
             if self.leader is None:
                 s2 = freeFlowCoord
             else:
                 if self.leader.existsAtInstant(instant):
                     # compute leader coordinate with respect to current alignment
-                    p = self.leader.interpolateCurvilinearPositions(instant - self.tau / timeStep)
+                    p = self.leader.interpolateCurvilinearPositions(instant - self.tau)
                     constrainedCoord = p[0] + self.leader.getTravelledDistance(self.curvilinearPositions.getLaneAt(-1), p[2]) - self.d
                 else:  # simplest is to continue at constant speed
                     ds = self.curvilinearVelocities.getSCoordAt(-1)
                     constrainedCoord = s1 + ds
                 s2 = min(freeFlowCoord, constrainedCoord)
-            nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(nextS=s2, user=self, instant=instant, world=world, timeStep=timeStep)
+            nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant, world)
             if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
                 for al in nextAlignments[1:]:
@@ -213,7 +227,6 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
-
                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
                 self.setLastInstant(instant)
                 nextAlignments[-1].assignUserAtInstant(self, instant)
@@ -221,4 +234,4 @@ class NewellMovingObject(moving.MovingObject):
                 # TODO test if the new alignment is different from leader, update leader
 
             else:
-                world.newlyCompleted.append(self)
+                world.setNewlyCompleted(self)

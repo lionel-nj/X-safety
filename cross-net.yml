@@ -60,8 +60,6 @@ userInputs:
   alignmentIdx: 0
   distributions:
     dn: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 8.333333
@@ -69,17 +67,11 @@ userInputs:
       a: -2
       b: 2
     headway: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: expon
       distributionType: theoretic
-      loc: 0.8
-      scale: 1.
-      a: null
-      b: null
+      loc: 1.5
+      scale: 1.2
     length: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 7
@@ -87,17 +79,13 @@ userInputs:
       a: -2
       b: 2
     speed: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 14
-      scale: 6
+      scale: 2
       a: -2
       b: 2
     tau: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 2
@@ -105,30 +93,20 @@ userInputs:
       a: -1
       b: 1
     criticalGap: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: 1.5
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 2
-      scale: 0.5
+      loc: 4
+      scale: 1
       a: -1
       b: 1
     amberProbability: !!python/object:network.Distribution
-      cdf: null
       degeneratedConstant: 5
-      distributionName: null
       distributionType: degenerated
-      loc: null
-      scale: null
-      a: null
-      b: null
   idx: 0
 - !!python/object:network.UserInput
   alignmentIdx: 2
   distributions:
     dn: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 8.333333
@@ -136,17 +114,11 @@ userInputs:
       a: -2
       b: 2
     headway: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: expon
       distributionType: theoretic
-      loc: 0.8
-      scale: 1.
-      a: null
-      b: null
+      loc: 4
+      scale: 2.
     length: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 7
@@ -154,39 +126,23 @@ userInputs:
       a: -2
       b: 2
     speed: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
       loc: 14
-      scale: 6
+      scale: 2
       a: -2
       b: 2
     tau: !!python/object:network.Distribution
-      cdf: null
-      degeneratedConstant: null
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 2
-      scale: 0.5
+      loc: 3
+      scale: 2
       a: -1
       b: 1
     criticalGap: !!python/object:network.Distribution
-      cdf: null
       degeneratedConstant: 1
-      distributionName: null
       distributionType: degenerated
-      loc: null
-      scale: null
-      a: null
-      b: null
     amberProbability: !!python/object:network.Distribution
-      cdf: null
       degeneratedConstant: 5
-      distributionName: null
       distributionType: degenerated
-      loc: null
-      scale: null
-      a: null
-      b: null
   idx: 1
