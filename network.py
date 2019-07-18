@@ -686,6 +686,7 @@ class World:
         crossingUsers = self.getCrossingUsers(user.getCurrentAlignment())
         gap = float('inf')
         if crossingUsers is not None:
+            #timeToCrossing = (user.getCurrentAlignment().getTotalDistance() - user.getCurvilinearPositionAt(-1)[0])
             for al,crossingUser in crossingUsers.items():
                 if crossingUser is not None:
                     p = crossingUser.getCurvilinearPositionAt(-1)
@@ -780,18 +781,19 @@ class World:
         if currentUserAlignment.transversalAlignments is None:
             return None
         else:
-            crossingUsers = {}
-            for al in currentUserAlignment.transversalAlignments:
-                s = -1
-                crossingUser = None
-                for u in self.users:
-                    p = u.getCurvilinearPositionAt(-1)
-                    if p[2] == al.getIdx():
-                        if p[0] > s:
-                            s = p[0]
-                            crossingUser = u
-                crossingUsers[al] = crossingUser
-            return crossingUsers
+            return {al: al.firstUser for al in currentUserAlignment.transversalAlignments}
+            # crossingUsers = {}
+            # for al in currentUserAlignment.transversalAlignments:
+            #     s = -1
+            #     crossingUser = None
+            #     for u in self.users:
+            #         p = u.getCurvilinearPositionAt(-1)
+            #         if p[2] == al.getIdx():
+            #             if p[0] > s:
+            #                 s = p[0]
+            #                 crossingUser = u
+            #     crossingUsers[al] = crossingUser
+            # return crossingUsers
 
 
         # cp = user.getCurvilinearPositionAtInstant(instant - 1)
@@ -920,15 +922,14 @@ class World:
 
     def updateFirstUsers(self):
         for al in self.alignments:
-            s = -1
-            for u in self.users:
-                p = u.getCurvilinearPositionAt(-1)
-                if p[2] == al.getIdx():
-                    if p[0] > s:
-                        s = p[0]
-                        al.firstUser = u
-            # al.firstUser = user
-
+            if al.firstUser is None or al.firstUser.getCurvilinearPositionAt(-1)[2] != al.getIdx():
+                s = -1
+                for u in self.users:
+                    p = u.getCurvilinearPositionAt(-1)
+                    if p[2] == al.getIdx():
+                        if p[0] > s:
+                            s = p[0]
+                            al.firstUser = u
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):

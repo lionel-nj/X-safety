@@ -157,24 +157,36 @@ class NewellMovingObject(moving.MovingObject):
                 i += 1
             return s
 
+    def addInteractions(self, newInter):
+        if self.interactions is not None:
+            if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
+                self.interactions.append(newInter)
+        else:
+            self.interactions = [newInter]
+
+    def isFirstOnAlignment(self):
+        return self.getCurrentAlignment().getFirstUser().num == self.num
+            
     def updateInteractions(self):
         if self.interactions is None:
             if self.leader is not None:
-                i = events.Interaction(num=self.num, roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
-                self.interactions = [i]
-            else:
-                self.interactions = []
+                inter = events.Interaction(roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
+                self.addInteractions(inter)
+                self.leader.addInteractions(inter)
 
-        if self.getCurrentAlignment().transversalAlignments is not None:
-            if self.getCurrentAlignment().getFirstUser().num == self.num:
-                for transversalAlignment in self.getCurrentAlignment().transversalAlignments:
+        currentAlignment = self.getCurrentAlignment()
+        if currentAlignment.getFirstUser().num == self.num:
+            if currentAlignment.transversalAlignments is not None:
+                for transversalAlignment in currentAlignment.transversalAlignments:
                     other = transversalAlignment.getFirstUser()
                     if other is not None:
-                        interaction = events.Interaction(num=self.num, roadUser1=self, roadUser2=other, useCurvilinear=True)
-                        if not(interaction.roadUser2.num in [inter.roadUser2.num for inter in self.interactions]):
-                            self.interactions.append(interaction)
-        for i in self.interactions:
-            i.updateTimeInterval()
+                        inter = events.Interaction(roadUser1=self, roadUser2=other, useCurvilinear=True)
+                        self.addInteractions(inter)
+                        other.addInteractions(inter)
+
+        # if self.interactions is not None:
+        #     for inter in self.interactions:
+        #         inter.updateTimeInterval()
 
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''
