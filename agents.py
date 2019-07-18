@@ -1,8 +1,6 @@
 import numpy as np
 from trafficintelligence import moving
 
-import events
-
 
 class NewellMovingObject(moving.MovingObject):
     def __init__(self, num=None, timeInterval=None, positions=None, velocities=None, geometry=None,
@@ -132,7 +130,6 @@ class NewellMovingObject(moving.MovingObject):
             while interS > self.alignments[i].getTotalDistance():
                 interS -= self.alignments[i].getTotalDistance()
                 i += 1
-                # resolution du bug de vitesse : self.alignments[i].idx au lieu de i dans le retour de la fonction
             return [interS, (1 - alpha) * p1[1] + alpha * p2[1], self.alignments[i].idx]
         # if hasattr(self, 'curvilinearPositions') and if self.existsAtInstant(t):
         #     i = int(floor(t))
@@ -157,36 +154,39 @@ class NewellMovingObject(moving.MovingObject):
                 i += 1
             return s
 
-    def addInteractions(self, newInter):
-        if self.interactions is not None:
-            if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
-                self.interactions.append(newInter)
-        else:
-            self.interactions = [newInter]
-
     def isFirstOnAlignment(self):
         return self.getCurrentAlignment().getFirstUser().num == self.num
-            
-    def updateInteractions(self):
-        if self.interactions is None:
-            if self.leader is not None:
-                inter = events.Interaction(roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
-                self.addInteractions(inter)
-                self.leader.addInteractions(inter)
 
-        currentAlignment = self.getCurrentAlignment()
-        if currentAlignment.getFirstUser().num == self.num:
-            if currentAlignment.transversalAlignments is not None:
-                for transversalAlignment in currentAlignment.transversalAlignments:
-                    other = transversalAlignment.getFirstUser()
-                    if other is not None:
-                        inter = events.Interaction(roadUser1=self, roadUser2=other, useCurvilinear=True)
-                        self.addInteractions(inter)
-                        other.addInteractions(inter)
+    # def addInteractions(self, newInter):
+    #     if self.interactions is not None:
+    #         if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
+    #             self.interactions.append(newInter)
+    #     else:
+    #         self.interactions = [newInter]
 
-        # if self.interactions is not None:
-        #     for inter in self.interactions:
-        #         inter.updateTimeInterval()
+    # def updateInteractions(self, world, instant):
+    #     if world.interactions == []:
+    #         if self.leader is not None:
+    #             inter = events.Interaction(roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
+    #             # self.addInteractions(inter)
+    #             world.addInteractions(inter)
+    #             # self.leader.addInteractions(inter)
+    #             # world.analysis.addInteractions(inter)
+    #
+    #     currentAlignment = self.getCurrentAlignment()
+    #     if currentAlignment.getFirstUser().num == self.num:
+    #         if currentAlignment.transversalAlignments is not None:
+    #             for transversalAlignment in currentAlignment.transversalAlignments:
+    #                 other = transversalAlignment.getFirstUser()
+    #                 if other is not None:
+    #                     inter = events.Interaction(roadUser1=self, roadUser2=other, useCurvilinear=True)
+    #                     # self.addInteractions(inter)
+    #                     # other.addInteractions(inter)
+    #                     world.addInteractions(inter)
+        # for roadUserNumbers in world.interactions:
+        #     world.interactions[roadUserNumbers].computeDistance(world, instant)
+            # print(roadUserNumbers, instant)
+            # world.interactions[roadUserNumbers].computeTTC()
 
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''

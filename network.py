@@ -7,6 +7,7 @@ from scipy import stats
 from trafficintelligence import utils, moving
 
 import agents
+import events
 import toolkit
 
 
@@ -434,7 +435,7 @@ class World:
         G.add_weighted_edges_from(edgesProperties)
         self.graph = G
 
-    def distanceAtInstant(self, user1, user2, instant, method):
+    def distanceAtInstant(self, user1, user2, instant, situation, method):
         """"computes the distance between 2 users"""
         if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
             if method == 'curvilinear':
@@ -469,17 +470,9 @@ class World:
                         G.add_path([user2Target, 'user2'], weight=user2DownstreamDistance)
 
                         distance = nx.shortest_path_length(G, source='user1', target='user2', weight='weight')
-
-                        situation, pastCP = self.getUsersSituationAtInstant(user1, user2, instant)
                         if situation == 'CF':
                             leader = user1.orderUsersByPositionAtInstant(user2, instant)[0]
                             distance -= leader.geometry
-
-                        elif situation == 'X1':
-                            distance -= user1.geometry - user2.geometry
-
-                        elif situation == 'X3':
-                            distance -= pastCP.geometry
 
                         G.remove_node('user1')
                         G.remove_node('user2')
@@ -491,11 +484,9 @@ class World:
                 s2 = user2.getCurvilinearPositionAtInstant(instant)
                 p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
                 p2 = moving.getXYfromSY(s2[0], s2[1], s2[2], [al.points for al in self.alignments])
-                situation, _ = self.getUsersSituationAtInstant(user1, user2, instant)
+                distance = (p1 - p2).norm2()
                 if situation == 'CF':
                     distance = (p1 - p2).norm2() - user1.geometry
-                else:
-                    distance = (p1 - p2).norm2()
                 return distance
         else:
             print('user do not coexist, therefore can not compute distance')
@@ -521,7 +512,7 @@ class World:
                 if len(user.curvilinearVelocities) > 0:
                     user.curvilinearVelocities.duplicateLastPosition()
 
-    def prepare(self, timeStep, duration):
+    def prepare(self, timeStep, duration, seed):
         '''Prepares the world before simulation
         - verify alignments and controlDevices are stored in order
         - init user inputs, links to alignments
@@ -632,6 +623,9 @@ class World:
         self.users = []
         self.completed = []
 
+        # initializing interactions list
+        self.interactions = {}
+
     def getIntersectionXYcoords(self):
         """returns intersection XY coordinates"""
         for al in self.alignments:
@@ -726,33 +720,6 @@ class World:
         self.userInputs[0].distributions['dn'].loc = args.dn
         self.userInputs[0].distributions['tau'].loc = args.tau
         self.userInputs[0].distributions['length'].loc = args.l
-
-    def getUsersSituationAtInstant(self, user, other, instant):
-        """returns CF if car are in a CF situation
-        X1 if both cars are past the intersection
-        X2 if both cars are before the intersection
-        X3 if one of the cars is before the intersection and the other one is past it
-        nb: if cars are in a CF situation but not leading one another, X1, X2 OR X3 is returned, to be improved ... """
-
-        oldest, youngest = user.orderUsersByPositionAtInstant(other, instant)
-        if youngest.leader is not None:
-            if oldest.num == youngest.leader.num:
-                return 'CF', None
-
-        user1CP = self.getIntersectionCPAtInstant(user, instant)
-        user2CP = self.getIntersectionCPAtInstant(other, instant)
-
-        if user1CP < user.getCurvilinearPositionAtInstant(instant)[0]:
-            if user2CP < other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X1', None
-            else:
-                return 'X3', user
-
-        elif user1CP >= user.getCurvilinearPositionAtInstant(instant)[0]:
-            if user2CP > other.getCurvilinearPositionAtInstant(instant)[0]:
-                return 'X2', None
-            else:
-                return 'X3', other
 
     def finalize(self, lastInstant):
         for u in self.users:
@@ -918,7 +885,23 @@ class World:
 
     def updateInteractions(self):
         for user in self.users:
-            user.updateInteractions()
+            if user.leader is not None:
+                inter = events.Interaction(roadUser1=user, roadUser2=user.leader, useCurvilinear=True)
+                self.addInteractions(inter)
+
+            currentAlignment = user.getCurrentAlignment()
+            if currentAlignment.getFirstUser().num == user.num:
+                if currentAlignment.transversalAlignments is not None:
+                    for transversalAlignment in currentAlignment.transversalAlignments:
+                        other = transversalAlignment.getFirstUser()
+                        if other is not None:
+                            inter = events.Interaction(roadUser1=user, roadUser2=other, useCurvilinear=True)
+                            self.addInteractions(inter)
+
+    def computeDistances(self, instant):
+        for inter in self.interactions:
+            print(inter, instant)
+            self.interactions[inter].computeDistance(self, instant)
 
     def updateFirstUsers(self):
         for al in self.alignments:
@@ -930,6 +913,16 @@ class World:
                         if p[0] > s:
                             s = p[0]
                             al.firstUser = u
+
+    def addInteractions(self, newInter):
+        if self.interactions == {}:
+            newInter.num = len(self.interactions)
+            self.interactions[(newInter.roadUser1.num, newInter.roadUser2.num)] = newInter
+        else:
+            if not(newInter.roadUserNumbers in [self.interactions[i].roadUserNumbers for i in self.interactions]):
+                newInter.num = len(self.interactions)
+                self.interactions[(newInter.roadUser1.num, newInter.roadUser2.num)] = newInter
+
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):

@@ -30,7 +30,7 @@ class Simulation(object):
         np.random.seed(self.seed)
 
         # preparing simulation
-        world.prepare(self.timeStep, self.duration)
+        world.prepare(self.timeStep, self.duration, self.seed)
 
         # main loop
         userNum = 0
@@ -42,6 +42,8 @@ class Simulation(object):
             world.updateUsers(i)
             world.updateFirstUsers()
             world.updateInteractions()
+            print(world.interactions, i)
+            # world.computeDistances(i)
 
         world.duplicateLastVelocities()
         world.finalize(i)

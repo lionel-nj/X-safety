@@ -192,22 +192,32 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             print(
                 'Please set the interaction road user attributes roadUser1 and roadUser1 through the method setRoadUsers')
 
-    #
-    def computeDistance(self, world, analysisZone):
-        distances = {}
-        if analysisZone is None:
-            for instant in self.timeInterval:
-                distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
-            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
-        else:
-            for instant in self.timeInterval:
-                if analysisZone.userInAnalysisZoneAtInstant(self.roadUser1, instant) and analysisZone.userInAnalysisZoneAtInstant(self.roadUser2, instant):
-                    distances[instant] = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method='euclidian')
-            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], distances, mostSevereIsMax=False))
+    def getUsersSituation(self, world, instant):
+        if instant in list(self.roadUser1.timeInterval) and instant in list(self.roadUser2.timeInterval):
+            p1 = self.roadUser1.getCurvilinearPositionAtInstant(instant)
+            p2 = self.roadUser2.getCurvilinearPositionAtInstant(instant)
 
-    def computeDistanceAtInstant(self, world, instant, method, analysisZone=None):
-        distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, method, analysisZone)
-        self.getIndicator('Distance').values[instant] = distance
+            if p1[2] == p2[2]:
+                return 'CF'
+            elif (self.roadUser1.leader is not None and self.roadUser1.leader.num == self.roadUser2.num) or (self.roadUser2.leader is not None and self.roadUser1.num == self.roadUser2.leader.num):
+                return 'CF'
+            elif world.alignments[p2[2]].transversalAlignments is not None:
+                if world.alignments[p1[2]] in world.alignments[p2[2]].transversalAlignments:
+                    return 'X'
+
+    def computeDistance(self, world, instant, analysisZone=None):
+        if self.getIndicator('Distance') is None:
+            self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[2], {}, mostSevereIsMax=False))
+
+        situation = self.getUsersSituation(world, instant)
+        if situation == 'CF' or situation == 'X':
+            if analysisZone is None:
+                distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, situation=situation, method='euclidian')
+                self.getIndicator('Distance').values[instant] = distance
+            else:
+                if analysisZone.userInAnalysisZoneAtInstant(self.roadUser1, instant) and analysisZone.userInAnalysisZoneAtInstant(self.roadUser2, instant):
+                    distance = world.distanceAtInstant(self.roadUser1, self.roadUser2, instant, situation=situation, method='euclidian')
+                    self.getIndicator('Distance').values[instant] = distance
 
     def computeTTCAtInstant(self, world, timeStep, instant, maxValue, buffer=0, analysisZone=None):
         crossingPoints = world.getNodesFromCrossingPoints(self.roadUser1, self.roadUser2, instant)[0]

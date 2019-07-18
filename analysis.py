@@ -14,7 +14,7 @@ class Analysis:
     def __init__(self, idx, world, seed, analysisZone=None):
         self.idx = idx
         self.world = world
-        self.interactions = {}
+        self.interactions = None
         self.analysisZone = analysisZone
         self.seed = seed
 
@@ -24,25 +24,24 @@ class Analysis:
     def save(self, filename):
         toolkit.saveYaml(filename, self)
 
+    @staticmethod
+    def load(filename):
+        toolkit.loadYaml(filename)
+
     def getAnalysisZoneArea(self):
         if self.analysisZone is None:
             return None
         else:
             return self.analysisZone.getArea()
 
-    @staticmethod
-    def load(filename):
-        toolkit.loadYaml(filename)
-
     def getInteractions(self):
         return list(self.interactions.values())
 
-    def evaluate(self, timeStep, duration, analysisZone=None):#, initTime=None):
+    def evaluate(self, timeStep, duration, analysisZone=None):
         # todo : docstrings
         self.interactions = {}
         idx = 0
         for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
-            # if len(user.timeInterval) > initTime:
             idx += 1
             if user.leader is not None:
                 roadUser1 = user.leader
@@ -59,8 +58,7 @@ class Analysis:
         for t in range(int(np.floor(duration / timeStep))):
             user, crossingUser = self.world.getCrossingPairAtInstant(t)
             if user is not None and crossingUser is not None:
-                # if len(user.timeInterval) > initTime and len(crossingUser.timeInterval) > initTime:
-                if not ((user.num, crossingUser.num) in self.interactions):# or not ((crossingUser.num, user.num) in self.interactions):
+                if not ((user.num, crossingUser.num) in self.interactions):
                     idx += 1
                     i = events.Interaction(num=idx, roadUser1=user, roadUser2=crossingUser, useCurvilinear=True)
                     i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False))
@@ -101,7 +99,7 @@ class Analysis:
         return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
 
     def saveIndicators(self, fileName):
-        self.saveIndicatorsToSqlite(fileName, self.getInteractions())#, self.idx, self.seed)
+        self.saveIndicatorsToSqlite(fileName, self.getInteractions())
 
     def saveParametersToTable(self, fileName):
         connection = sqlite3.connect(fileName)
@@ -125,7 +123,7 @@ class Analysis:
                 self.createInteractionTable(cursor)
                 self.createIndicatorTable(cursor)
                 for inter in interactions:
-                    self.saveInteraction(cursor, inter)#, self.idx, self.seed)
+                    self.saveInteraction(cursor, inter)
                     for indicatorName in indicatorNames:
                         indicator = inter.getIndicator(indicatorName)
                         if indicator is not None:
