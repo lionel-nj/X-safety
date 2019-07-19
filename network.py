@@ -166,6 +166,12 @@ class Alignment:
     def getFirstUser(self):
         return self.firstUser
 
+    def getExitIntersection(self):
+        return self.exitIntersection
+
+    def getEntryIntersection(self):
+        return self.entryIntersection
+
 
 class ControlDevice:
     """class for control devices :stop signs, traffic light etc ...
@@ -437,7 +443,7 @@ class World:
                                 if inter.getIndicator('Time to Collision') is None:
                                     inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
                                 inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
-                    elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignments(inter.roadUser2):  # side
+                    elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignuments(inter.roadUser2):  # side
                         # compute time to end of each alignment and check if there is a TTC
                         cp1 = inter.roadUser1.getCurvilinearPositionAtInstant(instant)
                         cp2 = inter.roadUser2.getCurvilinearPositionAtInstant(instant)
@@ -459,6 +465,12 @@ class World:
         for inter in newlyCompleted:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
+
+    def computePET(self, timeStep):
+        for inter in self.interactions + self.completedInteractions:
+            inter.computePETValues(self, timeStep)
+
+
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
@@ -657,6 +669,7 @@ class World:
                         entryAlignmentsAlreadyInIntersections = set(entryAlignments) <= set(self.intersections[i].entryAlignments)
                         i += 1
                     if not entryAlignmentsAlreadyInIntersections:
+                        intersection.idx = len(self.intersections)
                         self.intersections.append(intersection)
 
                 al.initConnectedAlignmentDistribution()
@@ -785,11 +798,13 @@ class World:
         self.userInputs[0].distributions['length'].loc = args.l
 
     def finalize(self, lastInstant):
+        """replaces users in the correct list according to their status"""
         for u in self.users:
             if u.timeInterval is not None:
                 if u.getLastInstant() != lastInstant:
                     self.completed.append(u)
                     self.users.remove(u)
+
 
     def updateControlDevices(self):
         '''updates state for control devices'''
@@ -945,11 +960,6 @@ class World:
                     cursor.execute(objectQuery, (obj.getNum(), seed, analysisId, obj.getUserType(), obj.tau, obj.d, obj.desiredSpeed, obj.geometry, obj.getFirstInstant(), obj.getLastInstant()))
                     connection.commit()
 
-    def computeDistances(self, instant):
-        for inter in self.interactions:
-            print(inter, instant)
-            self.interactions[inter].computeDistance(self, instant)
-
     def updateFirstUsers(self):
         for al in self.alignments:
             if al.firstUser is None or al.firstUser.getCurvilinearPositionAt(-1)[2] != al.getIdx():
@@ -1008,6 +1018,8 @@ class UserInput:
                                         initialAlignment=self.alignment,
                                         amberProbability=self.amberProbabilityDistribution.rvs())
         obj.interactions = None
+        obj.intersectionEntryInstant = None
+        obj.intersectionExitInstant = None
         if self.lastGeneratedUser is not None:
             obj.leader = self.lastGeneratedUser
             # print(obj.timeInterval)

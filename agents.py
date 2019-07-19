@@ -102,6 +102,12 @@ class NewellMovingObject(moving.MovingObject):
     def getDistanceFromOriginAtInstant(self, instant):
         return self.getDistanceFromOriginAt(instant - self.getFirstInstant())
 
+    def getIntersectionEntryInstant(self):
+        return self.intersectionEntryInstant
+
+    def getIntersectionExitInstant(self):
+        return self.intersectionExitInstant
+
     def interpolateCurvilinearPositions(self, t):
         '''Linear interpolation of curvilinear positions, t being a float
 
@@ -237,6 +243,12 @@ class NewellMovingObject(moving.MovingObject):
                 s2 = min(freeFlowCoord, constrainedCoord)
             nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant, world)
             if nextAlignments is not None:
+                if nextAlignments[-1].getExitIntersection() is not None:
+                    if len(self.curvilinearVelocities) >0:
+                        if self.intersectionEntryInstant is None:
+                            if nextAlignments[-1].getTotalDistance() - (s2-s1) <= s2onNextAlignment <= nextAlignments[-1].getTotalDistance():
+                                self.intersectionEntryInstant = instant + 1
+            if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
                 for al in nextAlignments[1:]:
                     self.addVisitedAlignment(al)
@@ -244,6 +256,7 @@ class NewellMovingObject(moving.MovingObject):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
+                    self.intersectionExitInstant = instant
                 self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
                 self.setLastInstant(instant)
                 nextAlignments[-1].assignUserAtInstant(self, instant)

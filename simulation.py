@@ -43,10 +43,10 @@ class Simulation(object):
             world.updateUsers(i)
             world.updateFirstUsers()
             world.updateInteractions(i, self.computeInteractions, self.timeStep)
-            # world.computeDistances(i)
 
         world.duplicateLastVelocities()
         world.finalize(i)
+        # world.computePET(self.timeStep)
 
 
 
