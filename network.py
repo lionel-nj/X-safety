@@ -456,9 +456,6 @@ class World:
                                     if inter.getIndicator('Time to Collision') is None:
                                         inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
                                     inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
-
-
-                        pass
         for inter in newlyCompleted:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
