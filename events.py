@@ -268,12 +268,6 @@ class Interaction(moving.STObject, VideoFilenameAddable):
             instant = self.timeInterval.first
             crossingPoints = world.getCrossingPointCurvilinearPosition(self.roadUser1, self.roadUser2, instant=instant)
             if crossingPoints is not None:
-                # roadUser1, roadUser2 = self.roadUser1.orderUsersByDistanceToPointAtInstant(world, self.roadUser2, instant)
-                # for cp in crossingPoints:
-                #     if cp[2] == roadUser1.getCurvilinearPositionAtInstant(instant)[2]:
-                #         cp1 = cp
-                #     if cp[2] == roadUser2.getCurvilinearPositionAtInstant(instant)[2]:
-                #         cp2 = cp
                 t1 = self.roadUser1.getIntersectionEntryInstant()
                 t2 = self.roadUser2.getIntersectionEntryInstant()
                 if t1 is not None and t2 is not None:
