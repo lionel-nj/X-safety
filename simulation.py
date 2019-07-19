@@ -12,12 +12,13 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, verbose, dbName=None):
+    def __init__(self, duration, timeStep, seed, verbose, dbName=None, computeInteractions = False):
         self.duration = duration
         self.timeStep = timeStep
         self.seed = seed
         self.verbose = verbose
         self.dbName = dbName
+        self.computeInteractions = computeInteractions
 
     def save(self, filename):
         toolkit.saveYaml(filename, self)
@@ -30,7 +31,7 @@ class Simulation(object):
         np.random.seed(self.seed)
 
         # preparing simulation
-        world.prepare(self.timeStep, self.duration, self.seed)
+        world.prepare(self.timeStep, self.duration)
 
         # main loop
         userNum = 0
@@ -41,8 +42,7 @@ class Simulation(object):
             userNum = world.initUsers(i, userNum)
             world.updateUsers(i)
             world.updateFirstUsers()
-            world.updateInteractions()
-            print(world.interactions, i)
+            world.updateInteractions(i, self.computeInteractions)
             # world.computeDistances(i)
 
         world.duplicateLastVelocities()

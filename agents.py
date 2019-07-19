@@ -157,6 +157,9 @@ class NewellMovingObject(moving.MovingObject):
     def isFirstOnAlignment(self):
         return self.getCurrentAlignment().getFirstUser().num == self.num
 
+    def areOnTransversalAlignments(self, other):
+        return self.getCurrentAlignment().transversalAlignments is not None and other.getCurrentAlignment() in self.getCurrentAlignment().transversalAlignments
+
     # def addInteractions(self, newInter):
     #     if self.interactions is not None:
     #         if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:

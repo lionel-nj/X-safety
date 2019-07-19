@@ -1,8 +1,9 @@
 !!python/object:simulation.Simulation
 duration: 200
 timeStep: 0.1
-verbose: False
+verbose: True
 seed: 70
 increment: 4
 rep: 4
 dbName: world.db
+computeInteractions: True
