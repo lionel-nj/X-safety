@@ -412,7 +412,7 @@ class World:
             newInter.num = len(self.interactions)
             self.interactions.append(newInter)
 
-    def updateInteractions(self, instant, computeInteractions):
+    def updateInteractions(self, instant, computeInteractions, timeStep):
         newlyCompleted = []
         for inter in self.interactions:
             if (inter.roadUser1.getLastInstant() < instant) or (inter.roadUser2.getLastInstant() < instant):
@@ -436,7 +436,7 @@ class World:
                                 ttc = distance / (v2-v1)
                                 if inter.getIndicator('Time to Collision') is None:
                                     inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
-                                inter.getIndicator('Time to Collision').values[instant] = ttc
+                                inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
                     elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignments(inter.roadUser2):  # side
                         # compute time to end of each alignment and check if there is a TTC
                         cp1 = inter.roadUser1.getCurvilinearPositionAtInstant(instant)
@@ -455,7 +455,7 @@ class World:
                                     ttc = timesToEndOfAlignments[1][0]
                                     if inter.getIndicator('Time to Collision') is None:
                                         inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
-                                    inter.getIndicator('Time to Collision').values[instant] = ttc
+                                    inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
 
 
                         pass

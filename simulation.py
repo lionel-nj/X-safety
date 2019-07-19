@@ -42,7 +42,7 @@ class Simulation(object):
             userNum = world.initUsers(i, userNum)
             world.updateUsers(i)
             world.updateFirstUsers()
-            world.updateInteractions(i, self.computeInteractions)
+            world.updateInteractions(i, self.computeInteractions, self.timeStep)
             # world.computeDistances(i)
 
         world.duplicateLastVelocities()
