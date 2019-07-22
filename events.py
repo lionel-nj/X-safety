@@ -272,8 +272,11 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                 t2 = self.roadUser2.getIntersectionEntryInstant()
                 if t1 is not None and t2 is not None:
                     if t1 < t2:
+                        first, second = self.roadUser1, self.roadUser2
                         t1 = self.roadUser1.getIntersectionExitInstant()
                     else:
+                        first, second = self.roadUser2, self.roadUser1
+
                         t2 = self.roadUser2.getIntersectionExitInstant()
                     pet = {}
                     pet[instant] = abs(t1 - t2) * timeStep
@@ -509,6 +512,7 @@ def createInteractions(objects, _others=None):
                     Interaction(num, commonTimeInterval, objects[i].num, others[j].num, objects[i], others[j]))
                 num += 1
     return interactions
+
 
 
 def findInteraction(interactions, roadUserNum1, roadUserNum2):

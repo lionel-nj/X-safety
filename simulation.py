@@ -46,7 +46,7 @@ class Simulation(object):
 
         world.duplicateLastVelocities()
         world.finalize(i)
-        # world.computePET(self.timeStep)
+        world.computePET()
 
 
 

@@ -50,10 +50,7 @@ alignments:
       - 1000.0
   width: null
 
-controlDevices:
-- !!python/object:network.YieldSign
-  idx: 0
-  alignmentIdx: 0
+controlDevices: null
 
 userInputs:
 - !!python/object:network.UserInput
@@ -69,7 +66,7 @@ userInputs:
     headway: !!python/object:network.Distribution
       distributionName: expon
       distributionType: theoretic
-      loc: 1.5
+      loc: .6
       scale: 1.2
     length: !!python/object:network.Distribution
       distributionName: truncnorm
@@ -116,8 +113,8 @@ userInputs:
     headway: !!python/object:network.Distribution
       distributionName: expon
       distributionType: theoretic
-      loc: 4
-      scale: 2.
+      loc: .6
+      scale: 1.2
     length: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
@@ -135,13 +132,17 @@ userInputs:
     tau: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 3
-      scale: 2
+      loc: 2
+      scale: 0.5
       a: -1
       b: 1
     criticalGap: !!python/object:network.Distribution
-      degeneratedConstant: 1
-      distributionType: degenerated
+      distributionName: truncnorm
+      distributionType: theoretic
+      loc: 4
+      scale: 1
+      a: -1
+      b: 1
     amberProbability: !!python/object:network.Distribution
       degeneratedConstant: 5
       distributionType: degenerated

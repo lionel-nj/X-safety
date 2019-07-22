@@ -1,70 +1,98 @@
-import matplotlib.pyplot as plt
 import numpy as np
 
 import analysis as an
+import events
 import interface as iface
 import network
 import simulation
 import toolkit
 
-world = network.World.load('simple-net.yml')
+world = network.World.load('cross-net.yml')
 interface = iface.Interface(world)
 interface.setInputsAsParameters()
 
-ttc = {}
-minDistanceValues = {}
-meanDistanceValues = {}
-nInter5 = {}
-nInter10 = {}
-nInter15 = {}
-pet = {}
+readEndTTCs = {}
+readEndMinDistance = {}
+rearEndnInter5 = {}
+rearEndnInter10 = {}
+rearEndnInter15 = {}
+
+sideTTCs = {}
+sideMinDistance = {}
+sidenInter5 = {}
+sidenInter10 = {}
+sidenInter15 = {}
+
+PETs = {}
 
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 for seed in seeds:
-    minDistanceValues[seed] = []
-    ttc[seed] = []
-    pet[seed] = []
+    readEndTTCs[seed] = []
+    PETs[seed] = []
+    sideTTCs[seed] = []
+    readEndMinDistance[seed] = []
+    sideMinDistance[seed] = []
+
     print('{}'.format(seeds.index(seed)+1) + '/' + str(len(seeds)))
+
     sim.seed = seed
-    world = network.World.load('simple-net.yml')
+    world = network.World.load('cross-net.yml')
     sim.run(world)
     analysis = an.Analysis(idx=0, seed=seed, world=world)
-    analysis.evaluate(sim.timeStep, sim.duration)
+    # analysis.evaluate(sim.timeStep, sim.duration)
 
     for inter in analysis.interactions:
-        if list(analysis.interactions[inter].getIndicator('Time to Collision').values.values()) != []:  # (withNone=False) != []:
-            ttc[seed].append(min(analysis.interactions[inter].getIndicator('Time to Collision').values.values()))  # (withNone=False)))
-        if 'Post Encroachment Time' in analysis.interactions[inter].indicators :
-            if list(analysis.interactions[inter].getIndicator('Post Encroachment Time').values.values()) != []:
-                pet[seed].append(list(analysis.interactions[inter].getIndicator('Post Encroachment Time').values.values())[0])  # getValues(withNone=False))
+        if inter.categoryNum == 1:
 
-        minDistanceValues[seed].append(min(analysis.interactions[inter].getIndicator('Distance').values.values()))  # getValues(withNone=False)))
+            rearEndTTCIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
+            if rearEndTTCIndicator is not None:
+                ttc = rearEndTTCIndicator.getMostSevereValue(1) * sim.timeStep
+                if ttc < 20:  # getIndicator('Time to Collision') is not None:
+                    readEndTTCs[seed].append(ttc)  # (withNone=False)))
 
-        nInter5[seed] = [(np.array(minDistanceValues[seed]) <= 5).sum()]
-        nInter10[seed] = [(np.array(minDistanceValues[seed]) <= 10).sum()]
-        nInter15[seed] = [(np.array(minDistanceValues[seed]) <= 15).sum()]
+            readEndMinDistanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
+            if readEndMinDistanceIndicator is not None:
+                readEndMinDistance[seed].append(readEndMinDistanceIndicator.getMostSevereValue(1))
 
-    cumulatedExitedUsers = [k for k in range(len(world.completed))]
-    instant = [u.getLastInstant() for u in world.completed]
-    print(instant)
-    print(cumulatedExitedUsers)
-    plt.plot(instant, cumulatedExitedUsers)
+            rearEndnInter5[seed] = [(np.array(readEndMinDistance[seed]) <= 5).sum()]
+            rearEndnInter10[seed] = [(np.array(readEndMinDistance[seed]) <= 10).sum()]
+            rearEndnInter15[seed] = [(np.array(readEndMinDistance[seed]) <= 15).sum()]
 
-plt.savefig('test.pdf')
-plt.close()
+        elif inter.categoryNum == 2:
 
-# toolkit.plotVariations(meanDistanceValues,'meanDistance.pdf', 'mean intervehicular distances (m)')
-toolkit.plotVariations(ttc, 'ttc.pdf', 'time to collision(s)')
-toolkit.plotVariations(minDistanceValues, 'minDistance.pdf', 'minimum intervehicular distances (m)')
-toolkit.plotVariations(nInter5, 'nInter5.pdf', '$nInter_{5}$')
-toolkit.plotVariations(nInter10, 'nInter10.pdf', '$nInter_{10}$')
-toolkit.plotVariations(nInter15, 'nInter15.pdf', '$nInter_{15}$')
-toolkit.plotVariations(pet, 'pet.pdf', '$PET(s)$')
+            sideTTCIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
+            if sideTTCIndicator is not None:
+                ttc = sideTTCIndicator.getMostSevereValue(1) * sim.timeStep
+                if ttc < 20:  # getIndicator('Time to Collision') is not None:
+                    sideTTCs[seed].append(ttc)  # (withNone=False)))
 
-# data_raw = pd.DataFrame(data={'seeds': seeds, 'TTCmin': list(ttc.values()), 'minDistance': list(minDistanceValues.values()),
-#                               'meanDistance': list(meanDistanceValues.values()), 'nInter5': list(nInter5.values()), 'nInter10': list(nInter10.values()),
-#                               'nInter15': list(nInter15.values()), 'duration5': list(duration5.values()), 'duration10': list(duration10.values()), 'duration15': list(duration15.values())})
-# data_raw.to_csv('data_raw.csv')
+            sideMinDistanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
+            if sideMinDistanceIndicator is not None:
+                sideMinDistance[seed].append(sideMinDistanceIndicator.getMostSevereValue(1))
 
-# toolkit.callWhenDone()
+            sidenInter5[seed] = [(np.array(sideMinDistance[seed]) <= 5).sum()]
+            sidenInter10[seed] = [(np.array(sideMinDistance[seed]) <= 10).sum()]
+            sidenInter15[seed] = [(np.array(sideMinDistance[seed]) <= 15).sum()]
+
+            petIndicator = inter.getIndicator(events.Interaction.indicatorNames[10])
+            if petIndicator is not None:
+                pet = petIndicator.getMostSevereValue(1) * sim.timeStep
+                PETs[seed].append(pet)
+
+toolkit.plotVariations(sideMinDistance, 'side-minDistance.pdf', 'side minimum intervehicular distances (m)')
+toolkit.plotVariations(readEndMinDistance, 'readEnd-minDistance.pdf', 'rear end minimum intervehicular distances (m)')
+
+toolkit.plotVariations(sideTTCs, 'side-TTCs.pdf', 'side\ TTCs (s)')
+toolkit.plotVariations(sidenInter5, 'side-nInter5.pdf', '$side\ nInter_{5}$')
+toolkit.plotVariations(sidenInter10, 'side-nInter10.pdf', '$side\ nInter_{10}$')
+toolkit.plotVariations(sidenInter15, 'side-nInter15.pdf', '$side\ nInter_{15}$')
+
+toolkit.plotVariations(readEndTTCs, 'rearEnd-TTCs.pdf', 'rear\ end\ TTCs (s)')
+toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter5.pdf', '$rear\ end\ nInter_{5}$')
+toolkit.plotVariations(rearEndnInter10, 'rearEnd-nInter10.pdf', '$rear\ end\ nInter_{10}$')
+toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter15.pdf', '$rear\ end\ nInter_{15}$')
+
+toolkit.plotVariations(PETs, 'pet.pdf', '$PET(s)$')
+
+toolkit.callWhenDone()

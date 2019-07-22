@@ -428,7 +428,7 @@ class World:
                 if computeInteractions:
                     distanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
                     if distanceIndicator is None:  # create distance indicator
-                        distanceIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[2], {instant:None}, mostSevereIsMax=False)
+                        distanceIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[2], {instant: None}, mostSevereIsMax=False)
                         inter.addIndicator(distanceIndicator)                        
                     distance = self.distanceAtInstant(inter.roadUser1, inter.roadUser2, instant, 'euclidean')
                     distanceIndicator.values[instant] = distance
@@ -475,24 +475,34 @@ class World:
                                     ttc = t2
                                     ttcIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
                                     if ttcIndicator is None:
-                                        ttcIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {instant:None}, mostSevereIsMax=False)
+                                        ttcIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {instant: None}, mostSevereIsMax=False)
                                         inter.addIndicator(ttcIndicator)
                                     ttcIndicator.values[instant] = ttc
                                     ttcIndicator.getTimeInterval().last = instant
-                                    
         for inter in newlyCompleted:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
 
-    def computePET(self, timeStep):
-        for inter in self.interactions + self.completedInteractions:
-            inter.computePETValues(self, timeStep)
-
-
+    def computePET(self):
+        for inter in self.completedInteractions + self.interactions:
+            if inter.categoryNum == 2:
+                # instant = self.timeInterval.first
+                # crossingPoints = self.getCrossingPointCurvilinearPosition(inter.roadUser1, inter.roadUser2, instant=instant)
+                # if crossingPoints is not None:
+                t1 = inter.roadUser1.getIntersectionEntryInstant()
+                t2 = inter.roadUser2.getIntersectionEntryInstant()
+                if t1 is not None and t2 is not None:
+                    if t1 < t2:
+                        t1 = inter.roadUser1.getIntersectionExitInstant()
+                        instant = t1
+                    else:
+                        t2 = inter.roadUser2.getIntersectionExitInstant()
+                        instant = t2
+                    if t1 is not None and t2 is not None:
+                        inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[10], {instant: abs(t1 - t2)}, mostSevereIsMax=False))
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
-
         if self.intersections == []:
             al = self.alignments[self.userInputs[0].getAlignmentIdx()]
             al.entryNode = al.idx

@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import events
 import network
 import simulation
 
@@ -18,10 +19,10 @@ world.plotUserTrajectories(sim.timeStep)
 #     analysis.saveParametersToTable(sim.dbName)
 #     analysis.saveIndicators(sim.dbName)
 
-import events
 
-minTTCs = {1:[], 2:[]}
-minDistances ={1:[], 2:[]}
+minTTCs = {1: [], 2: []}
+minDistances = {1: [], 2: []}
+PETs = []
 interactions = []
 for inter in world.completedInteractions:
     if inter.categoryNum is not None:
@@ -38,4 +39,5 @@ for inter in world.completedInteractions:
             values = ttc.getValues(False)
             if len(values) > 5:
                 interactions.append(inter)
-
+        if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
+            PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1))

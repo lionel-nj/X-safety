@@ -1,5 +1,5 @@
 !!python/object:simulation.Simulation
-duration: 300
+duration: 200
 timeStep: 0.1
 safetyDistance: 1.0
 verbose: True

@@ -169,37 +169,6 @@ class NewellMovingObject(moving.MovingObject):
     def areOnTransversalAlignments(self, other):
         return self.getCurrentAlignment().transversalAlignments is not None and other.getCurrentAlignment() in self.getCurrentAlignment().transversalAlignments
 
-    # def addInteractions(self, newInter):
-    #     if self.interactions is not None:
-    #         if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
-    #             self.interactions.append(newInter)
-    #     else:
-    #         self.interactions = [newInter]
-
-    # def updateInteractions(self, world, instant):
-    #     if world.interactions == []:
-    #         if self.leader is not None:
-    #             inter = events.Interaction(roadUser1=self, roadUser2=self.leader, useCurvilinear=True)
-    #             # self.addInteractions(inter)
-    #             world.addInteractions(inter)
-    #             # self.leader.addInteractions(inter)
-    #             # world.analysis.addInteractions(inter)
-    #
-    #     currentAlignment = self.getCurrentAlignment()
-    #     if currentAlignment.getFirstUser().num == self.num:
-    #         if currentAlignment.transversalAlignments is not None:
-    #             for transversalAlignment in currentAlignment.transversalAlignments:
-    #                 other = transversalAlignment.getFirstUser()
-    #                 if other is not None:
-    #                     inter = events.Interaction(roadUser1=self, roadUser2=other, useCurvilinear=True)
-    #                     # self.addInteractions(inter)
-    #                     # other.addInteractions(inter)
-    #                     world.addInteractions(inter)
-        # for roadUserNumbers in world.interactions:
-        #     world.interactions[roadUserNumbers].computeDistance(world, instant)
-            # print(roadUserNumbers, instant)
-            # world.interactions[roadUserNumbers].computeTTC()
-
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''
         # TODO reflechir pour des control devices
