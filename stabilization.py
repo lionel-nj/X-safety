@@ -2,14 +2,14 @@ import numpy as np
 
 import analysis as an
 import events
-import interface as iface
+# import interface as iface
 import network
 import simulation
 import toolkit
 
 world = network.World.load('cross-net.yml')
-interface = iface.Interface(world)
-interface.setInputsAsParameters()
+# interface = iface.Interface(world)
+# interface.setInputsAsParameters()
 
 readEndTTCs = {}
 readEndMinDistance = {}

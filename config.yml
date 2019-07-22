@@ -5,6 +5,6 @@ safetyDistance: 1.0
 verbose: True
 seed: 76
 increment: 4
-rep: 4
+rep: 40
 dbName: world.db
 computeInteractions: True
