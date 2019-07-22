@@ -374,13 +374,13 @@ class World:
         print("userNum does not match any existing user")
         return None
 
-    def initUsers(self, instant, userNum):
+    def initUsers(self, instant, userNum, safetyDistance):
         """Initializes new users """
         for ui in self.userInputs:
             futureCumulatedHeadways = []
             for h in ui.cumulatedHeadways:
                 if instant <= h < instant + 1:
-                    self.newUsers.append(ui.initUser(userNum, h))
+                    self.newUsers.append(ui.initUser(userNum, h, safetyDistance))
                     userNum += 1
                 else:
                     futureCumulatedHeadways.append(h)
@@ -400,7 +400,7 @@ class World:
             u.updateCurvilinearPositions(instant, self)
         for u in self.inserted:
             for u2 in self.users:
-                if u2 == u.leader:
+                if u2 == u.getLeader():
                     categoryNum = 1  # rear end
                 elif u.areOnTransversalAlignments(u2):
                     categoryNum = 2
@@ -418,7 +418,7 @@ class World:
             newInter.num = len(self.interactions)
             self.interactions.append(newInter)
 
-    def updateInteractions(self, instant, computeInteractions, timeStep):
+    def updateInteractions(self, instant, computeInteractions):
         newlyCompleted = []
         for inter in self.interactions:
             if (inter.roadUser1.getLastInstant() < instant) or (inter.roadUser2.getLastInstant() < instant):
@@ -426,42 +426,60 @@ class World:
             else:
                 inter.setLastInstant(instant)
                 if computeInteractions:
-                    if inter.getIndicator('Distance') is None:  # create distance indicator
-                        inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[2], {}, mostSevereIsMax=False))
-                    distance = self.distanceAtInstant(inter.roadUser1, inter.roadUser2, instant, 'euclidian')
-                    inter.getIndicator('Distance').values[instant] = distance
+                    distanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
+                    if distanceIndicator is None:  # create distance indicator
+                        distanceIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[2], {instant:None}, mostSevereIsMax=False)
+                        inter.addIndicator(distanceIndicator)                        
+                    distance = self.distanceAtInstant(inter.roadUser1, inter.roadUser2, instant, 'euclidean')
+                    distanceIndicator.values[instant] = distance
+                    distanceIndicator.getTimeInterval().last = instant
 
                     if inter.categoryNum == 1:  # rearend
+                        distanceIndicator.values[instant] = distance - inter.roadUser2.geometry
                         # compute TTC as distance-length/dv
-                        inter.getIndicator('Distance').values[instant] -= inter.roadUser2.geometry
-                        if len(inter.roadUser1.curvilinearVelocities) > 0 and len(inter.roadUser2.curvilinearVelocities) > 0:
+                        if len(inter.roadUser1.getCurvilinearVelocities()) > 0 and len(inter.roadUser2.getCurvilinearVelocities()) > 0:
                             v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]  # compute distance with distanceAtInstant and euclidean distance -> should be kept for rear end TTC computation
-                            v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]
-                            distance = inter.getIndicator('Distance').values[instant]
-                            if v2 - v1 > 0:
-                                ttc = distance / (v2-v1)
-                                if inter.getIndicator('Time to Collision') is None:
-                                    inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
-                                inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
-                    elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignuments(inter.roadUser2):  # side
+                            v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0] # leader
+                            if v2 < v1: # in general, one should check which is first
+                                ttc = distanceIndicator[instant] / (v1-v2)
+                                ttcIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
+                                if ttcIndicator is None:
+                                    ttcIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False)
+                                    inter.addIndicator(ttcIndicator)
+                                ttcIndicator.values[instant] = ttc
+                                ttcIndicator.getTimeInterval().last = instant
+                    elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignments(inter.roadUser2):  # side
                         # compute time to end of each alignment and check if there is a TTC
-                        cp1 = inter.roadUser1.getCurvilinearPositionAtInstant(instant)
-                        cp2 = inter.roadUser2.getCurvilinearPositionAtInstant(instant)
-                        d1 = self.alignments[cp1[2]].getTotalDistance()
-                        d2 = self.alignments[cp2[2]].getTotalDistance()
-                        if len(inter.roadUser1.curvilinearVelocities) > 0 and len(inter.roadUser2.curvilinearVelocities) > 0:
+                        p1 = inter.roadUser1.getCurvilinearPositionAtInstant(instant)
+                        p2 = inter.roadUser2.getCurvilinearPositionAtInstant(instant)
+                        d1 = inter.roadUser1.getCurrentAlignment().getTotalDistance() - p1[0]
+                        d2 = inter.roadUser2.getCurrentAlignment().getTotalDistance() - p2[0]
+                        if len(inter.roadUser1.getCurvilinearVelocities()) > 0 and len(inter.roadUser2.getCurvilinearVelocities()) > 0:
                             v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]
                             v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]
-
                             if v1 > 0 and v2 > 0:
-                                timeToEndOfAlignmnent1 = (d1 - cp1[0]) / v1
-                                timeToEndOfAlignmnent2 = (d2 - cp2[0]) / v2
-                                timesToEndOfAlignments = sorted([(timeToEndOfAlignmnent1, inter.roadUser1, v1), (timeToEndOfAlignmnent2, inter.roadUser2, v2)], key=lambda x: x[0])
-                                if timesToEndOfAlignments[0][0] <= timesToEndOfAlignments[1][0] <= timesToEndOfAlignments[0][0] + timesToEndOfAlignments[1][1].geometry/timesToEndOfAlignments[1][2]:
-                                    ttc = timesToEndOfAlignments[1][0]
-                                    if inter.getIndicator('Time to Collision') is None:
-                                        inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {}, mostSevereIsMax=False))
-                                    inter.getIndicator('Time to Collision').values[instant] = ttc*timeStep
+                                timeToEndOfAlignmnent1 = d1 / v1
+                                timeToEndOfAlignmnent2 = d2 / v2
+                                if timeToEndOfAlignmnent1 < timeToEndOfAlignmnent2:
+                                    first = inter.roadUser1
+                                    second = inter.roadUser2
+                                    t1 = timeToEndOfAlignmnent1
+                                    t2 = timeToEndOfAlignmnent2
+                                else:
+                                    first = inter.roadUser2
+                                    second = inter.roadUser1
+                                    t1 = timeToEndOfAlignmnent2
+                                    t2 = timeToEndOfAlignmnent1
+                                    v1, v2 = v2, v1
+                                if t2 < t1+first.geometry/v1:
+                                    ttc = t2
+                                    ttcIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
+                                    if ttcIndicator is None:
+                                        ttcIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[7], {instant:None}, mostSevereIsMax=False)
+                                        inter.addIndicator(ttcIndicator)
+                                    ttcIndicator.values[instant] = ttc
+                                    ttcIndicator.getTimeInterval().last = instant
+                                    
         for inter in newlyCompleted:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
@@ -515,7 +533,6 @@ class World:
         """"computes the distance between 2 users"""
         if user1.getFirstInstant() <= instant and user2.getFirstInstant() <= instant:
             if method == 'curvilinear':
-
                 if moving.Interval.intersection(user1.timeInterval, user2.timeInterval) is not None:
                     s1, _, user1AlignmentIdx = user1.getCurvilinearPositionAtInstant(instant)
                     s2, _, user2AlignmentIdx = user2.getCurvilinearPositionAtInstant(instant)
@@ -554,8 +571,8 @@ class World:
                         G.remove_node('user2')
                         return distance
 
-            elif method == 'euclidian':
-                user1, user2 = user1.orderUsersByPositionAtInstant(user2, instant)
+            elif method == 'euclidean':
+                #user1, user2 = user1.orderUsersByPositionAtInstant(user2, instant)
                 s1 = user1.getCurvilinearPositionAtInstant(instant)
                 s2 = user2.getCurvilinearPositionAtInstant(instant)
                 p1 = moving.getXYfromSY(s1[0], s1[1], s1[2], [al.points for al in self.alignments])
@@ -1003,7 +1020,7 @@ class UserInput:
         """returns the distribution parameters for an item : type, name, parameters"""
         return self.distributions[item].getDistribution()
 
-    def initUser(self, userNum, initialCumulatedHeadway):
+    def initUser(self, userNum, initialCumulatedHeadway, safetyDistance):
         """generates a MovingObject on the VehicleInput alignment"""
 
         obj = agents.NewellMovingObject(userNum,
@@ -1022,6 +1039,7 @@ class UserInput:
         obj.intersectionExitInstant = None
         if self.lastGeneratedUser is not None:
             obj.leader = self.lastGeneratedUser
+            obj.updateD(safetyDistance)
             # print(obj.timeInterval)
         self.lastGeneratedUser = obj
         return obj

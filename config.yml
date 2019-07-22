@@ -1,8 +1,9 @@
 !!python/object:simulation.Simulation
-duration: 200
+duration: 300
 timeStep: 0.1
+safetyDistance: 1.0
 verbose: True
-seed: 70
+seed: 76
 increment: 4
 rep: 4
 dbName: world.db

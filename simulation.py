@@ -37,12 +37,12 @@ class Simulation(object):
         userNum = 0
         for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
-                print('simulation step {}/{}'.format(i, int(np.floor(self.duration / self.timeStep))))
+                print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(i, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
             world.updateControlDevices()
-            userNum = world.initUsers(i, userNum)
+            userNum = world.initUsers(i, userNum, self.safetyDistance)
             world.updateUsers(i)
             world.updateFirstUsers()
-            world.updateInteractions(i, self.computeInteractions, self.timeStep)
+            world.updateInteractions(i, self.computeInteractions)
 
         world.duplicateLastVelocities()
         world.finalize(i)

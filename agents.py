@@ -10,7 +10,7 @@ class NewellMovingObject(moving.MovingObject):
         super().__init__(num, timeInterval, positions, velocities, geometry, userType, nObjects, initCurvilinear)
         self.desiredSpeed = desiredSpeed
         self.tau = tau
-        self.d = max(d, geometry)
+        self.d = d
         self.leader = None
         # other attributes necessary for computation
         self.initialCumulatedHeadway = initialCumulatedHeadway
@@ -21,8 +21,11 @@ class NewellMovingObject(moving.MovingObject):
         self.comingUser = None
         self.amberProbability = amberProbability
 
-    def getLeaderGeometry(self):
-        return self.leader.geometry
+    def getLeader(self):
+        return self.leader
+
+    def updateD(self, safetyDistance):
+        self.d = max(self.d, self.getLeader().geometry) + safetyDistance
 
     def getInstantAtCurvilinearPosition(self, cp, first=True):
         """"returns instant at curvilinear position, if first is true, returns the first instant
@@ -261,7 +264,7 @@ class NewellMovingObject(moving.MovingObject):
                 self.setLastInstant(instant)
                 nextAlignments[-1].assignUserAtInstant(self, instant)
 
-                # TODO test if the new alignment is different from leader, update leader
+                # TODO test if the new alignment is different from leader, update leader, updateD du suiveur
 
             else:
                 world.setNewlyCompleted(self)
