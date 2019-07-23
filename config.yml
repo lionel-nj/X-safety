@@ -2,9 +2,9 @@
 duration: 600
 timeStep: 0.1
 safetyDistance: 1.0
-verbose: True
+verbose: False
 seed: 76
 increment: 4
-rep: 40
+rep: 3
 dbName: world.db
-computeInteractions: True
+computeInteractions: False
