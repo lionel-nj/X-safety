@@ -48,7 +48,7 @@ for seed in seeds:
             rearEndTTCIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
             if rearEndTTCIndicator is not None:
                 ttc = rearEndTTCIndicator.getMostSevereValue(1) * sim.timeStep
-                if ttc < 20:  # getIndicator('Time to Collision') is not None:
+                if .1 < ttc < 20:  # getIndicator('Time to Collision') is not None:
                     readEndTTCs[seed].append(ttc)  # (withNone=False)))
 
             readEndMinDistanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
@@ -64,7 +64,7 @@ for seed in seeds:
             sideTTCIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
             if sideTTCIndicator is not None:
                 ttc = sideTTCIndicator.getMostSevereValue(1) * sim.timeStep
-                if ttc < 20:  # getIndicator('Time to Collision') is not None:
+                if .1 < ttc < 20:  # getIndicator('Time to Collision') is not None:
                     sideTTCs[seed].append(ttc)  # (withNone=False)))
 
             sideMinDistanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
