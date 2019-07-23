@@ -414,15 +414,8 @@ class World:
             self.completed.append(u)
 
         # to determine the duration of simulation :
-        if self.exitUsersCumulative == []:
-            self.exitUsersCumulative.append(len(self.completed))
-        else:
-            self.exitUsersCumulative.append(self.exitUsersCumulative[-1] + len(self.completed))
-
-        if self.completedInteractionsCumulative == []:
-            self.completedInteractionsCumulative.append(len(self.completedInteractions))
-        else:
-            self.completedInteractionsCumulative.append(self.completedInteractionsCumulative[-1] + len(self.completedInteractions))
+        self.exitUsersCumulative.append(len(self.completed))
+        self.completedInteractionsCumulative.append(len(self.completedInteractions))
 
     def addInteractions(self, newInter):
         if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
