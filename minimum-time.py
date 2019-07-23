@@ -6,7 +6,7 @@ import simulation
 
 sim = simulation.Simulation.load('config.yml')
 
-durations = [k for k in range(200, 600, 200)]
+durations = [k for k in range(600, 2000, 200)]
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 exitedUserCount = []
 completedInteractionsCount = []

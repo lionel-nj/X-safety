@@ -3,8 +3,8 @@ duration: 600
 timeStep: 0.1
 safetyDistance: 1.0
 verbose: False
-seed: 76
+seed: 32
 increment: 4
-rep: 3
+rep: 25
 dbName: world.db
 computeInteractions: False
