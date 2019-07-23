@@ -55,9 +55,9 @@ for seed in seeds:
             if readEndMinDistanceIndicator is not None:
                 readEndMinDistance[seed].append(readEndMinDistanceIndicator.getMostSevereValue(1))
 
-            rearEndnInter5[seed] = [(np.array(readEndMinDistance[seed]) <= 5).sum()]
-            rearEndnInter10[seed] = [(np.array(readEndMinDistance[seed]) <= 10).sum()]
-            rearEndnInter15[seed] = [(np.array(readEndMinDistance[seed]) <= 15).sum()]
+            rearEndnInter5[seed] = [(np.array(readEndMinDistance[seed]) <= 10).sum()]
+            rearEndnInter10[seed] = [(np.array(readEndMinDistance[seed]) <= 20).sum()]
+            rearEndnInter15[seed] = [(np.array(readEndMinDistance[seed]) <= 50).sum()]
 
         elif inter.categoryNum == 2:
 
@@ -71,9 +71,9 @@ for seed in seeds:
             if sideMinDistanceIndicator is not None:
                 sideMinDistance[seed].append(sideMinDistanceIndicator.getMostSevereValue(1))
 
-            sidenInter5[seed] = [(np.array(sideMinDistance[seed]) <= 5).sum()]
-            sidenInter10[seed] = [(np.array(sideMinDistance[seed]) <= 10).sum()]
-            sidenInter15[seed] = [(np.array(sideMinDistance[seed]) <= 15).sum()]
+            sidenInter5[seed] = [(np.array(sideMinDistance[seed]) <= 10).sum()]
+            sidenInter10[seed] = [(np.array(sideMinDistance[seed]) <= 20).sum()]
+            sidenInter15[seed] = [(np.array(sideMinDistance[seed]) <= 50).sum()]
 
             petIndicator = inter.getIndicator(events.Interaction.indicatorNames[10])
             if petIndicator is not None:
@@ -81,19 +81,19 @@ for seed in seeds:
                 if pet < 20:
                     PETs[seed].append(pet)
 
-toolkit.plotVariations(sideMinDistance, 'side-minDistance.pdf', 'side minimum intervehicular distances (m)')
-toolkit.plotVariations(readEndMinDistance, 'readEnd-minDistance.pdf', 'rear end minimum intervehicular distances (m)')
+toolkit.plotVariations(sideMinDistance, 'side-minDistance.pdf', 'side minimum intervehicular distances (m)', 'minimum intervehicular distance (m)')
+toolkit.plotVariations(readEndMinDistance, 'readEnd-minDistance.pdf', 'rear end minimum intervehicular distances (m)', 'minimum intervehicular distance (m)')
 
-toolkit.plotVariations(sideTTCs, 'side-TTCs.pdf', 'side\ TTCs (s)')
-toolkit.plotVariations(sidenInter5, 'side-nInter5.pdf', '$side\ nInter_{5}$')
-toolkit.plotVariations(sidenInter10, 'side-nInter10.pdf', '$side\ nInter_{10}$')
-toolkit.plotVariations(sidenInter15, 'side-nInter15.pdf', '$side\ nInter_{15}$')
+toolkit.plotVariations(sideTTCs, 'side-TTCs.pdf', 'side TTCs (s)', 'TTC (s)')
+toolkit.plotVariations(sidenInter5, 'side-nInter10.pdf', '$side\ nInter_{10}$', '$side\ nInter_{10}$')
+toolkit.plotVariations(sidenInter10, 'side-nInter20.pdf', '$side\ nInter_{20}$', '$side\ nInter_{20}$')
+toolkit.plotVariations(sidenInter15, 'side-nInter50.pdf', '$side\ nInter_{50}$', '$side\ nInter_{50}$')
 
-toolkit.plotVariations(readEndTTCs, 'rearEnd-TTCs.pdf', 'rear\ end\ TTCs (s)')
-toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter5.pdf', '$rear\ end\ nInter_{5}$')
-toolkit.plotVariations(rearEndnInter10, 'rearEnd-nInter10.pdf', '$rear\ end\ nInter_{10}$')
-toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter15.pdf', '$rear\ end\ nInter_{15}$')
+toolkit.plotVariations(readEndTTCs, 'rearEnd-TTCs.pdf', 'rear end TTCs (s)','TTC (s)')
+toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter10.pdf', '$rear\ end\ nInter_{10}$', '$rear\ end\ nInter_{10}$')
+toolkit.plotVariations(rearEndnInter10, 'rearEnd-nInter20.pdf', '$rear\ end\ nInter_{20}$', '$rear\ end\ nInter_{20}$')
+toolkit.plotVariations(rearEndnInter5, 'rearEnd-nInter50.pdf', '$rear\ end\ nInter_{50}$', '$rear\ end\ nInter_{50}$')
 
-toolkit.plotVariations(PETs, 'pet.pdf', '$PET(s)$')
+toolkit.plotVariations(PETs, 'pet.pdf', '$PET(s)$', 'post encroachment time (s)')
 
 toolkit.callWhenDone()

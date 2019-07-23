@@ -3,6 +3,7 @@ import numpy as np
 
 import network
 import simulation
+import toolkit
 
 sim = simulation.Simulation.load('config.yml')
 
@@ -40,3 +41,5 @@ plt.ylabel('$number of completed interactions = f(simulation duration)$')
 plt.savefig('completedInteractions.pdf')
 
 plt.close('all')
+
+toolkit.callWhenDone()
