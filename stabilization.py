@@ -78,7 +78,8 @@ for seed in seeds:
             petIndicator = inter.getIndicator(events.Interaction.indicatorNames[10])
             if petIndicator is not None:
                 pet = petIndicator.getMostSevereValue(1) * sim.timeStep
-                PETs[seed].append(pet)
+                if pet < 20:
+                    PETs[seed].append(pet)
 
 toolkit.plotVariations(sideMinDistance, 'side-minDistance.pdf', 'side minimum intervehicular distances (m)')
 toolkit.plotVariations(readEndMinDistance, 'readEnd-minDistance.pdf', 'rear end minimum intervehicular distances (m)')
