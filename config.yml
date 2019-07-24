@@ -8,3 +8,4 @@ increment: 4
 rep: 40
 dbName: world.db
 computeInteractions: False
+minimumCompletedUsers : 150

@@ -35,7 +35,9 @@ class Simulation(object):
 
         # main loop
         userNum = 0
-        for i in range(int(np.floor(self.duration / self.timeStep))):
+        i = 0
+        while len(world.completed) <= self.minimumCompletedUsers:
+        # for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(i, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
             world.updateControlDevices()
@@ -43,6 +45,7 @@ class Simulation(object):
             world.updateUsers(i)
             world.updateFirstUsers()
             world.updateInteractions(i, self.computeInteractions)
+            i += 1
 
         world.duplicateLastVelocities()
         world.finalize(i)
