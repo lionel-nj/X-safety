@@ -443,7 +443,7 @@ class World:
                         # compute TTC as distance-length/dv
                         if len(inter.roadUser1.getCurvilinearVelocities()) > 0 and len(inter.roadUser2.getCurvilinearVelocities()) > 0:
                             v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]  # compute distance with distanceAtInstant and euclidean distance -> should be kept for rear end TTC computation
-                            v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0] # leader
+                            v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]  # leader
                             if v2 < v1: # in general, one should check which is first
                                 ttc = distanceIndicator[instant] / (v1-v2)
                                 ttcIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])

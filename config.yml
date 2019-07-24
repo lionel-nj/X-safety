@@ -2,10 +2,10 @@
 duration: 1000
 timeStep: 0.1
 safetyDistance: 1.0
-verbose: False
+verbose: True
 seed: 32
 increment: 4
-rep: 40
+rep: 76
 dbName: world.db
-computeInteractions: False
-minimumCompletedUsers : 150
+computeInteractions: True
+minimumCompletedUsers : 70

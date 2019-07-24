@@ -12,7 +12,7 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, verbose, dbName=None, computeInteractions = False):
+    def __init__(self, duration, timeStep, seed, verbose, dbName=None, computeInteractions=False):
         self.duration = duration
         self.timeStep = timeStep
         self.seed = seed
@@ -36,7 +36,7 @@ class Simulation(object):
         # main loop
         userNum = 0
         i = 0
-        while len(world.completed) <= self.minimumCompletedUsers:
+        while len(world.completed) < self.minimumCompletedUsers:
         # for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(i, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
@@ -50,8 +50,7 @@ class Simulation(object):
         world.duplicateLastVelocities()
         world.finalize(i)
         world.computePET()
-
-
+        return i
 
 if __name__ == "__main__":
     import doctest
