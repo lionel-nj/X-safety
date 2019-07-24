@@ -1,11 +1,11 @@
 !!python/object:simulation.Simulation
-duration: 1000
+duration: 120
+minNCompletedUsers: 6
 timeStep: 0.1
 safetyDistance: 1.0
 verbose: True
 seed: 32
 increment: 4
-rep: 76
+rep: 50
 dbName: world.db
 computeInteractions: True
-minimumCompletedUsers : 70

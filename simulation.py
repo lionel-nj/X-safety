@@ -12,8 +12,9 @@ class Simulation(object):
         'N/A'
     ]
 
-    def __init__(self, duration, timeStep, seed, verbose, dbName=None, computeInteractions=False):
+    def __init__(self, duration, minNCompletedUsers, timeStep, seed, verbose, dbName=None, computeInteractions=False):
         self.duration = duration
+        self.minNCompletedUsers = minNCompletedUsers
         self.timeStep = timeStep
         self.seed = seed
         self.verbose = verbose
@@ -32,25 +33,24 @@ class Simulation(object):
 
         # preparing simulation
         world.prepare(self.timeStep, self.duration)
-
+        
         # main loop
         userNum = 0
-        i = 0
-        while len(world.completed) < self.minimumCompletedUsers:
+        instant = 0
+        while len(world.completed) < self.minNCompletedUsers or instant*self.timeStep < self.duration:
         # for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
-                print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(i, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
+                print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
             world.updateControlDevices()
-            userNum = world.initUsers(i, userNum, self.safetyDistance)
-            world.updateUsers(i)
+            userNum = world.initUsers(instant, userNum, self.safetyDistance)
+            world.updateUsers(instant)
             world.updateFirstUsers()
-            world.updateInteractions(i, self.computeInteractions)
-            i += 1
+            world.updateInteractions(instant, self.computeInteractions)
+            instant += 1
 
         world.duplicateLastVelocities()
-        world.finalize(i)
+        #world.finalize(instant)
         world.computePET()
-        return i
 
 if __name__ == "__main__":
     import doctest

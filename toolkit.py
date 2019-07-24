@@ -179,12 +179,10 @@ def dfMean(data):
 
 def plotVariations(indicatorValues, fileName, figName, ylabel):
     indicatorValues = list(indicatorValues.values())
-    indicatorValues = [list(filter(None.__ne__, k)) for k in indicatorValues]#] if k is not None]
-    nRep = [k for k in range(1, len(indicatorValues) + 1)]
-    meanValues = [np.mean(indicatorValues[0])]
-    for k in range(1, len(indicatorValues)):
-        meanValues.append(np.mean(flatten(indicatorValues[:k + 1])))
-    plt.plot(nRep, meanValues)
+    #indicatorValues = [list(filter(None.__ne__, k)) for k in indicatorValues]#] if k is not None]
+    meanValues = [np.mean(l) for l in indicatorValues]
+    runningMeanValues = [np.mean(meanValues[:k+1]) for k in range(len(meanValues))]
+    plt.plot(range(1, len(indicatorValues)+1), runningMeanValues)
     plt.xlabel('simulation duration (s)')
     plt.ylabel(ylabel)
     plt.title(figName)

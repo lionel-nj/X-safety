@@ -1,4 +1,3 @@
-import itertools
 import sqlite3
 
 import matplotlib.pyplot as plt
@@ -377,14 +376,15 @@ class World:
     def initUsers(self, instant, userNum, safetyDistance):
         """Initializes new users """
         for ui in self.userInputs:
-            futureCumulatedHeadways = []
-            for h in ui.cumulatedHeadways:
-                if instant <= h < instant + 1:
-                    self.newUsers.append(ui.initUser(userNum, h, safetyDistance))
+            #futureCumulatedHeadways = []
+            #for h in ui.cumulatedHeadways:
+            if instant <= ui.getTimeArrival():
+                    self.newUsers.append(ui.initUser(userNum, ui.getTimeArrival(), safetyDistance))
+                    ui.generateTimeArrival()
                     userNum += 1
-                else:
-                    futureCumulatedHeadways.append(h)
-            ui.cumulatedHeadways = futureCumulatedHeadways
+            #else:
+            #        futureCumulatedHeadways.append(h)
+            #ui.cumulatedHeadways = futureCumulatedHeadways
         return userNum
 
     def setInserted(self, user):
@@ -411,6 +411,7 @@ class World:
             self.users.append(u)
         for u in self.newlyCompleted:
             self.users.remove(u)
+            u.getCurvilinearVelocities().duplicateLastPosition()
             self.completed.append(u)
 
         # to determine the duration of simulation :
@@ -612,10 +613,10 @@ class World:
             return travelledAlignments
 
     def duplicateLastVelocities(self):
-        for user in self.users + self.completed:
-            if user.curvilinearVelocities is not None:
-                if len(user.curvilinearVelocities) > 0:
-                    user.curvilinearVelocities.duplicateLastPosition()
+        for user in self.users:
+            # if user.curvilinearVelocities is not None:
+            if len(user.curvilinearVelocities) > 0:
+                user.getCurvilinearVelocities().duplicateLastPosition()
 
     def prepare(self, timeStep, duration):
         '''Prepares the world before simulation
@@ -651,7 +652,7 @@ class World:
                 if al.idx == ui.alignmentIdx:
                     ui.alignment = al
             ui.initDistributions(timeStep)
-            ui.generateHeadways(duration / timeStep)
+            ui.generateTimeArrival()
 
         # compute cumulative distances for each alignment :
         for al in self.alignments:
@@ -1021,6 +1022,7 @@ class UserInput:
 
     def initDistributions(self, timeStep):
         self.headwayDistribution = self.distributions['headway'].getDistribution(1. / timeStep)
+        self.timeArrival = 0.
         self.lengthDistribution = self.distributions['length'].getDistribution()
         self.speedDistribution = self.distributions['speed'].getDistribution(timeStep)
         self.tauDistribution = self.distributions['tau'].getDistribution(1. / timeStep)
@@ -1028,11 +1030,17 @@ class UserInput:
         self.gapDistribution = self.distributions['criticalGap'].getDistribution(1. / timeStep)
         self.amberProbabilityDistribution = self.distributions['amberProbability'].getDistribution()
 
-    def generateHeadways(self, duration):
-        """ generates a set a headways"""
-        self.headways = utils.maxSumSample(self.headwayDistribution, duration)
-        self.cumulatedHeadways = list(itertools.accumulate(self.headways))
+    # def generateHeadways(self, duration):
+    #     """ generates a set a headways"""
+    #     self.headways = utils.maxSumSample(self.headwayDistribution, duration)
+    #     self.cumulatedHeadways = list(itertools.accumulate(self.headways))
+    
+    def generateTimeArrival(self):
+        self.timeArrival += self.headwayDistribution.rvs()
 
+    def getTimeArrival(self):
+        return self.timeArrival
+        
     def getUserInputDistribution(self, item):
         """returns the distribution parameters for an item : type, name, parameters"""
         return self.distributions[item].getDistribution()
