@@ -27,12 +27,13 @@ durations = {}
 PETs = {}
 
 sim = simulation.Simulation.load('config.yml')
+sim.dbName = 'stabilization-data.db'
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 
 an.createAnalysisTable(sim.dbName)
 network.createNewellMovingObjectsTable(sim.dbName)
 analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
-analysis.interactions = world.completedInteractions
+
 
 for seed in seeds:
     readEndTTCs[seed] = []
@@ -46,14 +47,15 @@ for seed in seeds:
     sim.seed = seed
     world = network.World.load('cross-net.yml')
     analysis = an.Analysis(idx=0, seed=seed, world=world)
-    duration = sim.run(world)
+    sim.run(world)
     analysis.interactions = world.completedInteractions
     world.saveObjects(sim.dbName, seed, 0)
     world.saveTrajectoriesToDB(sim.dbName, seed, 0)
+    analysis.saveParametersToTable(sim.dnName)
     analysis.saveIndicators(sim.dbName)
 
     # analysis.evaluate(sim.timeStep, sim.duration)
-    durations[seed] = [duration * sim.timeStep]
+    #durations[seed] = [duration * sim.timeStep]
     for inter in analysis.interactions:
         if inter.categoryNum == 1:
 
@@ -76,15 +78,15 @@ for seed in seeds:
             sideTTCIndicator = inter.getIndicator(events.Interaction.indicatorNames[7])
             if sideTTCIndicator is not None:
                 ttc = sideTTCIndicator.getMostSevereValue(1) * sim.timeStep
-                if ttc < 20:  # getIndicator('Time to Collision') is not None:
-                    sideTTCs[seed].append(ttc)  # (withNone=False)))
+                if ttc < 20:  # getIndicator('Time to Collision') is not None:	
+                    sideTTCs[seed].append(ttc)  # (withNone=False)))     
 
             sideMinDistanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
             if sideMinDistanceIndicator is not None:
                 sideMinDistance[seed].append(sideMinDistanceIndicator.getMostSevereValue(1))
 
             sidenInter10[seed] = [(np.array(sideMinDistance[seed]) <= 10).sum()]
-            sidenInter20[seed] = [(np.array(sideMinDistance[seed]) <= 20).sum()]
+            sidenInter20[seed] = [(np.array(sideMinDistance[seed]) <= 20).sum()]	
             sidenInter50[seed] = [(np.array(sideMinDistance[seed]) <= 50).sum()]
 
             petIndicator = inter.getIndicator(events.Interaction.indicatorNames[10])
@@ -107,6 +109,6 @@ toolkit.plotVariations(rearEndnInter20, 'rearEnd-nInter20.pdf', '$rear\ end\ nIn
 toolkit.plotVariations(rearEndnInter50, 'rearEnd-nInter50.pdf', '$rear\ end\ nInter_{50}$', '$rear\ end\ nInter_{50}$')
 
 toolkit.plotVariations(PETs, 'pet.pdf', '$PET(s)$', 'post encroachment time (s)')
-toolkit.plotVariations(durations, 'duration.pdf', 'simulation duration (s)', 'simulation duration (s)')
+#toolkit.plotVariations(durations, 'duration.pdf', 'simulation duration (s)', 'simulation duration (s)')
 
 toolkit.callWhenDone()

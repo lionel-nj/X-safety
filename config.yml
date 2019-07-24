@@ -3,9 +3,9 @@ duration: 600
 minNCompletedUsers: 200
 timeStep: 0.1
 safetyDistance: 1.0
-verbose: False
-seed: 32
+verbose: True
+seed: 44
 increment: 4
-rep: 40
-dbName: world.db
+rep: 30
+dbName: sensitivity-analysis-data.db
 computeInteractions: True

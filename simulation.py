@@ -37,7 +37,9 @@ class Simulation(object):
         # main loop
         userNum = 0
         instant = 0
-        while len(world.completed) < self.minNCompletedUsers or instant*self.timeStep < self.duration:
+        condition = True
+
+        while condition:
         # for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
@@ -47,6 +49,11 @@ class Simulation(object):
             world.updateFirstUsers()
             world.updateInteractions(instant, self.computeInteractions)
             instant += 1
+            condition = len(world.completed) <= self.minNCompletedUsers and instant*self.timeStep < self.duration
+            if instant*self.timeStep >= self.duration and len(world.completed) < self.minNCompletedUsers:
+                condition = True
+            
+            
 
         world.duplicateLastVelocities()
         #world.finalize(instant)

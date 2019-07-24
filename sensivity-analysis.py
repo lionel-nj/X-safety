@@ -6,8 +6,8 @@ import toolkit
 
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
-sim.verbose=False
-sim.computeInteractions = True
+sim.dbName = 'sensivity-analysis-data.db'
+sim.verbose = False
 network.createNewellMovingObjectsTable(sim.dbName)
 
 interface = iface.Interface(world)
@@ -19,8 +19,10 @@ anIdx = 0
 
 for distribution in world.userInputs[1].distributions:
     world = network.World.load('cross-net.yml')
+    print(distribution)
 
     for variation in interface.variationRate:
+        print(variation)
 
         analysis = an.Analysis(anIdx, world=world, seed=sim.seed)
         if world.userInputs[1].distributions[distribution].loc is not None:
@@ -31,6 +33,7 @@ for distribution in world.userInputs[1].distributions:
         analysis.saveParametersToTable(sim.dbName)
 
         for seed in seeds:
+            print('run {} ou of {}'.format(seeds.index(seed) + 1, len(seeds)))
             analysis.seed = seed
             sim.seed = seed
             sim.run(world)
