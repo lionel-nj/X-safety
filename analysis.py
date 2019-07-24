@@ -1,7 +1,5 @@
 import sqlite3
 
-import matplotlib.pyplot as plt
-import pandas as pd
 from trafficintelligence.storage import printDBError
 
 import events
@@ -12,7 +10,7 @@ class Analysis:
     def __init__(self, idx, world, seed, analysisZone=None):
         self.idx = idx
         self.world = world
-        self.interactions = world.completedInteractions
+        # self.interactions = world.completedInteractions
         self.analysisZone = analysisZone
         self.seed = seed
 
@@ -33,7 +31,7 @@ class Analysis:
             return self.analysisZone.getArea()
 
     def getInteractions(self):
-        return list(self.interactions.values())
+        return self.interactions
 
     # def evaluate(self, timeStep, duration, analysisZone=None):
     #     # todo : docstrings
@@ -71,30 +69,6 @@ class Analysis:
     #     for inter in crossingInteractions:
     #        inter.computeDistance(self.world, analysisZone)
     #        inter.computePETAtInstant(self.world, timeStep)
-
-    @staticmethod
-    def store(evaluationOutput):
-        df = pd.DataFrame({'seed': evaluationOutput[0], 'roadUser1Num': evaluationOutput[1], 'roadUserNum2': evaluationOutput[2], 'TTCmin': evaluationOutput[3], 'distmin': evaluationOutput[4], 'distmean': evaluationOutput[5]})
-        try:
-            df.to_csv('evaluation.csv', mode='a', header=False)
-        except:
-            df.to_csv('evaluation.csv')
-            print('File has been created')
-
-    def plotDistanceForUserPair(self, user1Num, user2Num):
-        """script to plot distance between a pair of vehicles"""
-        distances = self.getUserPairIndicatorValues(user1Num, user2Num, 'Distance')
-        time = self.getUserPairIndicatorInstants(user1Num, user2Num, 'Distance')
-        plt.plot(time, distances)
-
-    def getUserPairIndicatorValues(self, user1Num, user2Num, indicatorName):
-        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).getValues()
-
-    def getUserPairIndicatorInstants(self, user1Num, user2Num, indicatorName):
-        return self.getUserPairIndicator(user1Num, user2Num, indicatorName).getKeys()
-
-    def getUserPairIndicator(self, user1Num, user2Num, indicatorName):
-        return self.interactions[(user1Num, user2Num)].getIndicator(indicatorName)
 
     def saveIndicators(self, fileName):
         self.saveIndicatorsToSqlite(fileName, self.getInteractions())
@@ -184,5 +158,5 @@ def createAnalysisTable(fileName):
     connection = sqlite3.connect(fileName)
     cursor = connection.cursor()
     tableName = 'analysis'
-    cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, area REAL, userInput_id INTEGER, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, amberDistribution_type TEXT, amberDistribution__name TEXT, amberDistribution_loc REAL, amberDistribution_scale REAL, amberDistribution_a REAL,amberDistribution_b REAL, amberDistribution_cdf LIST, PRIMARY KEY(analysis_id, area, userInput_id))")
+    cursor.execute("CREATE TABLE IF NOT EXISTS " + tableName + " (analysis_id INTEGER, area REAL, userInput_id INTEGER, deltaDistribution_type TEXT, deltaDistribution_name TEXT, deltaDistribution_loc REAL, deltaDistribution_scale REAL, deltaDistribution_a REAL, deltaDistribution_b REAL, deltaDistribution_cdf LIST, headwayDistribution_type TEXT, headwayDistribution_name TEXT, headwayDistribution_loc REAL, headwayDistribution_scale REAL, headwayDistribution_a REAL, headwayDistribution_b REAL, headwayDistribution_cdf LIST, geometryDistribution_type TEXT, geometryDistribution_name TEXT, geometryDistribution_loc REAL, geometryDistribution_scale REAL, geometryDistribution_a REAL, geometryDistribution_b REAL, geometryDistribution_cdf LIST, speedDistribution_type TEXT, speedDistribution_name TEXT, speedDistribution_loc REAL, speedDistribution_scale REAL, speedDistribution_a REAL, speedDistribution_b REAL, speedDistribution_cdf LIST, tauDistribution_type TEXT, tauDistribution_name TEXT, tauDistribution_loc REAL, tauDistribution_scale REAL, tauDistribution_a REAL, tauDistribution_b REAL, tauDistribution_cdf LIST, criticalGapDistribution_type TEXT, criticalGapDistribution_name TEXT, criticalGapDistribution_loc REAL, criticalGapDistribution_scale REAL, criticalGapDistribution_a REAL, criticalGapDistribution_b REAL, criticalGapDistribution_cdf LIST, PRIMARY KEY(analysis_id, area, userInput_id))")
     connection.commit()

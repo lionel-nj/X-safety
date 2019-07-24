@@ -198,7 +198,7 @@ class NewellMovingObject(moving.MovingObject):
                 self.timeInterval = moving.TimeInterval(instant, instant)
                 self.curvilinearVelocities = moving.CurvilinearTrajectory()
                 world.setInserted(self)
-                self.getInitialAlignment().assignUserAtInstant(self, instant)
+                #self.getInitialAlignment().assignUserAtInstant(self, instant)
         else:
             s1 = self.curvilinearPositions.getSCoordAt(-1)
             freeFlowCoord = s1 + self.desiredSpeed
@@ -214,24 +214,28 @@ class NewellMovingObject(moving.MovingObject):
                     constrainedCoord = s1 + ds
                 s2 = min(freeFlowCoord, constrainedCoord)
             nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant, world)
-            if nextAlignments is not None:
-                if nextAlignments[-1].getExitIntersection() is not None:
-                    if len(self.curvilinearVelocities) >0:
-                        if self.intersectionEntryInstant is None:
-                            if nextAlignments[-1].getTotalDistance() - (s2-s1) <= s2onNextAlignment <= nextAlignments[-1].getTotalDistance():
-                                self.intersectionEntryInstant = instant + 1
+            # if nextAlignments is not None:
+            #     if nextAlignments[-1].getExitIntersection() is not None:
+            #         if len(self.curvilinearVelocities) >0:
+            #             if self.intersectionEntryInstant is None:
+            #                 if nextAlignments[-1].getTotalDistance() - (s2-s1) <= s2onNextAlignment <= nextAlignments[-1].getTotalDistance():
+            #                     self.intersectionEntryInstant = instant + 1
             if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
+                ds = s2-s1
                 for al in nextAlignments[1:]:
                     self.addVisitedAlignment(al)
                 if self.curvilinearPositions.getLaneAt(-2) == self.curvilinearPositions.getLaneAt(-1):
                     laneChange = None
                 else:
                     laneChange = (self.curvilinearPositions.getLaneAt(-2), self.curvilinearPositions.getLaneAt(-1))
-                    self.intersectionExitInstant = instant
-                self.curvilinearVelocities.addPositionSYL(s2 - s1, 0., laneChange)
+                    if nextAlignments[-1].getEntryIntersection() is not None:
+                        self.intersectionEntryInstant = instant - s2onNextAlignment/ds
+                        self.intersectionExitInstant = self.intersectionEntryInstant + self.geometry/ds
+                    #self.intersectionExitInstant = instant
+                self.curvilinearVelocities.addPositionSYL(ds, 0., laneChange)
                 self.setLastInstant(instant)
-                nextAlignments[-1].assignUserAtInstant(self, instant)
+                #nextAlignments[-1].assignUserAtInstant(self, instant)
 
                 # TODO test if the new alignment is different from leader, update leader, updateD du suiveur
 

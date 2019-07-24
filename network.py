@@ -406,7 +406,7 @@ class World:
                     categoryNum = 2
                 else:
                     categoryNum = None
-                self.addInteractions(events.Interaction(roadUser1=u, roadUser2=u2, timeInterval=u.commonTimeInterval(u2), useCurvilinear=True, categoryNum=categoryNum))
+                self.addInteractions(events.Interaction(num=len(self.interactions)+len(self.completedInteractions), roadUser1=u, roadUser2=u2, timeInterval=u.commonTimeInterval(u2), useCurvilinear=True, categoryNum=categoryNum))
             self.newUsers.remove(u)
             self.users.append(u)
         for u in self.newlyCompleted:
@@ -420,7 +420,7 @@ class World:
 
     def addInteractions(self, newInter):
         if newInter.roadUserNumbers not in [i.roadUserNumbers for i in self.interactions]:
-            newInter.num = len(self.interactions)
+            # newInter.num = len(self.interactions)
             self.interactions.append(newInter)
 
     def updateInteractions(self, instant, computeInteractions):
@@ -489,22 +489,22 @@ class World:
             self.completedInteractions.append(inter)
 
     def computePET(self):
-        for inter in self.completedInteractions + self.interactions:
-            if inter.categoryNum == 2:
-                # instant = self.timeInterval.first
-                # crossingPoints = self.getCrossingPointCurvilinearPosition(inter.roadUser1, inter.roadUser2, instant=instant)
-                # if crossingPoints is not None:
-                t1 = inter.roadUser1.getIntersectionEntryInstant()
-                t2 = inter.roadUser2.getIntersectionEntryInstant()
-                if t1 is not None and t2 is not None:
-                    if t1 < t2:
-                        t1 = inter.roadUser1.getIntersectionExitInstant()
-                        instant = t1
-                    else:
-                        t2 = inter.roadUser2.getIntersectionExitInstant()
-                        instant = t2
-                    if t1 is not None and t2 is not None:
-                        inter.addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[10], {instant: abs(t1 - t2)}, mostSevereIsMax=False))
+        users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key = lambda u: u.getIntersectionEntryInstant())
+        interactions = [inter for inter in self.completedInteractions+self.interactions if inter.categoryNum == 2]
+        for i in range(1,len(users)):
+            t1 = users[i-1].getIntersectionExitInstant()
+            t2 = users[i].getIntersectionEntryInstant()
+            if t1 > t2:
+                pet = 0
+            else:
+                pet = t2-t1
+            userNumbers = set([users[i-1].getNum(), users[i].getNum()])
+            j = 0
+            while j<len(interactions) and userNumbers != interactions[j].roadUserNumbers:
+                j += 1
+            if j<len(interactions):
+                interactions[j].addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[10], {t1: pet}, mostSevereIsMax=False))
+                interactions.remove(interactions[j])
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
@@ -831,14 +831,14 @@ class World:
         self.userInputs[0].distributions['dn'].loc = args.dn
         self.userInputs[0].distributions['tau'].loc = args.tau
         self.userInputs[0].distributions['length'].loc = args.l
-
-    def finalize(self, lastInstant):
-        """replaces users in the correct list according to their status"""
-        for u in self.users:
-            if u.timeInterval is not None:
-                if u.getLastInstant() != lastInstant:
-                    self.completed.append(u)
-                    self.users.remove(u)
+    #
+    # def finalize(self, lastInstant):
+    #     """replaces users in the correct list according to their status"""
+    #     for u in self.users:
+    #         if u.timeInterval is not None:
+    #             if u.getLastInstant() != lastInstant:
+    #                 self.completed.append(u)
+    #                 self.users.remove(u)
 
 
     def updateControlDevices(self):
@@ -862,35 +862,6 @@ class World:
             return None
         else:
             return {al: al.firstUser for al in currentUserAlignment.transversalAlignments}
-            # crossingUsers = {}
-            # for al in currentUserAlignment.transversalAlignments:
-            #     s = -1
-            #     crossingUser = None
-            #     for u in self.users:
-            #         p = u.getCurvilinearPositionAt(-1)
-            #         if p[2] == al.getIdx():
-            #             if p[0] > s:
-            #                 s = p[0]
-            #                 crossingUser = u
-            #     crossingUsers[al] = crossingUser
-            # return crossingUsers
-
-        # cp = user.getCurvilinearPositionAtInstant(instant - 1)
-        # transversalAlignments = self.alignments[cp[2]].transversalAlignments
-        # if instant in user.timeInterval:
-        #     if transversalAlignments is not None:
-        #         if user.leader is not None:
-        #             print(user.num, user.timeInterval, instant)
-        #             if user.leader.getCurvilinearPositionAtInstant(instant - 1)[2] != user.getCurvilinearPositionAtInstant(instant - 1):
-        #                 return self.scan(transversalAlignments, instant - 1, withCompleted)
-        #             else:
-        #                 return None
-        #         else:
-        #             self.scan(transversalAlignments, instant, withCompleted)
-        #     else:
-        #         return None
-        # else:
-        #     return None
 
     def scan(self, transversalAlignments, instant, withCompleted=False):
         """ returns users on transversal alignment ordered by ascending curvilinear position at instant on alignment"""
@@ -1028,7 +999,7 @@ class UserInput:
         self.tauDistribution = self.distributions['tau'].getDistribution(1. / timeStep)
         self.dDistribution = self.distributions['dn'].getDistribution()
         self.gapDistribution = self.distributions['criticalGap'].getDistribution(1. / timeStep)
-        self.amberProbabilityDistribution = self.distributions['amberProbability'].getDistribution()
+        # self.amberProbabilityDistribution = self.distributions['amberProbability'].getDistribution()
 
     # def generateHeadways(self, duration):
     #     """ generates a set a headways"""
@@ -1057,8 +1028,8 @@ class UserInput:
                                         criticalGap=self.gapDistribution.rvs(),
                                         # kj=120 veh/km
                                         initialCumulatedHeadway=initialCumulatedHeadway,
-                                        initialAlignment=self.alignment,
-                                        amberProbability=self.amberProbabilityDistribution.rvs())
+                                        initialAlignment=self.alignment)
+                                        # amberProbability=self.amberProbabilityDistribution.rvs())
         obj.interactions = None
         obj.intersectionEntryInstant = None
         obj.intersectionExitInstant = None

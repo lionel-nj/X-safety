@@ -96,9 +96,6 @@ userInputs:
       scale: 1
       a: -1
       b: 1
-    amberProbability: !!python/object:network.Distribution
-      degeneratedConstant: 5
-      distributionType: degenerated
   idx: 0
 - !!python/object:network.UserInput
   alignmentIdx: 2
@@ -143,7 +140,4 @@ userInputs:
       scale: 1
       a: -1
       b: 1
-    amberProbability: !!python/object:network.Distribution
-      degeneratedConstant: 5
-      distributionType: degenerated
   idx: 1

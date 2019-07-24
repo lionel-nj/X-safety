@@ -1,8 +1,8 @@
 import numpy as np
 
+# import interface as iface
 import analysis as an
 import events
-# import interface as iface
 import network
 import simulation
 import toolkit
@@ -28,6 +28,12 @@ PETs = {}
 
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
+
+an.createAnalysisTable(sim.dbName)
+network.createNewellMovingObjectsTable(sim.dbName)
+analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
+analysis.interactions = world.completedInteractions
+
 for seed in seeds:
     readEndTTCs[seed] = []
     PETs[seed] = []
@@ -39,8 +45,13 @@ for seed in seeds:
 
     sim.seed = seed
     world = network.World.load('cross-net.yml')
-    duration = sim.run(world)
     analysis = an.Analysis(idx=0, seed=seed, world=world)
+    duration = sim.run(world)
+    analysis.interactions = world.completedInteractions
+    world.saveObjects(sim.dbName, seed, 0)
+    world.saveTrajectoriesToDB(sim.dbName, seed, 0)
+    analysis.saveIndicators(sim.dbName)
+
     # analysis.evaluate(sim.timeStep, sim.duration)
     durations[seed] = [duration * sim.timeStep]
     for inter in analysis.interactions:
