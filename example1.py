@@ -22,6 +22,7 @@ world.plotUserTrajectories(sim.timeStep)
 
 minTTCs = {1: [], 2: []}
 minDistances = {1: [], 2: []}
+
 PETs = []
 interactions = []
 for inter in world.completedInteractions:
