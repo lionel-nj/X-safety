@@ -51,7 +51,7 @@ for seed in seeds:
     analysis.interactions = world.completedInteractions
     world.saveObjects(sim.dbName, seed, 0)
     world.saveTrajectoriesToDB(sim.dbName, seed, 0)
-    analysis.saveParametersToTable(sim.dnName)
+    analysis.saveParametersToTable(sim.dbName)
     analysis.saveIndicators(sim.dbName)
 
     # analysis.evaluate(sim.timeStep, sim.duration)
@@ -109,6 +109,5 @@ toolkit.plotVariations(rearEndnInter20, 'rearEnd-nInter20.pdf', '$rear\ end\ nIn
 toolkit.plotVariations(rearEndnInter50, 'rearEnd-nInter50.pdf', '$rear\ end\ nInter_{50}$', '$rear\ end\ nInter_{50}$')
 
 toolkit.plotVariations(PETs, 'pet.pdf', '$PET(s)$', 'post encroachment time (s)')
-#toolkit.plotVariations(durations, 'duration.pdf', 'simulation duration (s)', 'simulation duration (s)')
 
 toolkit.callWhenDone()
