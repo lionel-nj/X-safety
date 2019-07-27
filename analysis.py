@@ -1,5 +1,6 @@
 import sqlite3
 
+from trafficintelligence import moving
 from trafficintelligence.storage import printDBError
 
 import events
@@ -112,6 +113,7 @@ class Analysis:
 
     def saveInteraction(self, cursor, interaction):
         roadUserNumbers = list(interaction.getRoadUserNumbers())
+        # category = interaction.categoryNum
         cursor.execute('INSERT INTO interactions VALUES({}, {}, {}, {}, {}, {}, {})'.format(interaction.getNum(), self.idx, self.seed, roadUserNumbers[0], roadUserNumbers[1], interaction.getFirstInstant(), interaction.getLastInstant()))
 
     def saveIndicator(self, cursor, interactionNum, indicator):
@@ -152,9 +154,26 @@ class AnalysisZone:
                     return True
             return False
 
+    def getUserIntervalInAnalysisZone(self, user):
+        firstInstant = None
+        lastInstant = None
+        for t in list(user.timeInterval):
+            if self.userInAnalysisZoneAtInstant(user, t):
+                firstInstant = t
+                break
+        if firstInstant is None:
+            return None
+        else:
+            for instant in range(firstInstant, user.getLastInstant() + 1):
+                if not self.userInAnalysisZoneAtInstant(user, instant):
+                    lastInstant = instant - 1
+                    break
+            if lastInstant is None:
+                lastInstant = user.getLastInstant()
+            return moving.TimeInterval(firstInstant, lastInstant)
+
 
 def createAnalysisTable(fileName):
-    # Todo : ajouter la colonne degenerated constant pour chaque distribution
     connection = sqlite3.connect(fileName)
     cursor = connection.cursor()
     tableName = 'analysis'

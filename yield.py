@@ -5,66 +5,71 @@ import analysis as an
 import events
 import network
 import simulation
+import toolkit
 
-world = network.World.load('cross-net.yml')
-sim = simulation.Simulation.load('config.yml')
-sim.dbName = 'yield-data.db'
-analysis = an.Analysis(idx = 0, world=world, seed=sim.seed)
-an.createAnalysisTable(sim.dbName)
+yield_world = network.World.load('yield.yml')
+yield_sim = simulation.Simulation.load('yield-config.yml')
+yield_sim.dbName = 'yield-data.db'
+yield_analysis = an.Analysis(idx = 0, world=yield_world, seed=yield_sim.seed)
+yield_analysis.interactions = []
+#an.createAnalysisTable(sim.dbName)
 
-seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-minTTCs = {1: [], 2: []}
-minDistances = {1: {}, 2: {}}
-for categoryNum in minDistances:
+seeds = [yield_sim.seed+i*yield_sim.increment for i in range(yield_sim.rep)]
+yield_minTTCs = {1: [], 2: []}
+yield_minDistances = {1: {}, 2: {}}
+for categoryNum in yield_minDistances:
     for seed in seeds:
-        minDistances[categoryNum][seed] = []#
+        yield_minDistances[categoryNum][seed] = []  #
 
-PETs = []
-interactions = []
+yield_PETs = []
+yield_interactions = []
 
-rearEndnInter10 = []
-rearEndnInter20 = []
-rearEndnInter50 = []
+yield_rearEndnInter10 = []
+yield_rearEndnInter20 = []
+yield_rearEndnInter50 = []
 
-sidenInter10 = []
-sidenInter20 = []
-sidenInter50 = []
+yield_sidenInter10 = []
+yield_sidenInter20 = []
+yield_sidenInter50 = []
 
 
-analysis.saveParametersToTable(sim.dbName)
+# analysis.saveParametersToTable(sim.dbName)
 for seed in seeds:
-    world = network.World.load('cross-net.yml')
-    sim.seed = seed
-    sim.run(world)
-    analysis.seed = seed
-    analysis.interactions = world.completedInteractions
-    analysis.saveIndicators(sim.dbName)
-    for inter in world.completedInteractions:
+    print(str(seeds.index(seed)+1) + 'out of {}'.format(len(seeds)))
+    yield_world = network.World.load('yield.yml')
+    yield_sim.seed = seed
+    yield_sim.run(yield_world)
+    yield_analysis.seed = seed
+    yield_analysis.interactions.append(yield_world.completedInteractions)
+    # analysis.saveIndicators(sim.dbName)
+    for inter in yield_world.completedInteractions:
         if inter.categoryNum is not None:
-            distance = inter.getIndicator(events.Interaction.indicatorNames[2])
-            if distance is not None:
-                minDistances[inter.categoryNum][seed].append(distance.getMostSevereValue(1))
-            ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
-            if ttc is not None:
-                minTTC = ttc.getMostSevereValue(1)*sim.timeStep  # seconds
-                if minTTC < 0:
-                    print(inter.num, inter.categoryNum, ttc.values)
-                if minTTC < 20:
-                    minTTCs[inter.categoryNum].append(minTTC)
-                values = ttc.getValues(False)
+            yield_distance = inter.getIndicator(events.Interaction.indicatorNames[2])
+            if yield_distance is not None:
+                yield_minDistances[inter.categoryNum][seed].append(yield_distance.getMostSevereValue(1))
+            yield_ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
+            if yield_ttc is not None:
+                yield_minTTC = yield_ttc.getMostSevereValue(1)*yield_sim.timeStep  # seconds
+                if yield_minTTC < 0:
+                    print(inter.num, inter.categoryNum, yield_ttc.values)
+                if yield_minTTC < 20:
+                    yield_minTTCs[inter.categoryNum].append(yield_minTTC)
+                values = yield_ttc.getValues(False)
                 if len(values) > 5:
-                    interactions.append(inter)
+                    yield_interactions.append(inter)
             if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
-                PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1))
+                yield_PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1))
 
-    rearEndnInter10.append((np.array(minDistances[1][seed]) <= 10).sum())
-    rearEndnInter20.append((np.array(minDistances[1][seed]) <= 20).sum())
-    rearEndnInter50.append((np.array(minDistances[1][seed]) <= 50).sum())
+    yield_rearEndnInter10.append((np.array(yield_minDistances[1][seed]) <= 10).sum())
+    yield_rearEndnInter20.append((np.array(yield_minDistances[1][seed]) <= 20).sum())
+    yield_rearEndnInter50.append((np.array(yield_minDistances[1][seed]) <= 50).sum())
 
-    sidenInter10.append((np.array(minDistances[2][seed]) <= 10).sum())
-    sidenInter20.append((np.array(minDistances[2][seed]) <= 20).sum())
-    sidenInter50.append((np.array(minDistances[2][seed]) <= 50).sum())
+    yield_sidenInter10.append((np.array(yield_minDistances[2][seed]) <= 10).sum())
+    yield_sidenInter20.append((np.array(yield_minDistances[2][seed]) <= 20).sum())
+    yield_sidenInter50.append((np.array(yield_minDistances[2][seed]) <= 50).sum())
 
-nInter10 = {1: np.mean(rearEndnInter10), 2: np.mean(sidenInter10)}
-nInter20 = {1: np.mean(rearEndnInter20), 2: np.mean(sidenInter20)}
-nInter50 = {1: np.mean(rearEndnInter50), 2: np.mean(sidenInter50)}
+yield_nInter10 = {1: np.mean(yield_rearEndnInter10), 2: np.mean(yield_sidenInter10)}
+yield_nInter20 = {1: np.mean(yield_rearEndnInter20), 2: np.mean(yield_sidenInter20)}
+yield_nInter50 = {1: np.mean(yield_rearEndnInter50), 2: np.mean(yield_sidenInter50)}
+
+toolkit.callWhenDone()

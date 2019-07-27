@@ -5,66 +5,71 @@ import analysis as an
 import events
 import network
 import simulation
+import toolkit
 
-world = network.World.load('cross-net.yml')
-sim = simulation.Simulation.load('config.yml')
-sim.dbName = 'stop-data.db'
-analysis = an.Analysis(idx = 0, world=world, seed=sim.seed)
-an.createAnalysisTable(sim.dbName)
+stop_world = network.World.load('stop.yml')
+stop_sim = simulation.Simulation.load('stop-config.yml')
+stop_sim.dbName = 'stop-data.db'
+stop_analysis = an.Analysis(idx = 0, world=stop_world, seed=stop_sim.seed)
+stop_analysis.interactions = []
+#an.createAnalysisTable(sim.dbName)
 
-seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-minTTCs = {1: [], 2: []}
-minDistances = {1: {}, 2: {}}
-for categoryNum in minDistances:
+seeds = [stop_sim.seed+i*stop_sim.increment for i in range(stop_sim.rep)]
+stop_minTTCs = {1: [], 2: []}
+stop_minDistances = {1: {}, 2: {}}
+for categoryNum in stop_minDistances:
     for seed in seeds:
-        minDistances[categoryNum][seed] = []#
+        stop_minDistances[categoryNum][seed] = []#
 
-PETs = []
-interactions = []
+stop_PETs = []
+stop_interactions = []
 
-rearEndnInter10 = []
-rearEndnInter20 = []
-rearEndnInter50 = []
+stop_rearEndnInter10 = []
+stop_rearEndnInter20 = []
+stop_rearEndnInter50 = []
 
-sidenInter10 = []
-sidenInter20 = []
-sidenInter50 = []
+stop_sidenInter10 = []
+stop_sidenInter20 = []
+stop_sidenInter50 = []
 
 
-analysis.saveParametersToTable(sim.dbName)
+#analysis.saveParametersToTable(sim.dbName)
 for seed in seeds:
-    world = network.World.load('cross-net.yml')
-    sim.seed = seed
-    sim.run(world)
-    analysis.seed = seed
-    analysis.interactions = world.completedInteractions
-    analysis.saveIndicators(sim.dbName)
-    for inter in world.completedInteractions:
+    print(str(seeds.index(seed)+1) + 'out of {}'.format(len(seeds)))
+    stop_world = network.World.load('stop.yml')
+    stop_sim.seed = seed
+    stop_sim.run(stop_world)
+    stop_analysis.seed = seed
+    stop_analysis.interactions.append(stop_world.completedInteractions)
+    #stop.saveIndicators(sim.dbName)
+    for inter in stop_world.completedInteractions:
         if inter.categoryNum is not None:
-            distance = inter.getIndicator(events.Interaction.indicatorNames[2])
-            if distance is not None:
-                minDistances[inter.categoryNum][seed].append(distance.getMostSevereValue(1))
-            ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
-            if ttc is not None:
-                minTTC = ttc.getMostSevereValue(1)*sim.timeStep  # seconds
-                if minTTC < 0:
-                    print(inter.num, inter.categoryNum, ttc.values)
-                if minTTC < 20:
-                    minTTCs[inter.categoryNum].append(minTTC)
-                values = ttc.getValues(False)
+            stop_distance = inter.getIndicator(events.Interaction.indicatorNames[2])
+            if stop_distance is not None:
+                stop_minDistances[inter.categoryNum][seed].append(stop_distance.getMostSevereValue(1))
+            stop_ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
+            if stop_ttc is not None:
+                stop_minTTC = stop_ttc.getMostSevereValue(1)*stop_sim.timeStep  # seconds
+                if stop_minTTC < 0:
+                    print(inter.num, inter.categoryNum, stop_ttc.values)
+                if stop_minTTC < 20:
+                    stop_minTTCs[inter.categoryNum].append(stop_minTTC)
+                values = stop_ttc.getValues(False)
                 if len(values) > 5:
-                    interactions.append(inter)
+                    stop_interactions.append(inter)
             if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
-                PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1))
+                stop_PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1))
 
-    rearEndnInter10.append((np.array(minDistances[1][seed]) <= 10).sum())
-    rearEndnInter20.append((np.array(minDistances[1][seed]) <= 20).sum())
-    rearEndnInter50.append((np.array(minDistances[1][seed]) <= 50).sum())
+    stop_rearEndnInter10.append((np.array(stop_minDistances[1][seed]) <= 10).sum())
+    stop_rearEndnInter20.append((np.array(stop_minDistances[1][seed]) <= 20).sum())
+    stop_rearEndnInter50.append((np.array(stop_minDistances[1][seed]) <= 50).sum())
 
-    sidenInter10.append((np.array(minDistances[2][seed]) <= 10).sum())
-    sidenInter20.append((np.array(minDistances[2][seed]) <= 20).sum())
-    sidenInter50.append((np.array(minDistances[2][seed]) <= 50).sum())
+    stop_sidenInter10.append((np.array(stop_minDistances[2][seed]) <= 10).sum())
+    stop_sidenInter20.append((np.array(stop_minDistances[2][seed]) <= 20).sum())
+    stop_sidenInter50.append((np.array(stop_minDistances[2][seed]) <= 50).sum())
 
-nInter10 = {1: np.mean(rearEndnInter10), 2: np.mean(sidenInter10)}
-nInter20 = {1: np.mean(rearEndnInter20), 2: np.mean(sidenInter20)}
-nInter50 = {1: np.mean(rearEndnInter50), 2: np.mean(sidenInter50)}
+stop_nInter10 = {1: np.mean(stop_rearEndnInter10), 2: np.mean(stop_sidenInter10)}
+stop_nInter20 = {1: np.mean(stop_rearEndnInter20), 2: np.mean(stop_sidenInter20)}
+stop_nInter50 = {1: np.mean(stop_rearEndnInter50), 2: np.mean(stop_sidenInter50)}
+
+toolkit.callWhenDone()

@@ -148,8 +148,13 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         else:
             return None
 
-    def updateTimeInterval(self):
-        self.timeInterval = self.roadUser1.commonTimeInterval(self.roadUser2)
+    def getSubInteraction(self, timeInterval):
+        from trafficintelligence import indicators
+        subInteraction = Interaction(num=self.num, roadUser1=self.roadUser1, roadUser2=self.roadUser2, categoryNum=self.categoryNum, useCurvilinear=self.useCurvilinear, timeInterval=timeInterval)
+        for indicator in self.indicators:
+            subIndicator = indicators.SeverityIndicator(self.indicators[indicator].name, self.getIndicatorValuesInTimeInterval(timeInterval, self.indicators[indicator].name), mostSevereIsMax=False)
+            subInteraction.addIndicator(subIndicator)
+        return subInteraction
 
     def getIndicatorValuesAtInstant(self, instant):
         '''Returns list of indicator values at instant
@@ -160,10 +165,10 @@ class Interaction(moving.STObject, VideoFilenameAddable):
         return values
 
     def getIndicatorValuesInTimeInterval(self, timeInterval, indicatorName):
-        # todo : verifier
-        values = []
+        """returns a dict of values of indicator in timeInterval for specified indicatorName"""
+        values = {}
         for instant in list(timeInterval):
-            values.append(self.getIndicatorValueAtInstant(indicatorName, instant))
+            values[instant] = self.getIndicatorValueAtInstant(indicatorName, instant)
         return values
 
     def plot(self, options='', withOrigin=False, timeStep=1, withFeatures=False, **kwargs):

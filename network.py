@@ -439,6 +439,8 @@ class World:
                     distanceIndicator.values[instant] = distance
                     distanceIndicator.getTimeInterval().last = instant
 
+                    distanceIndicator.getTimeInterval().last = instant
+
                     if inter.categoryNum == 1:  # rearend
                         distanceIndicator.values[instant] = distance - inter.roadUser2.geometry
                         # compute TTC as distance-length/dv
