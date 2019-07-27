@@ -30,8 +30,8 @@ sim = simulation.Simulation.load('config.yml')
 sim.dbName = 'stabilization-data.db'
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 
-an.createAnalysisTable(sim.dbName)
-network.createNewellMovingObjectsTable(sim.dbName)
+# an.createAnalysisTable(sim.dbName)
+# network.createNewellMovingObjectsTable(sim.dbName)
 analysis = an.Analysis(idx=0, world=world, seed=sim.seed)
 
 
@@ -49,10 +49,10 @@ for seed in seeds:
     analysis = an.Analysis(idx=0, seed=seed, world=world)
     sim.run(world)
     analysis.interactions = world.completedInteractions
-    world.saveObjects(sim.dbName, seed, 0)
-    world.saveTrajectoriesToDB(sim.dbName, seed, 0)
-    analysis.saveParametersToTable(sim.dbName)
-    analysis.saveIndicators(sim.dbName)
+    # world.saveObjects(sim.dbName, seed, 0)
+    # world.saveTrajectoriesToDB(sim.dbName, seed, 0)
+    # analysis.saveParametersToTable(sim.dbName)
+    # analysis.saveIndicators(sim.dbName)
 
     # analysis.evaluate(sim.timeStep, sim.duration)
     #durations[seed] = [duration * sim.timeStep]
