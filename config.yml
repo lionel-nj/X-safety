@@ -1,11 +1,11 @@
 !!python/object:simulation.Simulation
 duration: 600
-minNCompletedUsers: 200
+minNCompletedUsers: 150
 timeStep: 0.1
 safetyDistance: 1.0
-verbose: True
+verbose: False
 seed: 44
 increment: 4
-rep: 20
+rep: 15
 dbName: stop-data.db
 computeInteractions: True
