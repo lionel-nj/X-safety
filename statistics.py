@@ -62,43 +62,40 @@ f.close()
 ### histograms ###
 
 # rear end TTCs
-plt.hist(stop_minTTCs[1], density=True, histtype='step', cumulative=True, label='stop sign', filled=False)
-plt.hist(yield_minTTCs[1], density=True, histtype='step', cumulative=True, label='yield sign', filled=False)
-plt.hist(sQuo_minTTCs[1], density=True, histtype='step', cumulative=True, label='status quo', filled=False)
+plt.hist(stop_minTTCs[1], density=True, histtype='step', cumulative=True, label='stop sign', fill=False)
+plt.hist(yield_minTTCs[1], density=True, histtype='step', cumulative=True, label='yield sign', fill=False)
+plt.hist(sQuo_minTTCs[1], density=True, histtype='step', cumulative=True, label='status quo', fill=False)
 
-plt.grid(True)
 plt.legend(loc='right')
-plt.set_title('Rear end Time to Collision cumulative distribution functions')
-plt.set_xlabel('Time to Collision (s)')
-plt.set_ylabel('Frequency')
+plt.title('Rear end Time to Collision cumulative distribution functions')
+plt.xlabel('Time to Collision (s)')
+plt.ylabel('Frequency')
 
 plt.savefig('cdf-rearEndTTCs.pdf')
 plt.close()
 
 #side TTCs
-plt.hist(stop_minTTCs[2], density=True, histtype='step', cumulative=True, label='stop sign', filled=False)
-plt.hist(yield_minTTCs[2], density=True, histtype='step', cumulative=True, label='yield sign', filled=False)
-plt.hist(sQuo_minTTCs[2], density=True, histtype='step', cumulative=True, label='status quo', filled=False)
+plt.hist(stop_minTTCs[2], density=True, histtype='step', cumulative=True, label='stop sign', fill=False)
+plt.hist(yield_minTTCs[2], density=True, histtype='step', cumulative=True, label='yield sign', fill=False)
+plt.hist(sQuo_minTTCs[2], density=True, histtype='step', cumulative=True, label='status quo', fill=False)
 
-plt.grid(True)
 plt.legend(loc='right')
-plt.set_title('Side Time to Collision cumulative distribution functions')
-plt.set_xlabel('Time to Collision (s)')
-plt.set_ylabel('Frequency')
+plt.title('Side Time to Collision cumulative distribution functions')
+plt.xlabel('Time to Collision (s)')
+plt.ylabel('Frequency')
 
 plt.savefig('cdf-sideTTCs.pdf')
 plt.close()
 
 # PETs
-plt.hist(stop_PETs, density=True, histtype='step', cumulative=True, label='stop sign', filled=False)
-plt.hist(yield_PETs, density=True, histtype='step', cumulative=True, label='yield sign', filled=False)
-plt.hist(sQuo_PETs, density=True, histtype='step', cumulative=True, label='status quo', filled=False)
+plt.hist(stop_PETs, density=True, histtype='step', cumulative=True, label='stop sign', fill=False)
+plt.hist(yield_PETs, density=True, histtype='step', cumulative=True, label='yield sign', fill=False)
+plt.hist(sQuo_PETs, density=True, histtype='step', cumulative=True, label='status quo', fill=False)
 
-plt.grid(True)
 plt.legend(loc='right')
-plt.set_title('Post Encroachment Time Cumulative Distribution Functions')
-plt.set_xlabel('Post Encroachment Time (s)')
-plt.set_ylabel('Frequency')
+plt.title('Post Encroachment Time Cumulative Distribution Functions')
+plt.xlabel('Post Encroachment Time (s)')
+plt.ylabel('Frequency')
 
 plt.savefig('cdf-PETs.pdf')
 plt.close()
