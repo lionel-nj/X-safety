@@ -279,3 +279,5 @@ plt.legend(['pedestrians crossing'])# sign', 'yield sign', 'status quo'])
 plt.title('Side Time to Collision cumulative distribution functions')
 plt.savefig('cdfRaw-TTCs-pedestrians.pdf')
 plt.close()
+
+toolkit.callWhenDone()
