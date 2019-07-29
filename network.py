@@ -393,11 +393,20 @@ class World:
     def setNewlyCompleted(self, user):
         self.newlyCompleted.append(user)
 
-    def updateUsers(self, instant):
+    def updateUsers(self, instant, analysisZone=None):
         self.newlyCompleted = []
         self.inserted = []
         for u in self.newUsers + self.users:
             u.updateCurvilinearPositions(instant, self)
+            if analysisZone is not None:
+                if u.timeInterval is not None:# and u.curvilinearPositions is not None:
+                    if analysisZone.positionInAnalysisZone(u.getCurvilinearPositionAt(-1)):
+                        if u.timeIntervalInAnalysisZone.first == 0:
+                            u.timeIntervalInAnalysisZone.first = instant
+                    else:
+                        if u.timeIntervalInAnalysisZone.first != 0:
+                            if u.timeIntervalInAnalysisZone.last == -1:
+                                u.timeIntervalInAnalysisZone.last = instant - 1
         for u in self.inserted:
             for u2 in self.users:
                 if u2 == u.getLeader():
@@ -406,7 +415,10 @@ class World:
                     categoryNum = 2
                 else:
                     categoryNum = None
-                self.addInteractions(events.Interaction(num=len(self.interactions)+len(self.completedInteractions), roadUser1=u, roadUser2=u2, timeInterval=u.commonTimeInterval(u2), useCurvilinear=True, categoryNum=categoryNum))
+                newInteraction = events.Interaction(num=len(self.interactions)+len(self.completedInteractions), roadUser1=u, roadUser2=u2, timeInterval=u.commonTimeInterval(u2), useCurvilinear=True, categoryNum=categoryNum)
+                newInteraction.roadUser1Positions = {}
+                newInteraction.roadUser2Positions = {}
+                self.addInteractions(newInteraction)
             self.newUsers.remove(u)
             self.users.append(u)
         for u in self.newlyCompleted:
@@ -1035,6 +1047,8 @@ class UserInput:
         obj.interactions = None
         obj.intersectionEntryInstant = None
         obj.intersectionExitInstant = None
+        obj.timeIntervalInAnalysisZone = moving.TimeInterval()
+        # obj.timeIntervalInAnalysisZone.first, obj.timeIntervalInAnalysisZone.last = None, None
         if self.lastGeneratedUser is not None:
             obj.leader = self.lastGeneratedUser
             obj.updateD(safetyDistance)

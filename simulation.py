@@ -1,5 +1,6 @@
 import numpy as np
 
+import analysis as an
 import toolkit
 
 
@@ -28,11 +29,15 @@ class Simulation(object):
     def load(filename):
         return toolkit.loadYaml(filename)
 
-    def run(self, world):
+    def run(self, world, surface=None):
         np.random.seed(self.seed)
 
         # preparing simulation
         world.prepare(self.timeStep, self.duration)
+        if surface is not None:
+            analysisZone = an.AnalysisZone(world.intersections[0], surface)
+        else:
+            analysisZone = None
         
         # main loop
         userNum = 0
@@ -44,7 +49,7 @@ class Simulation(object):
                 print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
             world.updateControlDevices()
             userNum = world.initUsers(instant, userNum, self.safetyDistance)
-            world.updateUsers(instant)
+            world.updateUsers(instant, analysisZone)
             world.updateFirstUsers()
             world.updateInteractions(instant, self.computeInteractions)
             instant += 1

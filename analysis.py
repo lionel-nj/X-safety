@@ -154,6 +154,12 @@ class AnalysisZone:
                     return True
             return False
 
+    def positionInAnalysisZone(self, curvilinearPosition):
+        for minVal, maxVal in zip(self.minAlignment, self.maxAlignment):
+            if (minVal[0] <= curvilinearPosition[0] and curvilinearPosition[2] == minVal[1]) or (curvilinearPosition[0] <= maxVal[0] and curvilinearPosition[2] == maxVal[1]):
+                return True
+        return False
+
     def getUserIntervalInAnalysisZone(self, user):
         firstInstant = None
         lastInstant = None
