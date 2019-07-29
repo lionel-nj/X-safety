@@ -13,7 +13,7 @@ sim.verbose = False
 
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 anIdx = 0
-variationRates = [-.4, .8]
+variationRates = [-.4, .4]
 
 rearEndnInter10 = {}
 rearEndnInter20 = {}
