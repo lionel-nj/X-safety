@@ -103,7 +103,12 @@ for distribution in world.userInputs[1].distributions:
             toolkit.saveYaml('sa-minDistances-{}{}.yml'.format(distribution, variation), minDistances)
 
             anIdx += 1
+    ### memory flush
+            minTTCs = {1: [], 2: []}
+            minDistances = {1: [], 2: []}
 
+            PETs = []
+            interactions = []
 
             nInter10[distribution][variation] = {1: np.mean(rearEndnInter10[distribution][variation]), 2: np.mean(sidenInter10[distribution][variation])}
             nInter20[distribution][variation] = {1: np.mean(rearEndnInter20[distribution][variation]), 2: np.mean(sidenInter20[distribution][variation])}
@@ -120,5 +125,27 @@ for distribution in world.userInputs[1].distributions:
             toolkit.saveYaml('sa-side-nInter10-{}-{}'.format(distribution, variation), sidenInter10)
             toolkit.saveYaml('sa-side-nInter20-{}-{}'.format(distribution, variation), sidenInter20)
             toolkit.saveYaml('sa-side-nInter50-{}-{}'.format(distribution, variation), sidenInter50)
+
+## flush the memory
+            nInter10[distribution][variation] = {}
+            nInter20[distribution][variation] = {}
+            nInter50[distribution][variation] = {}
+            sidenInter10[distribution][variation] = []
+            sidenInter20[distribution][variation] = []
+            sidenInter50[distribution][variation] = []
+            rearEndnInter10[distribution][variation] = []
+            rearEndnInter20[distribution][variation] = []
+            rearEndnInter50[distribution][variation] = []
+
+    sidenInter10[distribution] = {}
+    sidenInter20[distribution] = {}
+    sidenInter50[distribution] = {}
+    rearEndnInter10[distribution] = {}
+    rearEndnInter20[distribution] = {}
+    rearEndnInter50[distribution] = {}
+
+    nInter10[distribution] = {}
+    nInter20[distribution] = {}
+    nInter50[distribution] = {}
 
 toolkit.callWhenDone()

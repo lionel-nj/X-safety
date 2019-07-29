@@ -2,7 +2,7 @@ import analysis as an
 import network
 import simulation
 
-world = network.World.load('stop.yml')
+world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 surfaces = [1000, 5000, 10000]
@@ -31,7 +31,7 @@ analysisList = []
 
 for seed in seeds:
     print('run {} out of {}'.format(seeds.index(seed) + 1, len(seeds)))
-    world = network.World.load('stop.yml')
+    world = network.World.load('cross-net.yml')
     sim.seed = seed
     sim.run(world)
     analysis = an.Analysis(idx=0, world=world, seed=seed)

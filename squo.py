@@ -14,7 +14,7 @@ sQuo_analysis = an.Analysis(idx = 0, world=sQuo_world, seed=sQuo_sim.seed)
 sQuo_analysis.interactions = []
 #an.createAnalysisTable(sim.dbName)
 
-seeds = [sQuo_sim.seed+i*sQuo_sim.increment for i in range(sQuo_sim.rep)]
+seeds = [2+i*sQuo_sim.increment for i in range(sQuo_sim.rep)]
 sQuo_minTTCs = {1: [], 2: []}
 sQuo_minDistances = {1: {}, 2: {}}
 for categoryNum in sQuo_minDistances:
