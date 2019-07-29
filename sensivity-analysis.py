@@ -26,7 +26,7 @@ nInter20 = {}
 nInter50 = {}
 
 for distribution in world.userInputs[1].distributions:
-    if distribution == 'headways' or distribution == 'dn':
+    if distribution != 'criticalGap':
 
         sidenInter10[distribution] = {}
         sidenInter20[distribution] = {}
