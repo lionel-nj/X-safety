@@ -37,9 +37,8 @@ for seed in seeds:
     analysis = an.Analysis(idx=0, world=world, seed=seed)
     analysis.interactions = world.completedInteractions
     analysisList.append(analysis)
-
-# for surface in surfaces:
 #
+# for surface in surfaces:
 #     print(surface)
 #     analysisZone = an.AnalysisZone(world.intersections[0], surface)
 #
@@ -91,8 +90,6 @@ for seed in seeds:
 #                         if subInteraction.getIndicator(events.Interaction.indicatorNames[10]) is not None:
 #                             PETs[surface][analysis.seed].append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1) * sim.timeStep)
 #
-#
-#         #
 #         sidenInter10[surface].append((np.array(minDistances[surface][2][analysis.seed]) <= 10).sum())
 #         sidenInter20[surface].append((np.array(minDistances[surface][2][analysis.seed]) <= 20).sum())
 #         sidenInter50[surface].append((np.array(minDistances[surface][2][analysis.seed]) <= 50).sum())
