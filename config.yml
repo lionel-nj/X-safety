@@ -1,6 +1,6 @@
 !!python/object:simulation.Simulation
-duration: 600
-minNCompletedUsers: 200
+duration: 10
+minNCompletedUsers: 100
 timeStep: 0.1
 safetyDistance: 1.0
 verbose: False
