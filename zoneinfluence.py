@@ -1,9 +1,9 @@
+import numpy as np
 from trafficintelligence import moving
 
 import analysis as an
 import events
 import network
-import numpy as np
 import simulation
 
 world = network.World.load('cross-net.yml')
@@ -42,7 +42,6 @@ for seed in seeds:
     analysis.interactions = world.completedInteractions
     analysisList.append(analysis)
 
-surfaces = [1000]
 for surface in surfaces:
     print(surface)
     analysisZone = an.AnalysisZone(world.intersections[0], surface)
@@ -62,10 +61,12 @@ for surface in surfaces:
         filteredAnalysis = list(filter(lambda x: x.categoryNum is not None, analysis.interactions))
 
         for inter in filteredAnalysis:
-            print(str(analysisList.index(analysis)) + 'out of' + str(len(analysisList)))
-            print(str(analysis.interactions.index(inter)) + '/' + str(len(filteredAnalysis)))
+            print(str(analysisList.index(analysis) + 1 ) + 'out of' + str(len(analysisList)))
+            print(str(filteredAnalysis.index(inter) + 1) + '/' + str(len(filteredAnalysis)))
 
             roadUser1TimeIntervalInAnalysisZone = inter.roadUser1.timeIntervalInAnalysisZone
+            roadUser2TimeIntervalInAnalysisZone = inter.roadUser2.timeIntervalInAnalysisZone
+
             if roadUser1TimeIntervalInAnalysisZone.first == 0:
                 roadUser1TimeIntervalInAnalysisZone = None
             else:
