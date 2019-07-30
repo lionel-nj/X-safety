@@ -73,3 +73,18 @@ stop_nInter20 = {1: np.mean(stop_rearEndnInter20), 2: np.mean(stop_sidenInter20)
 stop_nInter50 = {1: np.mean(stop_rearEndnInter50), 2: np.mean(stop_sidenInter50)}
 
 toolkit.callWhenDone()
+
+stop_results = {'PETS': stop_PETs,
+                'TTCs': stop_minTTCs,
+                'side-nInter10': stop_sidenInter10,
+                'side-nInter20': stop_sidenInter20,
+                'side-nInter50': stop_sidenInter50,
+                'rear-nInter10': stop_rearEndnInter10,
+                'rear-nInter20': stop_rearEndnInter20,
+                'rear-nInter50': stop_rearEndnInter50,
+                'nInter10' : stop_nInter10,
+                'nInter20': stop_nInter20,
+                'nInter50': stop_nInter50,
+                'minDistances': stop_minDistances,
+                }
+toolkit.saveYaml('stop_results.yml', stop_results)

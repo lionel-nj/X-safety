@@ -73,3 +73,18 @@ yield_nInter20 = {1: np.mean(yield_rearEndnInter20), 2: np.mean(yield_sidenInter
 yield_nInter50 = {1: np.mean(yield_rearEndnInter50), 2: np.mean(yield_sidenInter50)}
 
 toolkit.callWhenDone()
+
+yield_results = {'PETS': yield_PETs,
+                'TTCs': yield_minTTCs,
+                'side-nInter10': yield_sidenInter10,
+                'side-nInter20': yield_sidenInter20,
+                'side-nInter50': yield_sidenInter50,
+                'rear-nInter10': yield_rearEndnInter10,
+                'rear-nInter20': yield_rearEndnInter20,
+                'rear-nInter50': yield_rearEndnInter50,
+                'nInter10' : yield_nInter10,
+                'nInter20': yield_nInter20,
+                'nInter50': yield_nInter50,
+                'minDistances': yield_minDistances,
+                 }
+toolkit.saveYaml('yield_results.yml', yield_results)

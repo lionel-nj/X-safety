@@ -73,3 +73,18 @@ sQuo_nInter20 = {1: np.mean(sQuo_rearEndnInter20), 2: np.mean(sQuo_sidenInter20)
 sQuo_nInter50 = {1: np.mean(sQuo_rearEndnInter50), 2: np.mean(sQuo_sidenInter50)}
 
 toolkit.callWhenDone()
+
+sQuo_results = {'PETS': sQuo_PETs,
+                'TTCs': sQuo_minTTCs,
+                'side-nInter10': sQuo_sidenInter10,
+                'side-nInter20': sQuo_sidenInter20,
+                'side-nInter50': sQuo_sidenInter50,
+                'rear-nInter10': sQuo_rearEndnInter10,
+                'rear-nInter20': sQuo_rearEndnInter20,
+                'rear-nInter50': sQuo_rearEndnInter50,
+                'nInter10' : sQuo_nInter10,
+                'nInter20': sQuo_nInter20,
+                'nInter50': sQuo_nInter50,
+                'minDistances': sQuo_minDistances,
+                }
+toolkit.saveYaml('sQuo_results.yml', sQuo_results)
