@@ -50,7 +50,11 @@ alignments:
       - 1000.0
   width: null
 
-controlDevices: null
+controlDevices:
+- !!python/object:network.StopSign
+  idx: 0
+  alignmentIdx: 2
+  stopDuration: 2
 
 
 userInputs:
