@@ -8,4 +8,4 @@ seed: 44
 increment: 4
 rep: 15
 dbName: stop-data.db
-computeInteractions: False
+computeInteractions: True
