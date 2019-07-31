@@ -10,23 +10,23 @@ import toolkit
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-surfaces = [10000]#, 5000, 10000]
+surfaces = [2000]#, 7000, 15000]
 
 
-PETs = {1000: [], 5000: [], 10000: []}
-interactions = {1000: [], 5000: [], 10000: []}
+PETs = {2000: [], 7000: [], 15000: []}
+interactions = {2000: [], 7000: [], 15000: []}
 
-rearEndnInter10 = {1000: [], 5000: [], 10000: []}
-rearEndnInter20 = {1000: [], 5000: [], 10000: []}
-rearEndnInter50 = {1000: [], 5000: [], 10000: []}
+rearEndnInter10 = {2000: [], 7000: [], 15000: []}
+rearEndnInter20 = {2000: [], 7000: [], 15000: []}
+rearEndnInter50 = {2000: [], 7000: [], 15000: []}
 
-sidenInter10 = {1000: [], 5000: [], 10000: []}
-sidenInter20 = {1000: [], 5000: [], 10000: []}
-sidenInter50 = {1000: [], 5000: [], 10000: []}
+sidenInter10 = {2000: [], 7000: [], 15000: []}
+sidenInter20 = {2000: [], 7000: [], 15000: []}
+sidenInter50 = {2000: [], 7000: [], 15000: []}
 
-minDistances = {1000: {1: {}, 2: {}}, 5000: {1: {}, 2: {}}, 10000: {1: {}, 2: {}}}
+minDistances = {2000: {1: {}, 2: {}}, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
 
-minTTCs = {1000: {1: {}, 2: {}}, 5000: {1: {}, 2: {}}, 10000: {1: {}, 2: {}}}
+minTTCs = {2000: {1: {}, 2: {}}, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
 nInter10 = {}
 nInter20 = {}
 nInter50 = {}
@@ -38,7 +38,7 @@ for seed in seeds:
     print('run {} out of {}'.format(seeds.index(seed) + 1, len(seeds)))
     world = network.World.load('cross-net.yml')
     sim.seed = seed
-    sim.run(world, 10000)
+    sim.run(world, 2000)
     analysis = an.Analysis(idx=0, world=world, seed=seed)
     analysis.interactions = world.completedInteractions
     analysisList.append(analysis)

@@ -51,11 +51,6 @@ alignments:
   width: null
 
 controlDevices:
-- !!python/object:network.StopSign
-  idx: 0
-  alignmentIdx: 2
-  stopDuration: 2
-
 
 userInputs:
 - !!python/object:network.UserInput
@@ -90,7 +85,7 @@ userInputs:
     tau: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 2
+      loc: 1.2
       scale: 0.5
       a: -1
       b: 1
