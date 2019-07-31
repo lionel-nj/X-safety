@@ -3,7 +3,7 @@ duration: 600
 minNCompletedUsers: 200
 timeStep: 0.1
 safetyDistance: 1.0
-verbose: True
+verbose: False
 seed: 44
 increment: 4
 rep: 15
