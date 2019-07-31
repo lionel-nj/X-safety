@@ -10,23 +10,23 @@ import toolkit
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-surfaces = [2000]#, 7000, 15000]
+surfaces = [15000]#, 7000, 15000]
+surface = surfaces[0]
 
+PETs = {surface: []}#, 7000: [], 15000: []}
+interactions = {surface: []}# = {2000: [], 7000: [], 15000: []}
 
-PETs = {2000: [], 7000: [], 15000: []}
-interactions = {2000: [], 7000: [], 15000: []}
+rearEndnInter10 = {surface: []}# = {2000: [], 7000: [], 15000: []}
+rearEndnInter20 = {surface: []}#{2000: [], 7000: [], 15000: []}
+rearEndnInter50 = {surface: []}#, 7000: [], 15000: []}
 
-rearEndnInter10 = {2000: [], 7000: [], 15000: []}
-rearEndnInter20 = {2000: [], 7000: [], 15000: []}
-rearEndnInter50 = {2000: [], 7000: [], 15000: []}
+sidenInter10 = {surface: []}#, 7000: [], 15000: []}
+sidenInter20 = {surface: []}#, 7000: [], 15000: []}
+sidenInter50 = {surface: []}#, 7000: [], 15000: []}
 
-sidenInter10 = {2000: [], 7000: [], 15000: []}
-sidenInter20 = {2000: [], 7000: [], 15000: []}
-sidenInter50 = {2000: [], 7000: [], 15000: []}
+minDistances = {surface: {1: {}, 2: {}}}#, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
 
-minDistances = {2000: {1: {}, 2: {}}, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
-
-minTTCs = {2000: {1: {}, 2: {}}, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
+minTTCs = {surface: {1: {}, 2: {}}}# {2000: {1: {}, 2: {}}, 7000: {1: {}, 2: {}}, 15000: {1: {}, 2: {}}}
 nInter10 = {}
 nInter20 = {}
 nInter50 = {}
@@ -38,7 +38,7 @@ for seed in seeds:
     print('run {} out of {}'.format(seeds.index(seed) + 1, len(seeds)))
     world = network.World.load('cross-net.yml')
     sim.seed = seed
-    sim.run(world, 2000)
+    sim.run(world, surface)
     analysis = an.Analysis(idx=0, world=world, seed=seed)
     analysis.interactions = world.completedInteractions
     analysisList.append(analysis)
@@ -62,7 +62,7 @@ for surface in surfaces:
         filteredAnalysis = list(filter(lambda x: x.categoryNum is not None, analysis.interactions))
 
         for inter in filteredAnalysis:
-            print(str(analysisList.index(analysis) + 1 ) + 'out of' + str(len(analysisList)))
+            print(str(analysisList.index(analysis) + 1) + 'out of' + str(len(analysisList)))
             print(str(filteredAnalysis.index(inter) + 1) + '/' + str(len(filteredAnalysis)))
 
             roadUser1TimeIntervalInAnalysisZone = inter.roadUser1.timeIntervalInAnalysisZone
@@ -116,22 +116,23 @@ for surface in surfaces:
     nInter20[surface] = {1: np.mean(rearEndnInter20[surface]), 2: np.mean(sidenInter20[surface])}
     nInter50[surface] = {1: np.mean(rearEndnInter50[surface]), 2: np.mean(sidenInter50[surface])}
 
-# toolkit.saveYaml('zone{}-nInter10.yml'.format(surface), nInter10)
-# toolkit.saveYaml('zone{}-nInter20.yml'.format(surface), nInter20)
-# toolkit.saveYaml('zone{}-nInter50.yml'.format(surface), nInter50)
-#
-# toolkit.saveYaml('zone{}-rearEndnInter10.yml'.format(surface), rearEndnInter10)
-# toolkit.saveYaml('zone{}-rearEndnInter20.yml'.format(surface), rearEndnInter20)
-# toolkit.saveYaml('zone{}-rearEndnInter50.yml'.format(surface), rearEndnInter50)
-#
-#
-# toolkit.saveYaml('zone{}-sidenInter10.yml'.format(surface), sidenInter10)
-# toolkit.saveYaml('zone{}-sidenInter20.yml'.format(surface), sidenInter20)
-# toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
-#
-# toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
-# toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
-# toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
+toolkit.saveYaml('zone{}-nInter10.yml'.format(surface), nInter10)
+toolkit.saveYaml('zone{}-nInter20.yml'.format(surface), nInter20)
+toolkit.saveYaml('zone{}-nInter50.yml'.format(surface), nInter50)
+
+toolkit.saveYaml('zone{}-rearEndnInter10.yml'.format(surface), rearEndnInter10)
+toolkit.saveYaml('zone{}-rearEndnInter20.yml'.format(surface), rearEndnInter20)
+toolkit.saveYaml('zone{}-rearEndnInter50.yml'.format(surface), rearEndnInter50)
+
+
+toolkit.saveYaml('zone{}-sidenInter10.yml'.format(surface), sidenInter10)
+toolkit.saveYaml('zone{}-sidenInter20.yml'.format(surface), sidenInter20)
+toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
+
+toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
+toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
+toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
+
 
 
 zone_results = {'PETS': PETs,
@@ -147,4 +148,4 @@ zone_results = {'PETS': PETs,
                 'nInter50': nInter50,
                 'minDistances': minDistances,
                  }
-toolkit.saveYaml('zone{}-results.yml'.format(surface), zone_results)
+toolkit.saveYaml('zone{}-results-v2.yml'.format(surface), zone_results)
