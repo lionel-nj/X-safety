@@ -116,22 +116,22 @@ for surface in surfaces:
     nInter20[surface] = {1: np.mean(rearEndnInter20[surface]), 2: np.mean(sidenInter20[surface])}
     nInter50[surface] = {1: np.mean(rearEndnInter50[surface]), 2: np.mean(sidenInter50[surface])}
 
-toolkit.saveYaml('zone{}-nInter10.yml'.format(surface), nInter10)
-toolkit.saveYaml('zone{}-nInter20.yml'.format(surface), nInter20)
-toolkit.saveYaml('zone{}-nInter50.yml'.format(surface), nInter50)
-
-toolkit.saveYaml('zone{}-rearEndnInter10.yml'.format(surface), rearEndnInter10)
-toolkit.saveYaml('zone{}-rearEndnInter20.yml'.format(surface), rearEndnInter20)
-toolkit.saveYaml('zone{}-rearEndnInter50.yml'.format(surface), rearEndnInter50)
-
-
-toolkit.saveYaml('zone{}-sidenInter10.yml'.format(surface), sidenInter10)
-toolkit.saveYaml('zone{}-sidenInter20.yml'.format(surface), sidenInter20)
-toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
-
-toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
-toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
-toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
+# toolkit.saveYaml('zone{}-nInter10.yml'.format(surface), nInter10)
+# toolkit.saveYaml('zone{}-nInter20.yml'.format(surface), nInter20)
+# toolkit.saveYaml('zone{}-nInter50.yml'.format(surface), nInter50)
+#
+# toolkit.saveYaml('zone{}-rearEndnInter10.yml'.format(surface), rearEndnInter10)
+# toolkit.saveYaml('zone{}-rearEndnInter20.yml'.format(surface), rearEndnInter20)
+# toolkit.saveYaml('zone{}-rearEndnInter50.yml'.format(surface), rearEndnInter50)
+#
+#
+# toolkit.saveYaml('zone{}-sidenInter10.yml'.format(surface), sidenInter10)
+# toolkit.saveYaml('zone{}-sidenInter20.yml'.format(surface), sidenInter20)
+# toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
+#
+# toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
+# toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
+# toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
 
 
 zone_results = {'PETS': PETs,
