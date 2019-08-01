@@ -148,4 +148,4 @@ zone_results = {'PETS': PETs,
                 'nInter50': nInter50,
                 'minDistances': minDistances,
                  }
-toolkit.saveYaml('zone{}-results-v2.yml'.format(surface), zone_results)
+toolkit.saveYaml('zone{}-results-v3.yml'.format(surface), zone_results)

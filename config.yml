@@ -6,6 +6,6 @@ safetyDistance: 1.0
 verbose: False
 seed: 32
 increment: 4
-rep: 50
+rep: 30
 dbName: stop-data.db
 computeInteractions: True

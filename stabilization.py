@@ -99,9 +99,9 @@ toolkit.plotVariations(sideMinDistance, 'side-minDistance.pdf', 'side minimum in
 toolkit.plotVariations(readEndMinDistance, 'readEnd-minDistance.pdf', 'rear end minimum intervehicular distances (m)', 'minimum intervehicular distance (m)')
 
 toolkit.plotVariations(sideTTCs, 'side-TTCs.pdf', 'side TTCs (s)', 'TTC (s)')
-toolkit.plotVariations(sidenInter10, 'side-nInter10.pdf', 'side $nInter_{10}$', 'side\ $nInter_{10}$')
-toolkit.plotVariations(sidenInter20, 'side-nInter20.pdf', 'side\ $nInter_{20}$', 'side\ $nInter_{20}$')
-toolkit.plotVariations(sidenInter50, 'side-nInter50.pdf', 'side\ $nInter_{50}$', 'side\ $nInter_{50}$')
+toolkit.plotVariations(sidenInter10, 'side-nInter10.pdf', 'side $nInter_{10}$', 'side $nInter_{10}$')
+toolkit.plotVariations(sidenInter20, 'side-nInter20.pdf', 'side $nInter_{20}$', 'side $nInter_{20}$')
+toolkit.plotVariations(sidenInter50, 'side-nInter50.pdf', 'side $nInter_{50}$', 'side $nInter_{50}$')
 
 toolkit.plotVariations(readEndTTCs, 'rearEnd-TTCs.pdf', 'rear end TTCs (s)','TTC (s)')
 toolkit.plotVariations(rearEndnInter10, 'rearEnd-nInter10.pdf', 'rear end $nInter_{10}$', 'rear end $nInter_{10}$')
