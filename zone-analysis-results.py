@@ -110,7 +110,7 @@ for surface in surfaces :
     plt.plot(bin_centers, [k / 15 for k in histogram])  # , label="Histogram of samples")
     plt.xlabel('Minimum distance for side interactions (m)')
     plt.ylabel('Number of observations')
-    plt.legend(['area: 2000 m2', 'area: 7000m2', 'area: 15000 m2'])
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
 plt.savefig('pdf-zone-side-minDistance-raw.pdf')
 plt.close()
 
@@ -122,7 +122,7 @@ for surface in surfaces :
     plt.plot(bin_centers, [k / 15 for k in histogram])  # , label="Histogram of samples")
     plt.xlabel('Minimum distance for rear-end interactions (m)')
     plt.ylabel('Number of observations')
-    plt.legend(['area: 2000 m2', 'area: 7000m2', 'area: 15000 m2'])
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
 plt.savefig('pdf-zone-rear-end-minDistance-raw.pdf')
 plt.close()
 
@@ -132,9 +132,9 @@ for surface in surfaces :
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k / 15 for k in histogram])  # , label="Histogram of samples")
-    plt.xlabel('Minimum time to collision for side interactions (s)')
+    plt.xlabel('Side $TTC_{min}$ (s)')
     plt.ylabel('Number of observations')
-    plt.legend(['area: 2000 m2', 'area: 7000m2', 'area: 15000 m2'])
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
 plt.savefig('pdf-zone-side-TTCs-raw.pdf')
 plt.close()
 
@@ -144,9 +144,9 @@ for surface in surfaces :
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k / 15 for k in histogram])  # , label="Histogram of samples")
-    plt.xlabel('Minimum time to collision for rear-end interactions (s)')
+    plt.xlabel('Rear-end $TTC_{min}$ (s)')
     plt.ylabel('Number of observations')
-    plt.legend(['area: 2000 m2', 'area: 7000m2', 'area: 15000 m2'])
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
 plt.savefig('pdf-zone-rear-TTCs-raw.pdf')
 plt.close()
 
@@ -156,11 +156,13 @@ for surface in surfaces :
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k / 15 for k in histogram])  # , label="Histogram of samples")
-    plt.xlabel('Post encrochament time (s)')
+    plt.xlabel('PET (s)')
     plt.ylabel('Number of observations')
-    plt.legend(['area: 2000 m2', 'area: 7000m2', 'area: 15000 m2'])
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
 plt.savefig('pdf-zone-side-PETS-raw.pdf')
 plt.close()
+
+
 
 
 from scipy import stats
@@ -176,5 +178,62 @@ ksTesksTest_minDistance_rear = [stats.ks_2samp(toolkit.flatten(results[2000]['mi
 ksTestTTCS_rear = [stats.ks_2samp(toolkit.flatten(results[2000]['TTCs'][2000][1].values()), toolkit.flatten(results[7000]['TTCs'][7000][1].values())), stats.ks_2samp(toolkit.flatten(results[2000]['TTCs'][2000][1].values()), toolkit.flatten(results[15000]['TTCs'][15000][1].values())), stats.ks_2samp(toolkit.flatten(results[15000]['TTCs'][15000][1].values()), toolkit.flatten(results[7000]['TTCs'][7000][1].values()))]
 
 
-#####
+for surface in surfaces :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[surface]['PETS'][surface].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('PET (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
+plt.savefig('cdf-zone-PETS.pdf')
+plt.close()
 
+for surface in surfaces :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[surface]['TTCs'][surface][1].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Rear-end $TTC_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
+plt.savefig('cdf-zone-rear-end-TTCs.pdf')
+plt.close()
+
+for surface in surfaces :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[surface]['TTCs'][surface][2].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Side $TTC_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
+plt.savefig('cdf-zone-side-TTCs.pdf')
+plt.close()
+
+for surface in surfaces :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[surface]['minDistances'][surface][1].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Rear-end $D_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
+plt.savefig('cdf-zone-rear-end-distance.pdf')
+plt.close()
+
+for surface in surfaces :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[surface]['minDistances'][surface][2].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Side $D_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['area: 2000 $m^{2}$', 'area: 7000$ m^{2}$', 'area: 15000 $m^{2}$'])
+plt.savefig('cdf-zone-side-distance.pdf')
+plt.close()

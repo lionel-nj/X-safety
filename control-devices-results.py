@@ -43,8 +43,8 @@ for cd in controlDevices:
     # plt.plot(sorted_data, yvals)
     plt.plot([k*.1 for k in sorted_data], yvals)
     # plt.show()
-    plt.xlabel('Post encroachment time (s)')
-    plt.ylabel('Frequencies')
+    plt.xlabel('PET (s)')
+    plt.ylabel('Cumulated number of observations')
     plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('cdf-side-PET-normed.pdf')
 plt.close()
@@ -84,7 +84,7 @@ for cd in controlDevices:
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k/15 for k in histogram])#, label="Histogram of samples")
-    plt.xlabel('Rear-end minimum time-to-collision (s)')
+    plt.xlabel('Rear-end $TTC_{min}$ (s)')
     plt.ylabel('Number of observations')
     plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('pdf-rearEnd-TTC-raw.pdf')
@@ -97,7 +97,7 @@ for cd in controlDevices:
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k/15 for k in histogram])#, label="Histogram of samples")
-    plt.xlabel('Side minimum time-to-collision (s)')
+    plt.xlabel('Side $TTC_{min}$ (s)')
     plt.ylabel('Number of observations')
     plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('pdf-side-TTC-raw.pdf')
@@ -121,7 +121,7 @@ for cd in controlDevices:
     histogram, bins = np.histogram(data)
     bin_centers = 0.5 * (bins[1:] + bins[:-1])
     plt.plot(bin_centers, [k/15 for k in histogram])#, label="Histogram of samples")
-    plt.xlabel('Rear-end minimum interaction distance (m)')
+    plt.xlabel('Distance threshold of rear-end interaction (m)')
     plt.ylabel('Number of observations')
     plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('pdf-rear-end-minDistance-raw.pdf')
@@ -146,9 +146,89 @@ for cd in controlDevices:
     data = [10, 20, 50]
     plt.plot(data, [results[cd]['nInter10'][2], results[cd]['nInter20'][2], results[cd]['nInter50'][2]])
 
-plt.xlabel('Minimum distance of side interaction (m)')
-plt.ylabel('Number of observations')
+plt.xlabel('Distance threshold of side interactions (m)')
+plt.ylabel('nInter')
+plt.xticks(data)
+plt.ylim(0)
 plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('sidenInter_variations.pdf')
 plt.close()
+
+## pdf side min distance- raw
+for cd in controlDevices:
+    y = []
+    data = [10, 20, 50]
+    plt.plot(data, [results[cd]['nInter10'][1], results[cd]['nInter20'][1], results[cd]['nInter50'][1]])
+
+plt.xlabel('Distance threshold of rear-end interactions (m)')
+plt.ylabel('nInter')
+plt.xticks(data)
+plt.ylim(0)
+plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('rearEndnInter_variations.pdf')
+plt.close()
+
+
+
+
+for cd in controlDevices :
+    ## cdf raw nInter
+    data = results[cd]['PETS']
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('PET (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('cdf-PETS.pdf')
+plt.close()
+
+for cd in controlDevices :
+    ## cdf raw nInter
+    data = results[cd]['TTCs'][2]
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Side $TTC_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('cdf-side-TTCs.pdf')
+plt.close()
+
+for cd in controlDevices :
+    ## cdf raw nInter
+    data = results[cd]['TTCs'][1]
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Rear $TTC_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('cdf-rear-TTCs.pdf')
+plt.close()
+
+for cd in controlDevices :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[cd]['minDistances'][1].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Rear-end $D_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('cdf-rear-end-distance.pdf')
+plt.close()
+
+for cd in controlDevices :
+    ## cdf raw nInter
+    data = toolkit.flatten(results[cd]['minDistances'][2].values())
+    sorted_data = np.sort(data)
+    yvals = np.arange(len(sorted_data))
+    plt.plot(sorted_data, yvals)
+    plt.xlabel('Side $D_{min}$ (s)')
+    plt.ylabel('Cumulated number of observations')
+    plt.legend(['stop sign', 'yield sign', 'no TCD'])
+plt.savefig('cdf-side-distance.pdf')
+plt.close()
+
 
