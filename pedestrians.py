@@ -92,9 +92,6 @@ toolkit.saveYaml('pedestrians-PETs.yml', pedestrians_PETs)
 toolkit.callWhenDone()
 
 
-
-
-
 #### PDF COMPLETES
 
 ### TTC side
