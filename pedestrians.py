@@ -72,9 +72,9 @@ pedestrians_nInter10 = {1: np.mean(pedestrians_rearEndnInter10), 2: np.mean(pede
 pedestrians_nInter20 = {1: np.mean(pedestrians_rearEndnInter20), 2: np.mean(pedestrians_sidenInter20)}
 pedestrians_nInter50 = {1: np.mean(pedestrians_rearEndnInter50), 2: np.mean(pedestrians_sidenInter50)}
 
-resultsPedestrians = {'minTTCS':pedestrians_minTTC,
-                          'minDistances':pedestrians_minDistances,
-                          'PETs':pedestrians_PETs,
+resultsPedestrians = {'minTTCS': pedestrians_minTTC,
+                          'minDistances': pedestrians_minDistances,
+                          'PETs': pedestrians_PETs,
                           'nInter10': pedestrians_nInter10,
                           'nInter20': pedestrians_nInter20,
                           'nInter50': pedestrians_nInter50,
@@ -83,7 +83,7 @@ resultsPedestrians = {'minTTCS':pedestrians_minTTC,
                           'rearEndnInter50': pedestrians_rearEndnInter50,
                           'pedestrians_sidenInter10': pedestrians_sidenInter10,
                           'pedestrians_sidenInter20': pedestrians_sidenInter20,
-                          'pedestrians_sidenInter50':pedestrians_sidenInter50}
+                          'pedestrians_sidenInter50': pedestrians_sidenInter50}
 
 toolkit.saveYaml('pedestrians-minTTC.yml', pedestrians_minTTCs)
 toolkit.saveYaml('pedestrians-minDistances.yml', pedestrians_minDistances)
