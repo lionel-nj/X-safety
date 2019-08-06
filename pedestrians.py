@@ -88,6 +88,7 @@ resultsPedestrians = {'minTTCS':pedestrians_minTTC,
 toolkit.saveYaml('pedestrians-minTTC.yml', pedestrians_minTTCs)
 toolkit.saveYaml('pedestrians-minDistances.yml', pedestrians_minDistances)
 toolkit.saveYaml('pedestrians-PETs.yml', pedestrians_PETs)
+toolkit.saveYaml('pedestrians-results.yml', resultsPedestrians)
 
 toolkit.callWhenDone()
 

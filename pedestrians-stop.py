@@ -83,6 +83,7 @@ resultsPedestriansStop = {'minTTCS':pedestrians_minTTC,
                           'pedestrians_sidenInter20': pedestrians_sidenInter20,
                           'pedestrians_sidenInter50':pedestrians_sidenInter50}
 
+toolkit.saveYaml('pedestrians-stop-results.yml', resultsPedestriansStop)
 
 toolkit.saveYaml('pedestrians-stop-minTTC.yml', pedestrians_minTTCs)
 toolkit.saveYaml('pedestrians-stop-minDistances.yml', pedestrians_minDistances)
