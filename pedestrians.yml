@@ -105,9 +105,9 @@ userInputs:
     dn: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 9
-      scale: 1
-      a: -2
+      loc: 1
+      scale: .5
+      a: -1
       b: 2
     headway: !!python/object:network.Distribution
       distributionName: expon
