@@ -1,6 +1,5 @@
 import numpy as np
 
-import analysis as an
 import events
 import network
 import simulation
@@ -26,7 +25,7 @@ nInter20 = {}
 nInter50 = {}
 
 for distribution in world.userInputs[1].distributions:
-    if distribution == 'criticalGap':
+    if distribution != 'criticalGap':
 
         sidenInter10[distribution] = {}
         sidenInter20[distribution] = {}
@@ -34,10 +33,6 @@ for distribution in world.userInputs[1].distributions:
         rearEndnInter10[distribution] = {}
         rearEndnInter20[distribution] = {}
         rearEndnInter50[distribution] = {}
-
-        nInter10[distribution] = {}
-        nInter20[distribution] = {}
-        nInter50[distribution] = {}
 
         world = network.World.load('cross-net.yml')
         print(distribution)
@@ -53,9 +48,6 @@ for distribution in world.userInputs[1].distributions:
 
             print(variation)
 
-            analysis = an.Analysis(anIdx, world=world, seed=sim.seed)
-
-
             minTTCs = {1: [], 2: []}
             minDistances = {1: [], 2: []}
 
@@ -63,9 +55,8 @@ for distribution in world.userInputs[1].distributions:
             interactions = []
 
             for seed in seeds:
-                tempMinDistances = {1:[], 2:[]}
+                tempMinDistances = {1: [], 2: []}
                 print('run {} ou of {}'.format(seeds.index(seed) + 1, len(seeds)))
-                analysis.seed = seed
                 sim.seed = seed
                 world = network.World.load('cross-net.yml')
                 if world.userInputs[1].distributions[distribution].loc is not None:
@@ -102,33 +93,26 @@ for distribution in world.userInputs[1].distributions:
                 sidenInter20[distribution][variation].append((np.array(tempMinDistances[2]) <= 20).sum())
                 sidenInter50[distribution][variation].append((np.array(tempMinDistances[2]) <= 50).sum())
 
-            toolkit.saveYaml('sa-minTTCs-{}{}.ynl'.format(distribution, variation), minTTCs)
+            toolkit.saveYaml('sa-minTTCs-{}{}.yml'.format(distribution, variation), minTTCs)
             toolkit.saveYaml('sa-PETs-{}{}.yml'.format(distribution, variation), PETs)
             toolkit.saveYaml('sa-minDistances-{}{}.yml'.format(distribution, variation), minDistances)
 
             anIdx += 1
-    ### memory flush
-            minTTCs = {1: [], 2: []}
-            minDistances = {1: [], 2: []}
+            nInter10 = {1: np.mean(rearEndnInter10[distribution][variation]), 2: np.mean(sidenInter10[distribution][variation])}
+            nInter20 = {1: np.mean(rearEndnInter20[distribution][variation]), 2: np.mean(sidenInter20[distribution][variation])}
+            nInter50 = {1: np.mean(rearEndnInter50[distribution][variation]), 2: np.mean(sidenInter50[distribution][variation])}
 
-            PETs = []
-            interactions = []
+            toolkit.saveYaml('sa-nInter10{}{}.yml'.format(distribution, variation), nInter10)
+            toolkit.saveYaml('sa-nInter20{}{}.yml'.format(distribution, variation), nInter20)
+            toolkit.saveYaml('sa-nInter50{}{}.yml'.format(distribution, variation), nInter50)
 
-            nInter10[distribution][variation] = {1: np.mean(rearEndnInter10[distribution][variation]), 2: np.mean(sidenInter10[distribution][variation])}
-            nInter20[distribution][variation] = {1: np.mean(rearEndnInter20[distribution][variation]), 2: np.mean(sidenInter20[distribution][variation])}
-            nInter50[distribution][variation] = {1: np.mean(rearEndnInter50[distribution][variation]), 2: np.mean(sidenInter50[distribution][variation])}
+            toolkit.saveYaml('sa-rearEnd-nInter10-{}{}.yml'.format(distribution, variation), rearEndnInter10[distribution][variation])
+            toolkit.saveYaml('sa-rearEnd-nInter20-{}{}.yml'.format(distribution, variation), rearEndnInter20[distribution][variation])
+            toolkit.saveYaml('sa-rearEnd-nInter50-{}{}.yml'.format(distribution, variation), rearEndnInter50[distribution][variation])
 
-            toolkit.saveYaml('sa-nInter10{}-{}'.format(distribution, variation), nInter10)
-            toolkit.saveYaml('sa-nInter20{}-{}'.format(distribution, variation), nInter20)
-            toolkit.saveYaml('sa-nInter50{}-{}'.format(distribution, variation), nInter50)
-
-            toolkit.saveYaml('sa-rearEnd-nInter10-{}-{}'.format(distribution, variation), rearEndnInter10)
-            toolkit.saveYaml('sa-rearEnd-nInter20-{}-{}'.format(distribution, variation), rearEndnInter20)
-            toolkit.saveYaml('sa-rearEnd-nInter50-{}-{}'.format(distribution, variation), rearEndnInter50)
-
-            toolkit.saveYaml('sa-side-nInter10-{}-{}'.format(distribution, variation), sidenInter10)
-            toolkit.saveYaml('sa-side-nInter20-{}-{}'.format(distribution, variation), sidenInter20)
-            toolkit.saveYaml('sa-side-nInter50-{}-{}'.format(distribution, variation), sidenInter50)
+            toolkit.saveYaml('sa-side-nInter10-{}{}.yml'.format(distribution, variation), sidenInter10[distribution][variation])
+            toolkit.saveYaml('sa-side-nInter20-{}{}.yml'.format(distribution, variation), sidenInter20[distribution][variation])
+            toolkit.saveYaml('sa-side-nInter50-{}{}.yml'.format(distribution, variation), sidenInter50[distribution][variation])
 
 ## flush the memory
             nInter10[distribution][variation] = {}

@@ -50,10 +50,7 @@ alignments:
       - 1000.0
   width: null
 
-controlDevices:
-- !!python/object:network.YieldSign
-  alignmentIdx: 2
-  idx: 0
+controlDevices: null
 
 
 userInputs:
