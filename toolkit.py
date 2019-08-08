@@ -48,7 +48,7 @@ def deleteElementFromYaml(filename, key):
 
 def generateDistribution(dataFile):
     """generates a distribution from a set of data"""
-    'input : fichier csv'
+    'input : csv file'
     with open(dataFile, 'r') as f:
         data = csv.reader(f)
         a = list(data)

@@ -202,28 +202,31 @@ class ControlDevice:
 class TrafficLight(ControlDevice):
     states = ['green', 'amber', 'red']
 
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, slave=None, master=None):
         super(TrafficLight, self).__init__(idx, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
+        self.slave = slave
+        self.master = master
+
         # self.reset()
 
-    def getSlaveState(self):
-        if self.master is not None:
+    def setSlaveState(self):
+        if self.master is None:
             if self.master.state == 'green':
-                return 'red'
+                self.state = 'red'
             elif self.master.state == 'amber':
-                return 'red'
+                self.state = 'red'
             else:
-                return 'green'
+                self.state = 'green'
 
     def drawInitialState(self):
         if self.master is None:
             i = stats.randint(0, 3).rvs()
             self.state = TrafficLight.states[i]
         else:
-            self.slave.getSlaveState()
+            self.slave.setSlaveState()
 
     def getState(self):
         """ returns the current color """
@@ -279,7 +282,6 @@ class TrafficLight(ControlDevice):
             return False
 
 
-
 class StopSign(ControlDevice):
     def __init__(self, idx, alignmentIdx, stopDuration):
         super(StopSign, self).__init__(idx, alignmentIdx)
@@ -308,13 +310,6 @@ class YieldSign(ControlDevice):
 
     def permissionToGo(self, instant, user, world):
         return world.estimateGap(user) > user.getCriticalGap()
-
-
-# class ETC(ControlDevice):
-#     def __init__(self, idx, alignmentIdx, category=1, initialState='green'):
-#         super().__init__(idx, category, alignmentIdx)
-#         self.initialState = initialState
-#         self.states = [self.initialState]
 
 
 class World:

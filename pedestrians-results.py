@@ -94,3 +94,19 @@ ksTesksTest_minDistance_rear = [stats.ks_2samp(toolkit.flatten(results['priorite
 
 ksTesksTest_minDistance_side = [stats.ks_2samp(toolkit.flatten(results['priorite pieton']['minDistances'][2].values()), toolkit.flatten(results['priorite auto']['minDistances'][2].values()))]#toolkit.flatten(results[7000]['minDistances'][7000][2].values())), stats.ks_2samp(toolkit.flatten(results[2000]['minDistances'][2000][2].values()), toolkit.flatten(results[15000]['minDistances'][15000][2].values())), stats.ks_2samp(toolkit.flatten(results[15000]['minDistances'][15000][2].values()), toolkit.flatten(results[7000]['minDistances'][7000][2].values()))]
 
+#
+# samples = [expSample0, expSample1]
+# for item in samples:
+#     ## cdf raw PETS
+#     data = item
+#     sorted_data = np.sort(data)
+#     yvals = np.arange(len(sorted_data))/ float(len(sorted_data) - 1)
+#     plt.plot(sorted_data, yvals)
+#     # plt.show()
+#     plt.xlabel('x')
+#     plt.ylabel("CDF")
+#
+#     plt.legend(['Échantillon 1', 'Échantillon 2'])
+# plt.savefig('explication-ks.pdf')
+# plt.close()
+#

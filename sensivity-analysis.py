@@ -63,6 +63,7 @@ for distribution in world.userInputs[1].distributions:
             interactions = []
 
             for seed in seeds:
+                tempMinDistances = {1:[], 2:[]}
                 print('run {} ou of {}'.format(seeds.index(seed) + 1, len(seeds)))
                 analysis.seed = seed
                 sim.seed = seed
@@ -78,6 +79,8 @@ for distribution in world.userInputs[1].distributions:
                         distance = inter.getIndicator(events.Interaction.indicatorNames[2])
                         if distance is not None:
                             minDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+                            tempMinDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+
                         ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
                         if ttc is not None:
                             minTTC = ttc.getMostSevereValue(1) * sim.timeStep  # seconds
@@ -91,13 +94,14 @@ for distribution in world.userInputs[1].distributions:
                         if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
                             PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1)*sim.timeStep)
 
-                rearEndnInter10[distribution][variation].append((np.array(minDistances[1]) <= 10).sum())
-                rearEndnInter20[distribution][variation].append((np.array(minDistances[1]) <= 20).sum())
-                rearEndnInter50[distribution][variation].append((np.array(minDistances[1]) <= 50).sum())
+                rearEndnInter10[distribution][variation].append((np.array(tempMinDistances[1]) <= 10).sum())
+                rearEndnInter20[distribution][variation].append((np.array(tempMinDistances[1]) <= 20).sum())
+                rearEndnInter50[distribution][variation].append((np.array(tempMinDistances[1]) <= 50).sum())
 
-                sidenInter10[distribution][variation].append((np.array(minDistances[2]) <= 10).sum())
-                sidenInter20[distribution][variation].append((np.array(minDistances[2]) <= 20).sum())
-                sidenInter50[distribution][variation].append((np.array(minDistances[2]) <= 50).sum())
+                sidenInter10[distribution][variation].append((np.array(tempMinDistances[2]) <= 10).sum())
+                sidenInter20[distribution][variation].append((np.array(tempMinDistances[2]) <= 20).sum())
+                sidenInter50[distribution][variation].append((np.array(tempMinDistances[2]) <= 50).sum())
+
             toolkit.saveYaml('sa-minTTCs-{}{}.ynl'.format(distribution, variation), minTTCs)
             toolkit.saveYaml('sa-PETs-{}{}.yml'.format(distribution, variation), PETs)
             toolkit.saveYaml('sa-minDistances-{}{}.yml'.format(distribution, variation), minDistances)

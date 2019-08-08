@@ -63,14 +63,13 @@ def getSensivities(parameter):
     sideTTCSensitivity = {"-40":((100 * (baseCaseSideTTCmin - sideMeanTTCmin["-40"])) / baseCaseSideTTCmin), "+40":((100 * (baseCaseSideTTCmin - sideMeanTTCmin["+40"])) / baseCaseSideTTCmin)}
     petsSensitivity = {"-40":((100 * (baseCaseMeanPET - meanPET["-40"])) / baseCaseMeanPET), "+40":((100 * (baseCaseMeanPET - meanPET["+40"])) / baseCaseMeanPET)}
 
-    sidenInter10Sensitivity = {"-40":((100 * (baseCaseMeanSideInter10 - meanSideInter10["-40"])) / baseCaseMeanSideInter10)/.4, "+40":((100 * (baseCaseMeanSideInter10 - meanSideInter10["+40"])) / baseCaseMeanSideInter10)/.4}
-    sidenInter20Sensitivity = {"-40":((100 * (baseCaseMeanSideInter20 - meanSideInter20["-40"])) / baseCaseMeanSideInter20)/.4, "+40":((100 * (baseCaseMeanSideInter20 - meanSideInter20["+40"])) / baseCaseMeanSideInter20)/.4}
-    sidenInter50Sensitivity = {"-40":((100 * (baseCaseMeanSideInter50 - meanSideInter50["-40"])) / baseCaseMeanSideInter50)/.4, "+40":((100 * (baseCaseMeanSideInter50 - meanSideInter50["+40"])) / baseCaseMeanSideInter50)/.4}
+    sidenInter10Sensitivity = {"-40":(100 * (baseCaseMeanSideInter10 - meanSideInter10["-40"])) / baseCaseMeanSideInter10, "+40":(100 * (baseCaseMeanSideInter10 - meanSideInter10["+40"])) / baseCaseMeanSideInter10}
+    sidenInter20Sensitivity = {"-40":(100 * (baseCaseMeanSideInter20 - meanSideInter20["-40"])) / baseCaseMeanSideInter20, "+40":(100 * (baseCaseMeanSideInter20 - meanSideInter20["+40"])) / baseCaseMeanSideInter20}
+    sidenInter50Sensitivity = {"-40":(100 * (baseCaseMeanSideInter50 - meanSideInter50["-40"])) / baseCaseMeanSideInter50, "+40":(100 * (baseCaseMeanSideInter50 - meanSideInter50["+40"])) / baseCaseMeanSideInter50}
 
-
-    rearInter10Sensitivity = {"-40":((100 * ((baseCaseMeanRearInter10 - meanRearInter10["-40"])) / baseCaseMeanRearInter10))/.4, "+40":((100 * (baseCaseMeanRearInter10 - meanRearInter10["+40"])) / baseCaseMeanRearInter10)/.4}
-    rearInter20Sensitivity = {"-40":((100 * ((baseCaseMeanRearInter20 - meanRearInter20["-40"])) / baseCaseMeanRearInter20))/.4, "+40":((100 * (baseCaseMeanSideInter20 - meanRearInter20["+40"])) / baseCaseMeanSideInter20)/.4}
-    rearInter50Sensitivity = {"-40":((100 * ((baseCaseMeanRearInter50 - meanRearInter50["-40"])) / baseCaseMeanRearInter50))/.4, "+40":((100 * (baseCaseMeanSideInter50 - meanRearInter50["+40"])) / baseCaseMeanSideInter50)/.4}
+    rearInter10Sensitivity = {"-40":(100 * (baseCaseMeanRearInter10 - meanRearInter10["-40"])) / baseCaseMeanRearInter10, "+40":(100 * (baseCaseMeanRearInter10 - meanRearInter10["+40"])) / baseCaseMeanRearInter10}
+    rearInter20Sensitivity = {"-40":(100 * (baseCaseMeanRearInter20 - meanRearInter20["-40"])) / baseCaseMeanRearInter20, "+40":(100 * (baseCaseMeanSideInter20 - meanRearInter20["+40"])) / baseCaseMeanRearInter20}
+    rearInter50Sensitivity = {"-40":(100 * (baseCaseMeanRearInter50 - meanRearInter50["-40"])) / baseCaseMeanRearInter50, "+40":(100 * (baseCaseMeanSideInter50 - meanRearInter50["+40"])) / baseCaseMeanRearInter50}
 
     sensitivities = {"rearTTCmin": rearEndTTCSensitivity,
                       "sideTTCmin": sideTTCSensitivity,
@@ -84,14 +83,14 @@ def getSensivities(parameter):
                       }
     toolkit.saveYaml('{}Sensitivities.yml'.format(parameter), sensitivities)
 
-    plus40 = []
-    moins40 = []
-    for truc in sensitivities:
-        moins40.append(sensitivities[truc]['-40'])
-    for truc in sensitivities:
-        plus40.append(sensitivities[truc]['+40'])
-    inf = [x for x in moins40 if ((math.isnan(x) == False) and float('inf') != abs(x))]
-    sup = [x for x in plus40 if ((math.isnan(x) == False) and float('inf') != abs(x))]
+    positiveVariation = []
+    negativeVariation = []
+    for item in sensitivities:
+        negativeVariation.append(sensitivities[item]['-40'])
+    for item in sensitivities:
+        positiveVariation.append(sensitivities[item]['+40'])
+    inf = [x for x in negativeVariation if ((math.isnan(x) == False) and float('inf') != abs(x))]
+    sup = [x for x in positiveVariation if ((math.isnan(x) == False) and float('inf') != abs(x))]
     return inf, sup
 
 # display
@@ -99,14 +98,14 @@ def getSensivities(parameter):
 
 x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
 param= 'speed'
-moins40 = getSensivities(param)[0]
-plus40 = getSensivities(param)[1]
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
 ax = plt.subplot(111)
-ax.barh(x, moins40, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{v_{f}}$-40%")
-ax.barh(x, plus40, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{v_{f}}$+40%")
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{v_{f}}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{v_{f}}$+40%")
 plt.legend()
 x_pos = [i+.4 for i in range(0, len(x))]
 plt.yticks(x_pos, x)
@@ -119,14 +118,14 @@ plt.close('all')
 
 x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
 param= 'dn'
-moins40 = getSensivities(param)[0]
-plus40 = getSensivities(param)[1]
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
 ax = plt.subplot(111)
-ax.barh(x, moins40, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{d}$-40%")
-ax.barh(x, plus40, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{d}$+40%")
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{d}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{d}$+40%")
 plt.legend()
 x_pos = [i+.4 for i in range(0, len(x))]
 plt.yticks(x_pos, x)
@@ -137,14 +136,14 @@ plt.savefig('sa-delta.pdf')
 plt.close('all')
 
 param= 'headway'
-moins40 = getSensivities(param)[0]
-plus40 = getSensivities(param)[1]
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
 ax = plt.subplot(111)
-ax.barh(x, moins40, color='None', align='edge', height=.8, edgecolor='b', label=r"$1/\lambda}$-40%")
-ax.barh(x, plus40, color='None', align='edge', height=.8, edgecolor='r', label=r"$1/\lambda}$+40%")
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$1/\lambda}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$1/\lambda}$+40%")
 plt.legend()
 x_pos = [i+.4 for i in range(0, len(x))]
 plt.yticks(x_pos, x)
@@ -155,14 +154,14 @@ plt.savefig('sa-headway.pdf')
 plt.close('all')
 
 param= 'tau'
-moins40 = getSensivities(param)[0]
-plus40 = getSensivities(param)[1]
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
 ax = plt.subplot(111)
-ax.barh(x, moins40, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{\tau}$-40%")
-ax.barh(x, plus40, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{\tau}$+40%")
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{\tau}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{\tau}$+40%")
 plt.legend()
 x_pos = [i+.4 for i in range(0, len(x))]
 plt.yticks(x_pos, x)
@@ -173,14 +172,14 @@ plt.savefig('sa-tau.pdf')
 plt.close('all')
 
 param= 'length'
-moins40 = getSensivities(param)[0]
-plus40 = getSensivities(param)[1]
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
 ax = plt.subplot(111)
-ax.barh(x, moins40, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{l}$-40%")
-ax.barh(x, plus40, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{l}$+40%")
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{l}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{l}$+40%")
 plt.legend()
 x_pos = [i+.4 for i in range(0, len(x))]
 plt.yticks(x_pos, x)

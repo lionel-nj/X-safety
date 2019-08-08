@@ -8,12 +8,16 @@ import toolkit
 
 
 class Analysis:
-    def __init__(self, idx, world, seed, analysisZone=None):
+    def __init__(self, idx, world, seed, analysisZone=None, saveAllInteractions=False):
         self.idx = idx
         self.world = world
         # self.interactions = world.completedInteractions
         self.analysisZone = analysisZone
         self.seed = seed
+        if saveAllInteractions:
+            self.interactions = world.completedInteractions + world.completedInteractions
+        else:
+            self.interactions = world.completedInteractions
 
     def getIdx(self):
         return self.idx
@@ -33,43 +37,6 @@ class Analysis:
 
     def getInteractions(self):
         return self.interactions
-
-    # def evaluate(self, timeStep, duration, analysisZone=None):
-    #     # todo : docstrings
-    #     self.interactions = {}
-    #     idx = 0
-    #     for user in self.world.completed + self.world.users:  # computing indicators : distance and ttc, for each pair of vehicles in a CF situation
-    #         idx += 1
-    #         if user.leader is not None:
-    #             roadUser1 = user.leader
-    #             roadUser2 = user
-    #             if roadUser2.timeInterval is not None:
-    #                 i = events.Interaction(num=idx, roadUser1=roadUser1, roadUser2=roadUser2, useCurvilinear=True)
-    #                 i.computeDistance(self.world, analysisZone)
-    #                 i.computeTTC(timeStep, 20, analysisZone)
-    #                 self.interactions[(roadUser1.num, roadUser2.num)] = i
-    #
-    #     idx += 1
-    #
-    #     crossingInteractions = []
-    #     for t in range(int(np.floor(duration / timeStep))):
-    #         user, crossingUser = self.world.getCrossingPairAtInstant(t)
-    #         if user is not None and crossingUser is not None:
-    #             if not ((user.num, crossingUser.num) in self.interactions):
-    #                 idx += 1
-    #                 i = events.Interaction(num=idx, roadUser1=user, roadUser2=crossingUser, useCurvilinear=True)
-    #                 i.addIndicator(indicators.SeverityIndicator('Time to Collision', {}, mostSevereIsMax=False))
-    #                 i.addIndicator(indicators.SeverityIndicator('Distance', {}, mostSevereIsMax=False))
-    #                 self.interactions[(user.num, crossingUser.num)] = i
-    #                 crossingInteractions.append(i)
-    #             else:
-    #                 i = self.interactions[(user.num, crossingUser.num)]
-    #
-    #             i.computeTTCAtInstant(self.world, timeStep, t, 20, 0, analysisZone)
-    #
-    #     for inter in crossingInteractions:
-    #        inter.computeDistance(self.world, analysisZone)
-    #        inter.computePETAtInstant(self.world, timeStep)
 
     def saveIndicators(self, fileName):
         self.saveIndicatorsToSqlite(fileName, self.getInteractions())
