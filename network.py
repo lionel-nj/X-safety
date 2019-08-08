@@ -228,24 +228,30 @@ class TrafficLight(ControlDevice):
 
     def update(self):
         """Updates the current state for a TrafficLight object for the duration of state"""
-        if self.state == 'green':
-            if self.remainingGreen > 0:
-                self.remainingGreen -= 1
+        if self.slave is not None:
+            if self.state == 'green':
+                if self.remainingGreen > 0:
+                    self.remainingGreen -= 1
+                else:
+                    self.switch()
+                    self.remainingGreen = self.greenTime
+                    self.slave.switch()
+            elif self.state == 'red':
+                if self.remainingRed > 0:
+                    self.remainingRed -= 1
+                else:
+                    self.switch()
+                    self.remainingRed = self.redTime
+                    self.slave.switch()
+
             else:
-                self.switch()
-                self.remainingGreen = self.greenTime
-        elif self.state == 'red':
-            if self.remainingRed > 0:
-                self.remainingRed -= 1
-            else:
-                self.switch()
-                self.remainingRed = self.redTime
-        else:
-            if self.remainingAmber > 0:
-                self.remainingAmber -= 1
-            else:
-                self.switch()
-                self.remainingAmber = self.amberTime
+                if self.remainingAmber > 0:
+                    self.remainingAmber -= 1
+                else:
+                    self.switch()
+                    self.remainingAmber = self.amberTime
+                    self.slave.switch()
+
 
     def reset(self, timeStep):
         """ resets the defaut parameters of a traffic light"""
@@ -259,6 +265,7 @@ class TrafficLight(ControlDevice):
             return True
         else:
             return False
+
 
 
 class StopSign(ControlDevice):

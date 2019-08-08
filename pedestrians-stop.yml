@@ -45,7 +45,7 @@ alignments:
     - - 400.0
       - 400.0
     - - 0
-      - 15
+      - 100
   width: null
 
 controlDevices:

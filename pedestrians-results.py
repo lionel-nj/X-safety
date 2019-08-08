@@ -20,7 +20,7 @@ for priority in priorities:
     plt.plot(sorted_data, yvals)
     # plt.show()
     plt.xlabel('$TTC_{min}$ de suivi (s)')
-    plt.ylabel('Cumulated number of observations')
+    plt.ylabel("Nombre d'observations cumulées")
     plt.legend(['priorité autos', 'priorité piétons'])
 plt.savefig('cdf-pedestrians-rearEnd-TTC-raw.pdf')
 plt.close()
@@ -36,12 +36,12 @@ for priority in priorities:
     plt.xlabel('$TTC_{min}$ de côté (s)')
     plt.ylabel("Nombre d'observations cumulées")
     plt.legend(['priorité autos', 'priorité piétons'])
-plt.savefig('cdf-pedetrians-side-TTC-normed.pdf')
+plt.savefig('cdf-pedetrians-side-TTC-raw.pdf')
 plt.close()
 
 for priority in priorities:
     ## cdf raw PETS
-    data = results[priority]['PETs']
+    data = [k* .1 for k in results[priority]['PETs']]
     sorted_data = np.sort(data)
     yvals = np.arange(len(sorted_data)) #/ float(len(sorted_data) - 1)
     plt.plot(sorted_data, yvals)
@@ -49,7 +49,7 @@ for priority in priorities:
     plt.xlabel('PET (s)')
     plt.ylabel("Nombre d'observations cumulées")
     plt.legend(['priorité autos', 'priorité piétons'])
-plt.savefig('cdf-pedestrians-PET-normed.pdf')
+plt.savefig('cdf-pedestrians-PET-raw.pdf')
 plt.close()
 
 for priority in priorities:
