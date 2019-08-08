@@ -209,9 +209,21 @@ class TrafficLight(ControlDevice):
         self.amberTime = amberTime
         # self.reset()
 
+    def getSlaveState(self):
+        if self.master is not None:
+            if self.master.state == 'green':
+                return 'red'
+            elif self.master.state == 'amber':
+                return 'red'
+            else:
+                return 'green'
+
     def drawInitialState(self):
-        i = stats.randint(0, 3).rvs()
-        self.state = TrafficLight.states[i]
+        if self.master is None:
+            i = stats.randint(0, 3).rvs()
+            self.state = TrafficLight.states[i]
+        else:
+            self.slave.getSlaveState()
 
     def getState(self):
         """ returns the current color """
@@ -228,7 +240,7 @@ class TrafficLight(ControlDevice):
 
     def update(self):
         """Updates the current state for a TrafficLight object for the duration of state"""
-        if self.slave is not None:
+        if self.master is None:
             if self.state == 'green':
                 if self.remainingGreen > 0:
                     self.remainingGreen -= 1
