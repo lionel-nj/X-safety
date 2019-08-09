@@ -5,7 +5,7 @@ import network
 import simulation
 import toolkit
 
-world = network.World.load('cross-net.yml')
+world = network.World.load('stop.yml')
 sim = simulation.Simulation.load('config.yml')
 sim.dbName = 'sensivity-analysis-data.db'
 sim.verbose = False

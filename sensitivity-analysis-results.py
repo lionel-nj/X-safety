@@ -149,13 +149,13 @@ def getSensivities(parameter):
     sideTTCSensitivity = {"-40":((-100 * (baseCaseSideTTCmin - sideMeanTTCmin["-40"])) / baseCaseSideTTCmin), "+40":((-100 * (baseCaseSideTTCmin - sideMeanTTCmin["+40"])) / baseCaseSideTTCmin)}
     petsSensitivity = {"-40":((-100 * (baseCaseMeanPET - meanPET["-40"])) / baseCaseMeanPET), "+40":((-100 * (baseCaseMeanPET - meanPET["+40"])) / baseCaseMeanPET)}
 
-    sidenInter10Sensitivity = {"-40":(-100 * (baseCaseMeanSideInter10 - meanSideInter10["-40"])) / baseCaseMeanSideInter10, "+40":(-100 * (baseCaseMeanSideInter10 - meanSideInter10["+40"])) / baseCaseMeanSideInter10}
-    sidenInter20Sensitivity = {"-40":(-100 * (baseCaseMeanSideInter20 - meanSideInter20["-40"])) / baseCaseMeanSideInter20, "+40":(-100 * (baseCaseMeanSideInter20 - meanSideInter20["+40"])) / baseCaseMeanSideInter20}
-    sidenInter50Sensitivity = {"-40":(-100 * (baseCaseMeanSideInter50 - meanSideInter50["-40"])) / baseCaseMeanSideInter50, "+40":(-100 * (baseCaseMeanSideInter50 - meanSideInter50["+40"])) / baseCaseMeanSideInter50}
+    sidenInter10Sensitivity = {"-40" : (100 * (meanSideInter10["-40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10), "+40" : (100 * (meanSideInter10["+40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10)}
+    sidenInter20Sensitivity = {"-40" : (100 * (meanSideInter20["-40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20), "+40" : (100 * (meanSideInter20["+40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20)}
+    sidenInter50Sensitivity = {"-40" : (100 * (meanSideInter50["-40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50), "+40" : (100 * (meanSideInter50["+40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50)}
 
-    rearInter10Sensitivity = {"-40":(-100 * (baseCaseMeanRearInter10 - meanRearInter10["-40"])) / baseCaseMeanRearInter10, "+40":(-100 * (baseCaseMeanRearInter10 - meanRearInter10["+40"])) / baseCaseMeanRearInter10}
-    rearInter20Sensitivity = {"-40":(-100 * (baseCaseMeanRearInter20 - meanRearInter20["-40"])) / baseCaseMeanRearInter20, "+40":(-100 * (baseCaseMeanRearInter20 - meanRearInter20["+40"])) / baseCaseMeanRearInter20}
-    rearInter50Sensitivity = {"-40":(-100 * (baseCaseMeanRearInter50 - meanRearInter50["-40"])) / baseCaseMeanRearInter50, "+40":(-100 * (baseCaseMeanRearInter50 - meanRearInter50["+40"])) / baseCaseMeanRearInter50}
+    rearInter10Sensitivity = {"-40" :(100 * (meanRearInter10["-40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10), "+40" : (100 * (meanRearInter10["+40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10)}
+    rearInter20Sensitivity = {"-40" :(100 * (meanRearInter20["-40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20), "+40" : (100 * (meanRearInter20["+40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20)}
+    rearInter50Sensitivity = {"-40" :(100 * (meanRearInter50["-40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50), "+40" : (100 * (meanRearInter50["+40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50)}
 
     sensitivities = {"rearTTCmin": rearEndTTCSensitivity,
                       "sideTTCmin": sideTTCSensitivity,
