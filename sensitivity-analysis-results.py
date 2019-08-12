@@ -5,7 +5,7 @@ import numpy as np
 
 import toolkit
 
-baseCaseResults = toolkit.loadYaml('sorties/sensitivity-analysis/base case-v2/base-case-results.yml')
+baseCaseResults = toolkit.loadYaml('sorties/sensitivity-analysis/base case/base-case-results.yml')
 
 baseCaseRearEndMeanTTCmin = np.mean(baseCaseResults["minTTCs"][1])
 baseCaseSideTTCmin = np.mean(baseCaseResults["minTTCs"][2])
@@ -145,17 +145,31 @@ def getSensivities(parameter):
     meanRearInter20 = {"-40": np.mean(results["-40"]["rearEndnInter20"]), "+40": np.mean(results["+40"]["rearEndnInter20"])}
     meanRearInter50 = {"-40": np.mean(results["-40"]["rearEndnInter50"]), "+40": np.mean(results["+40"]["rearEndnInter50"])}
 
-    rearEndTTCSensitivity = {"-40":((100 * (rearEndMeanTTCmin["-40"] - baseCaseRearEndMeanTTCmin)) / baseCaseRearEndMeanTTCmin), "+40":((100 * (rearEndMeanTTCmin["+40"] - baseCaseRearEndMeanTTCmin)) / baseCaseRearEndMeanTTCmin)}
-    sideTTCSensitivity = {"-40":((100 * (sideMeanTTCmin["-40"] - baseCaseSideTTCmin)) / baseCaseSideTTCmin), "+40":((100 * (sideMeanTTCmin["+40"] - baseCaseSideTTCmin)) / baseCaseSideTTCmin)}
-    petsSensitivity = {"-40":((100 * (meanPET["-40"] - baseCaseMeanPET)) / baseCaseMeanPET), "+40":((100 * (meanPET["+40"] - baseCaseMeanPET)) / baseCaseMeanPET)}
+    # rearEndTTCSensitivity = {"-40":((100 * (rearEndMeanTTCmin["-40"] - baseCaseRearEndMeanTTCmin)) / baseCaseRearEndMeanTTCmin), "+40":((100 * (rearEndMeanTTCmin["+40"] - baseCaseRearEndMeanTTCmin)) / baseCaseRearEndMeanTTCmin)}
+    # sideTTCSensitivity = {"-40":((100 * (sideMeanTTCmin["-40"] - baseCaseSideTTCmin)) / baseCaseSideTTCmin), "+40":((100 * (sideMeanTTCmin["+40"] - baseCaseSideTTCmin)) / baseCaseSideTTCmin)}
+    # petsSensitivity = {"-40":((100 * (meanPET["-40"] - baseCaseMeanPET)) / baseCaseMeanPET), "+40":((100 * (meanPET["+40"] - baseCaseMeanPET)) / baseCaseMeanPET)}
+    #
+    # sidenInter10Sensitivity = {"-40" : (100 * (meanSideInter10["-40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10), "+40" : (100 * (meanSideInter10["+40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10)}
+    # sidenInter20Sensitivity = {"-40" : (100 * (meanSideInter20["-40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20), "+40" : (100 * (meanSideInter20["+40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20)}
+    # sidenInter50Sensitivity = {"-40" : (100 * (meanSideInter50["-40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50), "+40" : (100 * (meanSideInter50["+40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50)}
+    #
+    # rearInter10Sensitivity = {"-40" :(100 * (meanRearInter10["-40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10), "+40" : (100 * (meanRearInter10["+40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10)}
+    # rearInter20Sensitivity = {"-40" :(100 * (meanRearInter20["-40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20), "+40" : (100 * (meanRearInter20["+40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20)}
+    # rearInter50Sensitivity = {"-40" :(100 * (meanRearInter50["-40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50), "+40" : (100 * (meanRearInter50["+40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50)}
 
-    sidenInter10Sensitivity = {"-40" : (100 * (meanSideInter10["-40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10), "+40" : (100 * (meanSideInter10["+40"] - baseCaseMeanSideInter10)) / (baseCaseMeanSideInter10)}
-    sidenInter20Sensitivity = {"-40" : (100 * (meanSideInter20["-40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20), "+40" : (100 * (meanSideInter20["+40"] - baseCaseMeanSideInter20)) / (baseCaseMeanSideInter20)}
-    sidenInter50Sensitivity = {"-40" : (100 * (meanSideInter50["-40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50), "+40" : (100 * (meanSideInter50["+40"] - baseCaseMeanSideInter50)) / (baseCaseMeanSideInter50)}
 
-    rearInter10Sensitivity = {"-40" :(100 * (meanRearInter10["-40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10), "+40" : (100 * (meanRearInter10["+40"] - baseCaseMeanRearInter10)) / (baseCaseMeanRearInter10)}
-    rearInter20Sensitivity = {"-40" :(100 * (meanRearInter20["-40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20), "+40" : (100 * (meanRearInter20["+40"] - baseCaseMeanRearInter20)) / (baseCaseMeanRearInter20)}
-    rearInter50Sensitivity = {"-40" :(100 * (meanRearInter50["-40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50), "+40" : (100 * (meanRearInter50["+40"] - baseCaseMeanRearInter50)) / (baseCaseMeanRearInter50)}
+    rearEndTTCSensitivity = {"-40":rearEndMeanTTCmin["-40"], "+40":rearEndMeanTTCmin["+40"]}
+    sideTTCSensitivity = {"-40":sideMeanTTCmin["-40"], "+40":sideMeanTTCmin["+40"]}
+    petsSensitivity = {"-40":meanPET["-40"], "+40": meanPET["+40"]}
+
+    sidenInter10Sensitivity = {"-40" :meanSideInter10["-40"], "+40" :meanSideInter10["+40"]}
+    sidenInter20Sensitivity = {"-40" :meanSideInter20["-40"], "+40" :meanSideInter20["+40"]}
+    sidenInter50Sensitivity = {"-40" :meanSideInter50["-40"], "+40" :meanSideInter50["+40"]}
+
+    rearInter10Sensitivity = {"-40" :meanRearInter10["-40"], "+40" :meanRearInter10["+40"]}
+    rearInter20Sensitivity = {"-40" :meanRearInter20["-40"], "+40" :meanRearInter20["+40"]}
+    rearInter50Sensitivity = {"-40" :meanRearInter50["-40"], "+40" :meanRearInter50["+40"]}
+
 
 
     sensitivities = {"rearTTCmin": rearEndTTCSensitivity,
@@ -185,8 +199,7 @@ def getSensivities(parameter):
 
 x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
 param= 'speed'
-negativeVariation = getSensivities(param)[0]
-positiveVariation = getSensivities(param)[1]
+negativeVariation, positiveVariation = getSensivities(param)
 
 
 fig = plt.figure()
@@ -205,8 +218,8 @@ plt.close('all')
 
 x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
 param= 'dn'
-negativeVariation = getSensivities(param)[0]
-positiveVariation = getSensivities(param)[1]
+negativeVariation, positiveVariation = getSensivities(param)
+
 
 
 fig = plt.figure()
@@ -223,8 +236,8 @@ plt.savefig('sa-delta.pdf')
 plt.close('all')
 
 param = 'headway'
-negativeVariation = getSensivities(param)[0]
-positiveVariation = getSensivities(param)[1]
+negativeVariation, positiveVariation = getSensivities(param)
+
 
 
 fig = plt.figure()
@@ -241,8 +254,8 @@ plt.savefig('sa-headway.pdf')
 plt.close('all')
 
 param= 'tau'
-negativeVariation = getSensivities(param)[0]
-positiveVariation = getSensivities(param)[1]
+negativeVariation, positiveVariation = getSensivities(param)
+
 
 
 fig = plt.figure()
@@ -259,8 +272,8 @@ plt.savefig('sa-tau.pdf')
 plt.close('all')
 
 param= 'length'
-negativeVariation = getSensivities(param)[0]
-positiveVariation = getSensivities(param)[1]
+negativeVariation, positiveVariation = getSensivities(param)
+
 
 
 fig = plt.figure()
