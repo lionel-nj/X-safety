@@ -180,26 +180,26 @@ def getSensivities(parameter):
     return inf, sup
 
 # display
-#dn
+# dn
 
-# x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
-# param= 'speed'
-# negativeVariation = getSensivities(param)[0]
-# positiveVariation = getSensivities(param)[1]
+x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
+param= 'speed'
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
-#
-# fig = plt.figure()
-# ax = plt.subplot(111)
-# ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{v_{f}}$-40%")
-# ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{v_{f}}$+40%")
-# plt.legend()
-# x_pos = [i+.4 for i in range(0, len(x))]
-# plt.yticks(x_pos, x)
-# plt.xlabel('Variation percentage (%)')
-# plt.tight_layout()
-# plt.plot([0,0], [0,len(x)], color='black')
-# plt.savefig('sa-speed.pdf')
-# plt.close('all')
+
+fig = plt.figure()
+ax = plt.subplot(111)
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{v_{f}}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{v_{f}}$+40%")
+plt.legend()
+x_pos = [i+.4 for i in range(0, len(x))]
+plt.yticks(x_pos, x)
+plt.xlabel('Variation percentage (%)')
+plt.tight_layout()
+plt.plot([0,0], [0,len(x)], color='black')
+plt.savefig('sa-speed.pdf')
+plt.close('all')
 
 
 x = ['rear-end $\overline{TTC}_{min}$', 'side $\overline{TTC}_{min}$', '$\overline{PET}$', 'rear end $\overline{nInter}_{20}$', 'rear end $\overline{nInter}_{50}$', 'side $\overline{nInter}_{10}$', 'side $\overline{nInter}_{20}$', 'side $\overline{nInter}_{50}$']
@@ -239,27 +239,27 @@ plt.plot([0,0], [0,len(x)], color='black')
 plt.savefig('sa-headway.pdf')
 plt.close('all')
 
-# param= 'tau'
-# negativeVariation = getSensivities(param)[0]
-# positiveVariation = getSensivities(param)[1]
+param= 'tau'
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
-#
-# fig = plt.figure()
-# ax = plt.subplot(111)
-# ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{\tau}$-40%")
-# ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{\tau}$+40%")
-# plt.legend()
-# x_pos = [i+.4 for i in range(0, len(x))]
-# plt.yticks(x_pos, x)
-# plt.xlabel('Variation percentage (%)')
-# plt.tight_layout()
-# plt.plot([0,0], [0,len(x)], color='black')
-# plt.savefig('sa-tau.pdf')
-# plt.close('all')
-#
-# param= 'length'
-# negativeVariation = getSensivities(param)[0]
-# positiveVariation = getSensivities(param)[1]
+
+fig = plt.figure()
+ax = plt.subplot(111)
+ax.barh(x, negativeVariation, color='None', align='edge', height=.8, edgecolor='b', label=r"$\mu_{\tau}$-40%")
+ax.barh(x, positiveVariation, color='None', align='edge', height=.8, edgecolor='r', label=r"$\mu_{\tau}$+40%")
+plt.legend()
+x_pos = [i+.4 for i in range(0, len(x))]
+plt.yticks(x_pos, x)
+plt.xlabel('Variation percentage (%)')
+plt.tight_layout()
+plt.plot([0,0], [0,len(x)], color='black')
+plt.savefig('sa-tau.pdf')
+plt.close('all')
+
+param= 'length'
+negativeVariation = getSensivities(param)[0]
+positiveVariation = getSensivities(param)[1]
 
 
 fig = plt.figure()
