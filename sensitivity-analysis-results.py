@@ -5,31 +5,31 @@ import numpy as np
 
 import toolkit
 
-baseCaseResults = toolkit.loadYaml('sorties/sensitivity-analysis/base case/base-case-results.yml')
+baseCaseResults = toolkit.loadYaml('sorties/sensitivity-analysis/base case-v2/base-case-results.yml')
 
 baseCaseRearEndMeanTTCmin = np.mean(baseCaseResults["minTTCs"][1])
 baseCaseSideTTCmin = np.mean(baseCaseResults["minTTCs"][2])
 baseCaseMeanPET = np.mean(baseCaseResults["PETs"])
 
-
-
-temp = baseCaseResults['sidenInter10']
-baseCaseResults['sidenInter10'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
-
-temp = baseCaseResults['sidenInter20']
-baseCaseResults['sidenInter20'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
-
-temp = baseCaseResults['sidenInter50']
-baseCaseResults['sidenInter50'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
-
-temp = baseCaseResults['rearEndnInter10']
-baseCaseResults['rearEndnInter10'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
-
-temp = baseCaseResults['rearEndnInter20']
-baseCaseResults['rearEndnInter20'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
-
-temp = baseCaseResults['rearEndnInter50']
-baseCaseResults['rearEndnInter50'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+#
+# temp = baseCaseResults['sidenInter10']
+# baseCaseResults['sidenInter10'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+# temp = baseCaseResults['sidenInter20']
+# baseCaseResults['sidenInter20'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+# temp = baseCaseResults['sidenInter50']
+# baseCaseResults['sidenInter50'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+# temp = baseCaseResults['rearEndnInter10']
+# baseCaseResults['rearEndnInter10'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+# temp = baseCaseResults['rearEndnInter20']
+# baseCaseResults['rearEndnInter20'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
+#
+# temp = baseCaseResults['rearEndnInter50']
+# baseCaseResults['rearEndnInter50'] = [temp[0]] + [temp[k] - temp[k - 1] for k in range(1, len(temp))]
 
 baseCaseMeanSideInter10 = np.mean(baseCaseResults["sidenInter10"][2])
 baseCaseMeanSideInter20 = np.mean(baseCaseResults["sidenInter20"][2])

@@ -7,7 +7,7 @@ import toolkit
 
 world = network.World.load('stop.yml')
 sim = simulation.Simulation.load('config.yml')
-sim.computeInteractions = False
+sim.computeInteractions = True
 sim.dbName = 'sensivity-analysis-data.db'
 sim.verbose = False
 
