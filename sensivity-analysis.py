@@ -37,7 +37,7 @@ for distribution in world.userInputs[1].distributions:
         numberOfUsers0[distribution] = {}
         numberOfUsers2[distribution] = {}
 
-        world = network.World.load('cross-net.yml')
+        world = network.World.load('stop.yml')
         print(distribution)
 
         for variation in variationRates:
@@ -63,7 +63,7 @@ for distribution in world.userInputs[1].distributions:
                 tempMinDistances = {1: [], 2: []}
                 print('run {} ou of {}'.format(seeds.index(seed) + 1, len(seeds)))
                 sim.seed = seed
-                world = network.World.load('cross-net.yml')
+                world = network.World.load('stop.yml')
                 if world.userInputs[1].distributions[distribution].loc is not None:
                     world.userInputs[1].distributions[distribution].loc *= (1 + variation)
                 else:
