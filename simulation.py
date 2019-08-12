@@ -55,8 +55,6 @@ class Simulation(object):
         world.duplicateLastVelocities()
         world.computePET(self)
 
-# numberOfcompletedUsers0 = [user for user in self.completed if user.getInitialAlignment().idx == 0]
-
 if __name__ == "__main__":
     import doctest
 
