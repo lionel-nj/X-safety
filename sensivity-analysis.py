@@ -22,7 +22,8 @@ sidenInter20 = {}
 sidenInter50 = {}
 nInter10 = {}
 nInter20 = {}
-nInter50 = {}
+numberOfUsers0 = {}
+numberOfUsers2 = {}
 
 for distribution in world.userInputs[1].distributions:
     if distribution != 'criticalGap':
@@ -33,11 +34,15 @@ for distribution in world.userInputs[1].distributions:
         rearEndnInter10[distribution] = {}
         rearEndnInter20[distribution] = {}
         rearEndnInter50[distribution] = {}
+        numberOfUsers0[distribution] = {}
+        numberOfUsers2[distribution] = {}
 
         world = network.World.load('cross-net.yml')
         print(distribution)
 
         for variation in variationRates:
+            numberOfUsers0[distribution][variation] = []
+            numberOfUsers2[distribution][variation] = []
 
             sidenInter10[distribution][variation] = []
             sidenInter20[distribution][variation] = []
@@ -64,6 +69,10 @@ for distribution in world.userInputs[1].distributions:
                 else:
                     world.userInputs[1].distributions[distribution].degeneratedConstant *= (1 + variation)
                 sim.run(world)
+                numberOfUsers0[distribution][variation].append(len([user for user in world.completed if user.getInitialAlignment().idx == 0]))
+                numberOfUsers2[distribution][variation].append(len([user for user in world.completed if user.getInitialAlignment().idx == 2]))
+                toolkit.saveYaml('numberOfUsers0-{}{}.yml'.format(distribution, variation), numberOfUsers0)
+                toolkit.saveYaml('numberOfUsers2-{}{}.yml'.format(distribution, variation), numberOfUsers2)
 
                 for inter in world.completedInteractions:
                     if inter.categoryNum is not None:

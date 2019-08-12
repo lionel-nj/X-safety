@@ -60,14 +60,14 @@ userInputs:
     dn: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 8.333333
+      loc: 8.33
       scale: 1
       a: -2
       b: 2
     headway: !!python/object:network.Distribution
       distributionName: expon
       distributionType: theoretic
-      loc: .6
+      loc: 3.8
       scale: 1.2
     length: !!python/object:network.Distribution
       distributionName: truncnorm
@@ -104,14 +104,14 @@ userInputs:
     dn: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 8.333333
+      loc: 8.33
       scale: 1
       a: -2
       b: 2
     headway: !!python/object:network.Distribution
       distributionName: expon
       distributionType: theoretic
-      loc: .6
+      loc: 3.8
       scale: 1.2
     length: !!python/object:network.Distribution
       distributionName: truncnorm
@@ -130,7 +130,7 @@ userInputs:
     tau: !!python/object:network.Distribution
       distributionName: truncnorm
       distributionType: theoretic
-      loc: 2
+      loc: 1.2
       scale: 0.5
       a: -1
       b: 1

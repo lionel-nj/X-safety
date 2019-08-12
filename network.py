@@ -192,7 +192,7 @@ class ControlDevice:
     def getState(self):
         return None
 
-    def update(self):
+    def update(self, timeStep):
         pass
 
     def permissionToGo(self, instant, user, world):
@@ -202,31 +202,29 @@ class ControlDevice:
 class TrafficLight(ControlDevice):
     states = ['green', 'amber', 'red']
 
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, slave=None, master=None):
+    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, integralRed, slave=None, master=None):
         super(TrafficLight, self).__init__(idx, alignmentIdx)
         self.redTime = redTime
         self.greenTime = greenTime
         self.amberTime = amberTime
+        self.integralRed = integralRed
         self.slave = slave
         self.master = master
 
-        # self.reset()
-
     def setSlaveState(self):
-        if self.master is None:
-            if self.master.state == 'green':
-                self.state = 'red'
-            elif self.master.state == 'amber':
-                self.state = 'red'
-            else:
-                self.state = 'green'
+        if self.master.state == 'green':
+            self.state = 'red'
+        elif self.master.state == 'amber':
+            self.state = 'red'
+        else:
+            self.state = 'green'
 
     def drawInitialState(self):
-        if self.master is None:
+        if self.slave is not None:
             i = stats.randint(0, 3).rvs()
             self.state = TrafficLight.states[i]
         else:
-            self.slave.setSlaveState()
+            self.setSlaveState()
 
     def getState(self):
         """ returns the current color """
@@ -241,31 +239,29 @@ class TrafficLight(ControlDevice):
         else:
             self.state = 'amber'
 
-    def update(self):
+    def update(self, timeStep):
         """Updates the current state for a TrafficLight object for the duration of state"""
-        if self.master is None:
-            if self.state == 'green':
-                if self.remainingGreen > 0:
-                    self.remainingGreen -= 1
-                else:
-                    self.switch()
-                    self.remainingGreen = self.greenTime
-                    self.slave.switch()
-            elif self.state == 'red':
-                if self.remainingRed > 0:
-                    self.remainingRed -= 1
-                else:
-                    self.switch()
-                    self.remainingRed = self.redTime
-                    self.slave.switch()
-
+    # if self.master is None:
+        if self.state == 'green':
+            if self.remainingGreen > 1:
+                self.remainingGreen -= 1
             else:
-                if self.remainingAmber > 0:
-                    self.remainingAmber -= 1
-                else:
-                    self.switch()
-                    self.remainingAmber = self.amberTime
-                    self.slave.switch()
+                self.switch()
+                self.remainingGreen = self.greenTime / timeStep
+
+        elif self.state == 'red':
+            if self.remainingRed > 1:
+                self.remainingRed -= 1
+            else:
+                self.switch()
+                self.remainingRed = self.redTime / timeStep
+
+        else:
+            if self.remainingAmber > 1:
+                self.remainingAmber -= 1
+            else:
+                self.switch()
+                self.remainingAmber = self.amberTime / timeStep
 
 
     def reset(self, timeStep):
@@ -276,10 +272,10 @@ class TrafficLight(ControlDevice):
         self.drawInitialState()
 
     def permissionToGo(self, instant, user, world):
-        if self.state in ['green', 'amber']:
-            return True
-        else:
+        if self.state in ['red', 'amber']:
             return False
+        else:
+            return True
 
 
 class StopSign(ControlDevice):
@@ -516,23 +512,24 @@ class World:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
 
-    def computePET(self):
-        users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key = lambda u: u.getIntersectionEntryInstant())
-        interactions = [inter for inter in self.completedInteractions+self.interactions if inter.categoryNum == 2]
-        for i in range(1,len(users)):
-            t1 = users[i-1].getIntersectionExitInstant()
-            t2 = users[i].getIntersectionEntryInstant()
-            if t1 > t2:
-                pet = 0
-            else:
-                pet = t2-t1
-            userNumbers = set([users[i-1].getNum(), users[i].getNum()])
-            j = 0
-            while j<len(interactions) and userNumbers != interactions[j].roadUserNumbers:
-                j += 1
-            if j<len(interactions):
-                interactions[j].addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[10], {t1: pet}, mostSevereIsMax=False))
-                interactions.remove(interactions[j])
+    def computePET(self, sim):
+        if sim.computeInteractions:
+            users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key = lambda u: u.getIntersectionEntryInstant())
+            interactions = [inter for inter in self.completedInteractions+self.interactions if inter.categoryNum == 2]
+            for i in range(1,len(users)):
+                t1 = users[i-1].getIntersectionExitInstant()
+                t2 = users[i].getIntersectionEntryInstant()
+                if t1 > t2:
+                    pet = 0
+                else:
+                    pet = t2-t1
+                userNumbers = set([users[i-1].getNum(), users[i].getNum()])
+                j = 0
+                while j<len(interactions) and userNumbers != interactions[j].roadUserNumbers:
+                    j += 1
+                if j<len(interactions):
+                    interactions[j].addIndicator(indicators.SeverityIndicator(events.Interaction.indicatorNames[10], {t1: pet}, mostSevereIsMax=False))
+                    interactions.remove(interactions[j])
 
     def initNodesToAlignments(self):
         """sets an entry and an exit node to each alignment"""
@@ -702,6 +699,7 @@ class World:
             al.transversalAlignments = None
             al.currentUsers = {}
             al.firstUser = None
+            al.controlDevice = None
 
             if al.getConnectedAlignmentIndices() is not None:
                 al.connectedAlignments = [self.alignments[connectedAlignmentIdx] for connectedAlignmentIdx in al.getConnectedAlignmentIndices()]
@@ -734,15 +732,23 @@ class World:
 
                 al.initConnectedAlignmentDistribution()
 
+        if self.controlDevices is not None:
+            for cd in self.controlDevices:
+                self.alignments[cd.alignmentIdx].controlDevice = cd
+                # for al in self.alignments:
             # connecting control devices to their alignments
-            if self.controlDevices is None:
-                al.controlDevice = None
-            else:
-                for cd in self.controlDevices:
-                    if al.idx == cd.alignmentIdx:
-                        al.controlDevice = cd
-                    else:
-                        al.controlDevice = None
+            # if self.controlDevices is None:
+            #     al.controlDevice = None
+            # else:
+            #     for cd in self.controlDevices:
+            #         if al.idx == cd.alignmentIdx:
+            #             al.controlDevice = cd
+            #         else:
+            #             print(al.idx)
+            #             al.controlDevice = None
+        # else:
+        #     for al in self.alignments:
+        #         al.controlDevice = None
 
         for intersection in self.intersections:
             for entryAl in intersection.entryAlignments:
@@ -869,11 +875,11 @@ class World:
     #                 self.users.remove(u)
 
 
-    def updateControlDevices(self):
+    def updateControlDevices(self, timeStep):
         '''updates state for control devices'''
         if self.controlDevices is not None:
             for cd in self.controlDevices:
-                cd.update()
+                cd.update(timeStep)
 
     def userOnTransversalAlignmentsAtInstant(self, user, other, instant):
         """determines if other is on transversal alignment of user at instant"""

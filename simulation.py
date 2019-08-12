@@ -44,18 +44,18 @@ class Simulation(object):
         instant = 0
 
         while instant*self.timeStep < self.duration or len(world.completed) < self.minNCompletedUsers:
-        # for i in range(int(np.floor(self.duration / self.timeStep))):
             if self.verbose:
                 print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
-            world.updateControlDevices()
+            world.updateControlDevices(self.timeStep)
             userNum = world.initUsers(instant, userNum, self.safetyDistance)
             world.updateUsers(instant, analysisZone)
             world.updateFirstUsers()
             world.updateInteractions(instant, self.computeInteractions)
             instant += 1
         world.duplicateLastVelocities()
-        #world.finalize(instant)
-        world.computePET()
+        world.computePET(self)
+
+# numberOfcompletedUsers0 = [user for user in self.completed if user.getInitialAlignment().idx == 0]
 
 if __name__ == "__main__":
     import doctest
