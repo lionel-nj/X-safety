@@ -123,26 +123,4 @@ for distribution in world.userInputs[1].distributions:
             toolkit.saveYaml('sa-side-nInter20-{}{}.yml'.format(distribution, variation), sidenInter20[distribution][variation])
             toolkit.saveYaml('sa-side-nInter50-{}{}.yml'.format(distribution, variation), sidenInter50[distribution][variation])
 
-## flush the memory
-            nInter10[distribution][variation] = {}
-            nInter20[distribution][variation] = {}
-            nInter50[distribution][variation] = {}
-            sidenInter10[distribution][variation] = []
-            sidenInter20[distribution][variation] = []
-            sidenInter50[distribution][variation] = []
-            rearEndnInter10[distribution][variation] = []
-            rearEndnInter20[distribution][variation] = []
-            rearEndnInter50[distribution][variation] = []
-
-    sidenInter10[distribution] = {}
-    sidenInter20[distribution] = {}
-    sidenInter50[distribution] = {}
-    rearEndnInter10[distribution] = {}
-    rearEndnInter20[distribution] = {}
-    rearEndnInter50[distribution] = {}
-
-    nInter10[distribution] = {}
-    nInter20[distribution] = {}
-    nInter50[distribution] = {}
-
 toolkit.callWhenDone()
