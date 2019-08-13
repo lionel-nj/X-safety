@@ -6,6 +6,7 @@ Il s'agit d'un travail mis en oeuvre dans le cadre du mémoire de maitrise de Li
 Comme évoqué precedemment, le code est encore en développement, par conséquent la struture des fichiers est amenée à changer.
 
 Les libraires néecessaire à l'utilisation de cet outil sont spécifiés dans le fichier requirements.txt de ce répertoire.
+Un tutoriel d'utilisation est disponible : Tutorial.ipynb.
 
 # EN : Minimal Simulation tool of road users' interactions
 
@@ -16,3 +17,4 @@ The project is still under development: the code's structure is not permanent !
 
 This repository contains the files the user needs to proceed to computation and also analysis.
 The required libraries are specified in the requirements.txt file of this repository.
+A user guide is available : Tutorial.ipynb.
