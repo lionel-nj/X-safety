@@ -122,12 +122,14 @@ class AnalysisZone:
             return False
 
     def positionInAnalysisZone(self, curvilinearPosition):
+        '''returns True if a curvilinear position is withing analysis zone bounds'''
         for minVal, maxVal in zip(self.minAlignment, self.maxAlignment):
             if (minVal[0] <= curvilinearPosition[0] and curvilinearPosition[2] == minVal[1]) or (curvilinearPosition[0] <= maxVal[0] and curvilinearPosition[2] == maxVal[1]):
                 return True
         return False
 
     def getUserIntervalInAnalysisZone(self, user):
+        '''returns the time interval at which user passed through analysis zone'''
         firstInstant = None
         lastInstant = None
         for t in list(user.timeInterval):

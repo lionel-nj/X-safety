@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 
 import toolkit
@@ -167,8 +168,6 @@ plt.ylim(0)
 plt.legend(['stop sign', 'yield sign', 'no TCD'])
 plt.savefig('rearEndnInter_variations.pdf')
 plt.close()
-
-
 
 
 for cd in controlDevices :

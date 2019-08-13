@@ -22,9 +22,11 @@ class NewellMovingObject(moving.MovingObject):
         self.amberProbability = amberProbability
 
     def getLeader(self):
+        '''returns leader of agent'''
         return self.leader
 
     def updateD(self, safetyDistance):
+        '''updates d parameter'''
         self.d = max(self.d, self.getLeader().geometry) + safetyDistance
 
     def getInstantAtCurvilinearPosition(self, cp, first=True):
@@ -42,6 +44,7 @@ class NewellMovingObject(moving.MovingObject):
             return None
 
     def orderUsersByDistanceToPointAtInstant(self, world, other, instant):
+        '''orders users by distance  to crossing point at instant'''
         d1 = world.distanceToCrossingAtInstant(self, other, instant)
         d2 = world.distanceToCrossingAtInstant(other, self, instant)
         if d1 > d2:
@@ -164,9 +167,11 @@ class NewellMovingObject(moving.MovingObject):
             return s
 
     def isFirstOnAlignment(self):
+        '''return True if agent is the first one on alignment'''
         return self.getCurrentAlignment().getFirstUser().num == self.num
 
     def areOnTransversalAlignments(self, other):
+        '''returns True if agents are on transversal alignment, else False'''
         return self.getCurrentAlignment().transversalAlignments is not None and other.getCurrentAlignment() in self.getCurrentAlignment().transversalAlignments
 
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):

@@ -25,7 +25,6 @@ minDistances = {1: [], 2: []}
 
 PETs = []
 interactions = []
-# duration = []
 numberOfcompletedUsers0 = []
 numberOfcompletedUsers2 = []
 
@@ -34,7 +33,6 @@ for seed in seeds:
     sim.seed = seed
     world = network.World.load('stop.yml')
     result = sim.run(world)
-    # duration.append(result[0])
     numberOfcompletedUsers0.append(len([user for user in world.completed if user.getInitialAlignment().idx == 0]))
     numberOfcompletedUsers2.append(len([user for user in world.completed if user.getInitialAlignment().idx == 2]))
 
@@ -83,8 +81,8 @@ baseCaseResults = {"minDistances": minDistances,
                    "sidenInter10": sidenInter10,
                    "sidenInter20": sidenInter20,
                    "sidenInter50": sidenInter50,
-                   "completedUser0":numberOfcompletedUsers0,
-                   "completedUSers2":numberOfcompletedUsers2}
+                   "completedUser0": numberOfcompletedUsers0,
+                   "completedUSers2": numberOfcompletedUsers2}
 
 toolkit.saveYaml('base-case-results.yml', baseCaseResults)
 
