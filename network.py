@@ -200,16 +200,20 @@ class ControlDevice:
 
 
 class TrafficLight(ControlDevice):
-    states = ['green', 'amber', 'red']
+    states = ['green', 'amber', 'red', 'integralRed']
 
-    def __init__(self, idx, alignmentIdx, redTime, greenTime, amberTime, integralRed, slave=None, master=None):
+    def __init__(self, idx, alignmentIdx, greenTime, amberTime, integralRed, cycleDuration, slave=None, master=None):
         super(TrafficLight, self).__init__(idx, alignmentIdx)
-        self.redTime = redTime
-        self.greenTime = greenTime
-        self.amberTime = amberTime
-        self.integralRed = integralRed
         self.slave = slave
         self.master = master
+        self.redTime = amberTime + greenTime
+        self.amberTime = amberTime
+        self.greenTime = greenTime
+        self.integralRed = integralRed
+        self.cycleDuration = cycleDuration
+
+    def checkDurations(self):
+        return self.cycleDuration == self.greenTime + self.amberTime + self.redTime + self.integralRed
 
     def setSlaveState(self):
         if self.master.state == 'green':
@@ -233,6 +237,8 @@ class TrafficLight(ControlDevice):
     def switch(self):
         """ switches state to next state in the sequence """
         if self.state == 'red':
+            self.state = 'integralRed'
+        elif self.state == 'integralRed':
             self.state = 'green'
         elif self.state == 'amber':
             self.state = 'red'
@@ -241,20 +247,26 @@ class TrafficLight(ControlDevice):
 
     def update(self, timeStep):
         """Updates the current state for a TrafficLight object for the duration of state"""
-    # if self.master is None:
         if self.state == 'green':
-            if self.remainingGreen > 1:
+            if self.remainingGreen > 0:
                 self.remainingGreen -= 1
             else:
                 self.switch()
                 self.remainingGreen = self.greenTime / timeStep
 
         elif self.state == 'red':
-            if self.remainingRed > 1:
+            if self.remainingRed > 0:
                 self.remainingRed -= 1
             else:
                 self.switch()
-                self.remainingRed = self.redTime / timeStep
+                self.remainingRed = (self.greenTime + self.amberTime) / timeStep
+
+        elif self.state == 'integralRed':
+            if self.remainingIntegralRed > 0:
+                self.remainingIntegralRed -= 1
+            else:
+                self.switch()
+                self.remainingIntegralRed = self.integralRed / timeStep
 
         else:
             if self.remainingAmber > 1:
@@ -263,16 +275,16 @@ class TrafficLight(ControlDevice):
                 self.switch()
                 self.remainingAmber = self.amberTime / timeStep
 
-
     def reset(self, timeStep):
         """ resets the defaut parameters of a traffic light"""
-        self.remainingRed = self.redTime / timeStep
+        self.remainingRed = (self.amberTime + self.greenTime) / timeStep
         self.remainingAmber = self.amberTime / timeStep
         self.remainingGreen = self.greenTime / timeStep
+        self.remainingIntegralRed = self.integralRed / timeStep
         self.drawInitialState()
 
     def permissionToGo(self, instant, user, world):
-        if self.state in ['red', 'amber']:
+        if self.getState() in ['red', 'amber']:
             return False
         else:
             return True

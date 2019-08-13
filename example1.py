@@ -4,8 +4,8 @@ import events
 import network
 import simulation
 
-world = network.World.load('stop.yml')
-sim = simulation.Simulation.load('config.yml')
+world = network.World.load('trafficlights.yml')
+sim = simulation.Simulation.load('trafficlights-config.yml')
 sim.run(world)
 world.plotUserTrajectories(sim.timeStep)
 

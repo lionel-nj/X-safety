@@ -44,9 +44,10 @@ class Simulation(object):
         instant = 0
 
         while instant*self.timeStep < self.duration or len(world.completed) < self.minNCompletedUsers:
-            if self.verbose:
-                print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
+            # if self.verbose:
+            #     print('simulation step {}: {} users ({} completed), {} interactions ({} completed)'.format(instant, len(world.users), len(world.completed), len(world.interactions), len(world.completedInteractions)))
             world.updateControlDevices(self.timeStep)
+            print(world.controlDevices[0].state, world.controlDevices[1].state, instant)
             userNum = world.initUsers(instant, userNum, self.safetyDistance)
             world.updateUsers(instant, analysisZone)
             world.updateFirstUsers()
