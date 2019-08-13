@@ -10,7 +10,7 @@ Les libraires néecessaire à l'utilisation de cet outil sont spécifiés dans l
 # EN : Minimal Simulation tool of road users' interactions
 
 
-This project is the developement of a simulation tool in order to proceed to road safety analysis as part of Lionel Nébot Janvier's master's project at École Polytechnique Montréal under the supervision of Professor Nicolas Saunier 
+This project is the development of a simulation tool in order to proceed to road safety analysis as part of Lionel Nébot Janvier's master's project at École Polytechnique Montréal under the supervision of Professor Nicolas Saunier 
 
 The project is still under development: the code's structure is not permanent !
 
