@@ -143,12 +143,12 @@ def inverseDict(dictValues, keysSet1, keysSet2):
 
 def callWhenDone():
     from twilio.rest import Client
-    account_sid = 'AC75e40f32bb2c24f9f11d71e000465147'
-    auth_token = '86f9972b7dc9a1688335382226346251'
+    account_sid = 'you own account sid'
+    auth_token = 'your ow tokel'
     client = Client(account_sid, auth_token)
     client.calls.create(url='http://demo.twilio.com/docs/voice.xml',
-                        to='+15145715064',
-                        from_='+14387962998')
+                        to='+cellphone number to call',
+                        from_='+your twilio phone number')
 
 
 def drawBoxPlot(data, edgeColor, fillColor):
