@@ -10,7 +10,7 @@ import toolkit
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-surfaces = [7000]#, 7000, 15000]
+surfaces = [2000]#, 7000, 15000]
 surface = surfaces[0]
 
 PETs = {surface: []}#, 7000: [], 15000: []}
