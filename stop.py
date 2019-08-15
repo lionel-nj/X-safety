@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 import numpy as np
 
-import analysis as an
 import events
 import network
 import simulation
@@ -10,8 +9,8 @@ import toolkit
 stop_world = network.World.load('stop.yml')
 stop_sim = simulation.Simulation.load('stop-config.yml')
 stop_sim.dbName = 'stop-data.db'
-stop_analysis = an.Analysis(idx = 0, world=stop_world, seed=stop_sim.seed)
-stop_analysis.interactions = []
+# stop_analysis = an.Analysis(idx = 0, world=stop_world, seed=stop_sim.seed)
+# stop_analysis.interactions = []
 #an.createAnalysisTable(sim.dbName)
 
 seeds = [stop_sim.seed+i*stop_sim.increment for i in range(stop_sim.rep)]
@@ -39,8 +38,8 @@ for seed in seeds:
     stop_world = network.World.load('stop.yml')
     stop_sim.seed = seed
     stop_sim.run(stop_world)
-    stop_analysis.seed = seed
-    stop_analysis.interactions.append(stop_world.completedInteractions)
+    # stop_analysis.seed = seed
+    # stop_analysis.interactions.append(stop_world.completedInteractions)
     #stop.saveIndicators(sim.dbName)
     for inter in stop_world.completedInteractions:
         if inter.categoryNum is not None:

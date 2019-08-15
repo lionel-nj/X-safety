@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 import numpy as np
 
-import analysis as an
 import events
 import network
 import simulation
@@ -10,8 +9,8 @@ import toolkit
 yield_world = network.World.load('yield.yml')
 yield_sim = simulation.Simulation.load('yield-config.yml')
 yield_sim.dbName = 'yield-data.db'
-yield_analysis = an.Analysis(idx = 0, world=yield_world, seed=yield_sim.seed)
-yield_analysis.interactions = []
+# yield_analysis = an.Analysis(idx = 0, world=yield_world, seed=yield_sim.seed)
+# yield_analysis.interactions = []
 #an.createAnalysisTable(sim.dbName)
 
 seeds = [yield_sim.seed+i*yield_sim.increment for i in range(yield_sim.rep)]
@@ -39,8 +38,8 @@ for seed in seeds:
     yield_world = network.World.load('yield.yml')
     yield_sim.seed = seed
     yield_sim.run(yield_world)
-    yield_analysis.seed = seed
-    yield_analysis.interactions.append(yield_world.completedInteractions)
+    # yield_analysis.seed = seed
+    # yield_analysis.interactions.append(yield_world.completedInteractions)
     # analysis.saveIndicators(sim.dbName)
     for inter in yield_world.completedInteractions:
         if inter.categoryNum is not None:

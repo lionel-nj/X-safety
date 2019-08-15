@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 import numpy as np
 
-import analysis as an
 import events
 import network
 import simulation
@@ -10,8 +9,8 @@ import toolkit
 sQuo_world = network.World.load('sQuo.yml')
 sQuo_sim = simulation.Simulation.load('sQuo-config.yml')
 sQuo_sim.dbName = 'sQuo-data.db'
-sQuo_analysis = an.Analysis(idx = 0, world=sQuo_world, seed=sQuo_sim.seed)
-sQuo_analysis.interactions = []
+# sQuo_analysis = an.Analysis(idx = 0, world=sQuo_world, seed=sQuo_sim.seed)
+# sQuo_analysis.interactions = []
 #an.createAnalysisTable(sim.dbName)
 
 seeds = [2+i*sQuo_sim.increment for i in range(sQuo_sim.rep)]
@@ -39,8 +38,8 @@ for seed in seeds:
     sQuo_world = network.World.load('sQuo.yml')
     sQuo_sim.seed = seed
     sQuo_sim.run(sQuo_world)
-    sQuo_analysis.seed = seed
-    sQuo_analysis.interactions.append(sQuo_world.completedInteractions)
+    # sQuo_analysis.seed = seed
+    # sQuo_analysis.interactions.append(sQuo_world.completedInteractions)
     #analysis.saveIndicators(sim.dbName)
     for inter in sQuo_world.completedInteractions:
         if inter.categoryNum is not None:
