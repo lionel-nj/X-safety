@@ -10,7 +10,7 @@ import toolkit
 world = network.World.load('cross-net.yml')
 sim = simulation.Simulation.load('config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-surfaces = [15000]#, 7000, 15000]
+surfaces = [7000]#, 7000, 15000]
 surface = surfaces[0]
 
 PETs = {surface: []}#, 7000: [], 15000: []}
@@ -132,8 +132,6 @@ toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
 toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
 toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
 toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
-
-
 
 zone_results = {'PETS': PETs,
                 'TTCs': minTTCs,
