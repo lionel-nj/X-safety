@@ -366,9 +366,16 @@ class World:
                 for u in self.users + self.completed:
                     if u.timeInterval is not None:
                         u.plotCurvilinearPositions(al.idx)
+
                 plt.xlabel('time ({}s)'.format(timeStep))
                 plt.ylabel('longitudinal coordinate (m)')
                 plt.title('Lane {}'.format(al.idx))
+                # plt.plot([300,300], [0, al.getTotalDistance()], 'go--', color='black')
+                # plt.plot([600,600], [0, al.getTotalDistance()], 'go--', color='black')
+                # plt.plot([1201,1201], [0, al.getTotalDistance()], 'go--', color='black')
+                # plt.plot([1212,1212], [0, al.getTotalDistance()], 'go--', color='black')
+                # plt.plot([1512,1512], [0, al.getTotalDistance()], 'go--', color='black')
+                # plt.plot([1813,1813], [0, al.getTotalDistance()], 'go--', color='black')
         else:
             plt.figure()
             for u in self.users + self.completed:
