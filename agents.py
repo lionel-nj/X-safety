@@ -20,7 +20,7 @@ class NewellMovingObject(moving.MovingObject):
         self.criticalGap = criticalGap
         self.comingUser = None
         self.amberProbability = amberProbability
-        self.freeFlow = [] # bool list, 1 if agent is in a congested state, else (free flow) 0
+        self.freeFlow = [] # bool list, 0 if agent is in a congested state, else (free flow) 1
 
     def getLeader(self):
         '''returns leader of agent'''
@@ -29,6 +29,12 @@ class NewellMovingObject(moving.MovingObject):
     def updateD(self, safetyDistance):
         '''updates d parameter'''
         self.d = max(self.d, self.getLeader().geometry) + safetyDistance
+
+    def getTimePercentageFreeFlow(self):
+        return 100 * len([k for k in self.freeFlow if k == 1])/len(self.freeFlow)
+
+    def getTimePercentageCongestion(self):
+        return 100 * len([k for k in self.freeFlow if k == 0])/len(self.freeFlow)
 
     def getInstantAtCurvilinearPosition(self, cp, first=True):
         """"returns instant at curvilinear position, if first is true, returns the first instant
@@ -196,16 +202,20 @@ class NewellMovingObject(moving.MovingObject):
                 if self.leader is None:
                     s = (instant - self.instantAtS0) * self.desiredSpeed
                     self.curvilinearPositions = moving.CurvilinearTrajectory([s], [0.], [self.getInitialAlignment().idx])
-                    self.freeFlow.append(0)
+                    self.following = False
                 elif self.leader.existsAtInstant(leaderInstant):
                     freeFlowCoord = (instant - self.instantAtS0) * self.desiredSpeed
                     # constrainedCoord at instant = xn-1(t = instant-self.tau)-self.d
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
                     self.curvilinearPositions = moving.CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.], [self.getInitialAlignment().idx])
-                    self.freeFlow.append(1)
+                    self.following = True
                 self.timeInterval = moving.TimeInterval(instant, instant)
                 self.curvilinearVelocities = moving.CurvilinearTrajectory()
                 world.setInserted(self)
+                if self.following:
+                    self.freeFlow.append(0)
+                else:
+                    self.freeFlow.append(1)
                 #self.getInitialAlignment().assignUserAtInstant(self, instant)
         else:
             s1 = self.curvilinearPositions.getSCoordAt(-1)
@@ -222,7 +232,7 @@ class NewellMovingObject(moving.MovingObject):
                 else:  # simplest is to continue at constant speed
                     ds = self.curvilinearVelocities.getSCoordAt(-1)
                     constrainedCoord = s1 + ds
-                    self.following = True
+                    self.following = False
                 s2 = min(freeFlowCoord, constrainedCoord)
             nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant, world)
             # if nextAlignments is not None:
@@ -234,6 +244,8 @@ class NewellMovingObject(moving.MovingObject):
             if nextAlignments is not None:
                 self.curvilinearPositions.addPositionSYL(s2onNextAlignment, 0., nextAlignments[-1].idx)
                 if self.following:
+                    self.freeFlow.append(0)
+                else:
                     self.freeFlow.append(1)
                 ds = s2-s1
                 for al in nextAlignments[1:]:

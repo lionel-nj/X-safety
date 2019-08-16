@@ -1,5 +1,5 @@
 !!python/object:simulation.Simulation
-duration: 300
+duration: 240
 minNCompletedUsers: 5
 timeStep: 0.1
 safetyDistance: 1.0
