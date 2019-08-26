@@ -26,8 +26,16 @@ numberOfUsers0 = {}
 numberOfUsers2 = {}
 meanTimePercentageInCongestedState = {}
 stdTimePercentageInCongestedState = {}
+speedV1Lane0 = {}
+speedV1Lane2 = {}
+speedV2Lane0 = {}
+speedV2Lane2 = {}
+speedDifferential = {}
 
 for distribution in world.userInputs[1].distributions:
+    if distribution == 'dn' or distribution == 'headway':
+    # if distribution == 'length' or distribution == 'speed':
+    # if distribution == 'tau' or distribution == 'criticalGap':
 
         sidenInter10[distribution] = {}
         sidenInter20[distribution] = {}
@@ -39,6 +47,11 @@ for distribution in world.userInputs[1].distributions:
         numberOfUsers2[distribution] = {}
         meanTimePercentageInCongestedState[distribution] = {}
         stdTimePercentageInCongestedState[distribution] = {}
+        speedV1Lane0[distribution] = {}
+        speedV2Lane0[distribution] = {}
+        speedV1Lane2[distribution] = {}
+        speedV2Lane2[distribution] = {}
+        speedDifferential[distribution] = {}
 
         world = network.World.load('stop.yml')
         print(distribution)
@@ -53,6 +66,11 @@ for distribution in world.userInputs[1].distributions:
             rearEndnInter10[distribution][variation] = []
             rearEndnInter20[distribution][variation] = []
             rearEndnInter50[distribution][variation] = []
+            speedV1Lane0[distribution][variation] = []
+            speedV2Lane0[distribution][variation] = []
+            speedV1Lane2[distribution][variation] = []
+            speedV2Lane2[distribution][variation] = []
+            speedDifferential[distribution][variation] = []
 
             print(variation)
 
@@ -82,13 +100,28 @@ for distribution in world.userInputs[1].distributions:
                 numberOfUsers2[distribution][variation].append(len([user for user in world.completed if user.getInitialAlignment().idx == 2]))
                 toolkit.saveYaml('numberOfUsers0-{}{}.yml'.format(distribution, variation), numberOfUsers0)
                 toolkit.saveYaml('numberOfUsers2-{}{}.yml'.format(distribution, variation), numberOfUsers2)
+                speedV1Lane0[distribution][variation].append(world.v1[0])
+                speedV1Lane2[distribution][variation].append(world.v1[2])
+                speedV2Lane0[distribution][variation].append(world.v2[0])
+                speedV2Lane2[distribution][variation].append(world.v2[2])
 
                 for inter in world.completedInteractions:
-                    if inter.categoryNum is not None:
+                    if inter.categoryNum is not None :
+                        speedDiff = inter.getIndicator(events.Interaction.indicatorNames[5])
+                        if speedDiff is not None:
+                            speedDifferential[distribution][variation].appeend(speedDiff.getMostSevereValue(1))
+
                         distance = inter.getIndicator(events.Interaction.indicatorNames[2])
                         if distance is not None:
-                            minDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
-                            tempMinDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+                            if inter.categoryNum == 1:
+                                if inter.roadUser1.getInitialAlignment().idx == 2:
+                                    tempMinDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+                                    minDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+
+                            else:
+                                minDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
+
+                                tempMinDistances[inter.categoryNum].append(distance.getMostSevereValue(1))
 
                         ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
                         if ttc is not None:
@@ -96,12 +129,23 @@ for distribution in world.userInputs[1].distributions:
                             if minTTC < 0:
                                 print(inter.num, inter.categoryNum, ttc.values)
                             if minTTC < 20:
-                                minTTCs[inter.categoryNum].append(minTTC)
+                                if inter.categoryNum == 1:
+                                    if inter.roadUser1.getInitialAlignment().idx == 2:
+                                        minTTCs[inter.categoryNum].append(minTTC)
+                                else:
+                                    minTTCs[inter.categoryNum].append(minTTC)
+
                             values = ttc.getValues(False)
                             if len(values) > 5:
                                 interactions.append(inter)
                         if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
                             PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1)*sim.timeStep)
+
+                # if inter.roadUser1.getInitialAlignment().idx == 2:
+                tempMinDistances[1] = toolkit.cleanData(tempMinDistances[1])
+                tempMinDistances[2] = toolkit.cleanData(tempMinDistances[2])
+                minDistances[1] = toolkit.cleanData(minDistances[1])
+                minDistances[2] = toolkit.cleanData(minDistances[2])
 
                 rearEndnInter10[distribution][variation].append((np.array(tempMinDistances[1]) <= 10).sum())
                 rearEndnInter20[distribution][variation].append((np.array(tempMinDistances[1]) <= 20).sum())
@@ -131,8 +175,17 @@ for distribution in world.userInputs[1].distributions:
             toolkit.saveYaml('sa-side-nInter10-{}{}.yml'.format(distribution, variation), sidenInter10[distribution][variation])
             toolkit.saveYaml('sa-side-nInter20-{}{}.yml'.format(distribution, variation), sidenInter20[distribution][variation])
             toolkit.saveYaml('sa-side-nInter50-{}{}.yml'.format(distribution, variation), sidenInter50[distribution][variation])
-            toolkit.saveYaml('sa-meanTimePercentageCongestion-{}{}.yml'.format(distribution, variation), meanTimePercentageInCongestedState)
-            toolkit.saveYaml('sa-stdTimePercentageCongestion-{}{}.yml'.format(distribution, variation), stdTimePercentageInCongestedState)
+
+        toolkit.saveYaml('sa-speedDifferentials-{}.yml'.format(distribution), speedDifferential)
 
 
-toolkit.callWhenDone()
+        toolkit.saveYaml('sa-meanTimePercentageCongestion-{}.yml'.format(distribution), meanTimePercentageInCongestedState)
+        toolkit.saveYaml('sa-stdTimePercentageCongestion-{}.yml'.format(distribution), stdTimePercentageInCongestedState)
+
+        toolkit.saveYaml('sa-meanSpeedV1Lane0{}.yml'.format(distribution),speedV1Lane0)
+        toolkit.saveYaml('sa-meanSpeedV1Lane2{}.yml'.format(distribution),speedV1Lane2)
+        toolkit.saveYaml('sa-meanSpeedV2Lane0{}.yml'.format(distribution),speedV2Lane0)
+        toolkit.saveYaml('sa-meanSpeedV2Lane2{}.yml'.format(distribution),speedV2Lane2)
+
+
+# toolkit.callWhenDone()

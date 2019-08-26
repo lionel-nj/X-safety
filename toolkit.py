@@ -192,6 +192,18 @@ def plotVariations(indicatorValues, fileName, figName, ylabel):
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
+
+def cleanData(data):
+    q1 = np.percentile(data, 25)
+    q3 = np.percentile(data, 75)
+    iqr = q3-q1
+
+    data = np.sort(data)
+    ret = [elem for elem in data if q1-1.5*iqr<=elem<=q3+1.5*iqr]
+
+    return ret
+
+
 if __name__ == "__main__":
     import doctest
 

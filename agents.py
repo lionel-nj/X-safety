@@ -121,6 +121,12 @@ class NewellMovingObject(moving.MovingObject):
     def getIntersectionExitInstant(self):
         return self.intersectionExitInstant
 
+    def getTotalDistance(self):
+        distance = 0
+        for al in self.alignments:
+            distance += al.getTotalDistance()
+        return distance
+
     def interpolateCurvilinearPositions(self, t):
         '''Linear interpolation of curvilinear positions, t being a float
 
@@ -208,7 +214,7 @@ class NewellMovingObject(moving.MovingObject):
                     # constrainedCoord at instant = xn-1(t = instant-self.tau)-self.d
                     constrainedCoord = self.leader.interpolateCurvilinearPositions(leaderInstant)[0] - self.d
                     self.curvilinearPositions = moving.CurvilinearTrajectory([min(freeFlowCoord, constrainedCoord)], [0.], [self.getInitialAlignment().idx])
-                    self.following = True
+                    self.following = freeFlowCoord <= constrainedCoord
                 self.timeInterval = moving.TimeInterval(instant, instant)
                 self.curvilinearVelocities = moving.CurvilinearTrajectory()
                 world.setInserted(self)
@@ -228,12 +234,13 @@ class NewellMovingObject(moving.MovingObject):
                     # compute leader coordinate with respect to current alignment
                     p = self.leader.interpolateCurvilinearPositions(instant - self.tau)
                     constrainedCoord = p[0] + self.leader.getTravelledDistance(self.curvilinearPositions.getLaneAt(-1), p[2]) - self.d
-                    self.following = True
+                    # self.following = True
                 else:  # simplest is to continue at constant speed
                     ds = self.curvilinearVelocities.getSCoordAt(-1)
                     constrainedCoord = s1 + ds
-                    self.following = False
+                    # self.following = False
                 s2 = min(freeFlowCoord, constrainedCoord)
+                self.following = freeFlowCoord <= constrainedCoord
             nextAlignments, s2onNextAlignment = self.getCurrentAlignment().getNextAlignment(s2, self, instant, world)
             # if nextAlignments is not None:
             #     if nextAlignments[-1].getExitIntersection() is not None:

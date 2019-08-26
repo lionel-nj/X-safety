@@ -287,6 +287,7 @@ class Interaction(moving.STObject, VideoFilenameAddable):
                     pet[instant] = abs(t1 - t2) * timeStep
                     self.addIndicator(indicators.SeverityIndicator(Interaction.indicatorNames[10], pet, mostSevereIsMax=False))
 
+
     # @staticmethod
     # def computePET(obj1, obj2, collisionDistanceThreshold):
     #     '''Post-encroachment time based on distance threshold

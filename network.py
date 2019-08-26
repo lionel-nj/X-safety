@@ -2,6 +2,7 @@ import sqlite3
 
 import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
 from scipy import stats
 from trafficintelligence import utils, moving, indicators
 
@@ -472,7 +473,10 @@ class World:
             else:
                 inter.setLastInstant(instant)
                 if computeInteractions:
+
+
                     distanceIndicator = inter.getIndicator(events.Interaction.indicatorNames[2])
+
                     if distanceIndicator is None:  # create distance indicator
                         distanceIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[2], {instant: None}, mostSevereIsMax=False)
                         inter.addIndicator(distanceIndicator)                        
@@ -496,6 +500,20 @@ class World:
                                     inter.addIndicator(ttcIndicator)
                                 ttcIndicator.values[instant] = ttc
                                 ttcIndicator.getTimeInterval().last = instant
+
+
+                                speedDiffernetialIndicator = inter.getIndicator(events.Interaction.indicatorNames[5])
+                                if speedDiffernetialIndicator is None:
+                                    speedDifferentialIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[5], {}, mostSevereIsMax=False)
+                                    inter.addIndicator(speedDifferentialIndicator)
+                                v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]  # compute distance with distanceAtInstant and euclidean distance -> should be kept for rear end TTC computation
+                                v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]
+                                if (v1, v2) != (0, 0):
+                                    speedDifferentialIndicator.values[instant] = v2-v1
+                                    speedDifferentialIndicator.getTimeInterval().last = instant
+
+
+
                     elif inter.categoryNum == 2 and inter.roadUser1.areOnTransversalAlignments(inter.roadUser2):  # side
                         # compute time to end of each alignment and check if there is a TTC
                         p1 = inter.roadUser1.getCurvilinearPositionAtInstant(instant)
@@ -527,6 +545,7 @@ class World:
                                         inter.addIndicator(ttcIndicator)
                                     ttcIndicator.values[instant] = ttc
                                     ttcIndicator.getTimeInterval().last = instant
+
         for inter in newlyCompleted:
             self.interactions.remove(inter)
             self.completedInteractions.append(inter)
@@ -1030,6 +1049,9 @@ class World:
                             s = p[0]
                             al.firstUser = u
 
+    def computeMeanVelocities(self, timeStep):
+        self.v1 = {0: np.mean([np.mean(u.curvilinearVelocities.positions[0]) / timeStep for u in self.completed if u.getInitialAlignment().idx == 0]), 2: np.mean([np.mean(u.curvilinearVelocities.positions[0]) / timeStep for u in self.completed if u.getInitialAlignment().idx == 2])}
+        self.v2 = {0: np.mean([np.mean(u.getTotalDistance() / (len(u.curvilinearPositions) * timeStep)) for u in self.completed if u.getInitialAlignment().idx == 0]), 2: np.mean([np.mean(u.getTotalDistance() / (len(u.curvilinearPositions) * timeStep)) for u in self.completed if u.getInitialAlignment().idx == 2])}
 
 class UserInput:
     def __init__(self, idx, alignmentIdx, distributions):

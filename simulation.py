@@ -55,8 +55,6 @@ class Simulation(object):
             instant += 1
         world.duplicateLastVelocities()
         world.computePET(self)
+        world.computeMeanVelocities(self.timeStep)
 
-if __name__ == "__main__":
-    import doctest
 
-    doctest.testmod()
