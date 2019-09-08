@@ -45,14 +45,28 @@ for seed in seeds:
         if inter.categoryNum is not None:
             stop_distance = inter.getIndicator(events.Interaction.indicatorNames[2])
             if stop_distance is not None:
-                stop_minDistances[inter.categoryNum][seed].append(stop_distance.getMostSevereValue(1))
+
+                if inter.categoryNum == 1:
+                    if inter.roadUser1.getInitialAlignment().idx == 2:
+                        stop_minDistances[inter.categoryNum][seed].append(stop_distance.getMostSevereValue(1))
+                else:
+                    stop_minDistances[inter.categoryNum][seed].append(stop_distance.getMostSevereValue(1))
+
+                # stop_minDistances[inter.categoryNum][seed].append(stop_distance.getMostSevereValue(1))
             stop_ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
             if stop_ttc is not None:
                 stop_minTTC = stop_ttc.getMostSevereValue(1)*stop_sim.timeStep  # seconds
                 if stop_minTTC < 0:
                     print(inter.num, inter.categoryNum, stop_ttc.values)
                 if stop_minTTC < 20:
-                    stop_minTTCs[inter.categoryNum].append(stop_minTTC)
+
+                    if inter.categoryNum == 1:
+                        if inter.roadUser1.getInitialAlignment().idx == 2:
+                            stop_minTTCs[inter.categoryNum].append(stop_minTTC)
+                    else:
+                        stop_minTTCs[inter.categoryNum].append(stop_minTTC)
+                    # stop_minTTCs[inter.categoryNum].append(stop_minTTC)
+
                 values = stop_ttc.getValues(False)
                 if len(values) > 5:
                     stop_interactions.append(inter)
@@ -71,7 +85,7 @@ stop_nInter10 = {1: np.mean(stop_rearEndnInter10), 2: np.mean(stop_sidenInter10)
 stop_nInter20 = {1: np.mean(stop_rearEndnInter20), 2: np.mean(stop_sidenInter20)}
 stop_nInter50 = {1: np.mean(stop_rearEndnInter50), 2: np.mean(stop_sidenInter50)}
 
-toolkit.callWhenDone()
+# toolkit.callWhenDone()
 
 stop_results = {'PETS': stop_PETs,
                 'TTCs': stop_minTTCs,

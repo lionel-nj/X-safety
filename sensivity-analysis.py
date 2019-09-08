@@ -33,9 +33,9 @@ speedV2Lane2 = {}
 speedDifferential = {}
 
 for distribution in world.userInputs[1].distributions:
-    if distribution == 'dn' or distribution == 'headway':
+    # if distribution == 'dn' or distribution == 'headway':
     # if distribution == 'length' or distribution == 'speed':
-    # if distribution == 'tau' or distribution == 'criticalGap':
+    if distribution == 'tau' or distribution == 'criticalGap':
 
         sidenInter10[distribution] = {}
         sidenInter20[distribution] = {}
@@ -109,7 +109,10 @@ for distribution in world.userInputs[1].distributions:
                     if inter.categoryNum is not None :
                         speedDiff = inter.getIndicator(events.Interaction.indicatorNames[5])
                         if speedDiff is not None:
-                            speedDifferential[distribution][variation].appeend(speedDiff.getMostSevereValue(1))
+                            if inter.categoryNum == 1:
+                                if inter.roadUser1.getInitialAlignment().idx == 2:
+                                    speedDifferential[distribution][variation].append(speedDiff.getMostSevereValue(1))
+
 
                         distance = inter.getIndicator(events.Interaction.indicatorNames[2])
                         if distance is not None:
@@ -141,11 +144,7 @@ for distribution in world.userInputs[1].distributions:
                         if inter.getIndicator(events.Interaction.indicatorNames[10]) is not None:
                             PETs.append(inter.getIndicator(events.Interaction.indicatorNames[10]).getMostSevereValue(1)*sim.timeStep)
 
-                # if inter.roadUser1.getInitialAlignment().idx == 2:
-                tempMinDistances[1] = toolkit.cleanData(tempMinDistances[1])
-                tempMinDistances[2] = toolkit.cleanData(tempMinDistances[2])
-                minDistances[1] = toolkit.cleanData(minDistances[1])
-                minDistances[2] = toolkit.cleanData(minDistances[2])
+
 
                 rearEndnInter10[distribution][variation].append((np.array(tempMinDistances[1]) <= 10).sum())
                 rearEndnInter20[distribution][variation].append((np.array(tempMinDistances[1]) <= 20).sum())

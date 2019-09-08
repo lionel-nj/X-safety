@@ -5,12 +5,11 @@ import analysis as an
 import events
 import network
 import simulation
-import toolkit
 
-world = network.World.load('cross-net.yml')
-sim = simulation.Simulation.load('config.yml')
+world = network.World.load('stop.yml')
+sim = simulation.Simulation.load('stop-config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
-surfaces = [2000]#, 7000, 15000]
+surfaces = [15000]#, 7000, 15000]
 surface = surfaces[0]
 
 PETs = {surface: []}#, 7000: [], 15000: []}
@@ -36,7 +35,7 @@ analysisList = []
 
 for seed in seeds:
     print('run {} out of {}'.format(seeds.index(seed) + 1, len(seeds)))
-    world = network.World.load('cross-net.yml')
+    world = network.World.load('stop.yml')
     sim.seed = seed
     sim.run(world, surface)
     analysis = an.Analysis(idx=0, world=world, seed=seed)
@@ -87,7 +86,14 @@ for surface in surfaces:
 
                     distance = subInteraction.getIndicator(events.Interaction.indicatorNames[2])
                     if distance is not None:
-                        minDistances[surface][subInteraction.categoryNum][analysis.seed].append(min(distance.getValues(False)))
+
+                        if inter.categoryNum == 1:
+                            if inter.roadUser1.getInitialAlignment().idx == 2:
+                                minDistances[surface][subInteraction.categoryNum][analysis.seed].append(distance.getMostSevereValue(1))
+                        else:
+                            minDistances[surface][subInteraction.categoryNum][analysis.seed].append(distance.getMostSevereValue(1))
+
+                        # minDistances[surface][subInteraction.categoryNum][analysis.seed].append(min(distance.getValues(False)))
 
                     ttc = subInteraction.getIndicator(events.Interaction.indicatorNames[7])
                     if ttc is not None:
@@ -96,7 +102,14 @@ for surface in surfaces:
                             if minTTC < 0:
                                 print(subInteraction.num, subInteraction.categoryNum, ttc.values)
                             if minTTC < 20:
-                                minTTCs[surface][subInteraction.categoryNum][analysis.seed].append(minTTC)
+
+                                if inter.categoryNum == 1:
+                                    if inter.roadUser1.getInitialAlignment().idx == 2:
+                                        minTTCs[surface][subInteraction.categoryNum][analysis.seed].append(minTTC)
+                                else:
+                                    minTTCs[surface][subInteraction.categoryNum][analysis.seed].append(minTTC)
+                                # minTTCs[surface][subInteraction.categoryNum][analysis.seed].append(minTTC)
+
                             values = ttc.getValues(False)
                             if len(values) > 5:
                                 interactions[surface].append(subInteraction)
@@ -112,26 +125,7 @@ for surface in surfaces:
         rearEndnInter20[surface].append((np.array(minDistances[surface][1][analysis.seed]) <= 20).sum())
         rearEndnInter50[surface].append((np.array(minDistances[surface][1][analysis.seed]) <= 50).sum())
 
-    nInter10[surface] = {1: np.mean(rearEndnInter10[surface]), 2: np.mean(sidenInter10[surface])}
-    nInter20[surface] = {1: np.mean(rearEndnInter20[surface]), 2: np.mean(sidenInter20[surface])}
-    nInter50[surface] = {1: np.mean(rearEndnInter50[surface]), 2: np.mean(sidenInter50[surface])}
 
-toolkit.saveYaml('zone{}-nInter10.yml'.format(surface), nInter10)
-toolkit.saveYaml('zone{}-nInter20.yml'.format(surface), nInter20)
-toolkit.saveYaml('zone{}-nInter50.yml'.format(surface), nInter50)
-
-toolkit.saveYaml('zone{}-rearEndnInter10.yml'.format(surface), rearEndnInter10)
-toolkit.saveYaml('zone{}-rearEndnInter20.yml'.format(surface), rearEndnInter20)
-toolkit.saveYaml('zone{}-rearEndnInter50.yml'.format(surface), rearEndnInter50)
-
-
-toolkit.saveYaml('zone{}-sidenInter10.yml'.format(surface), sidenInter10)
-toolkit.saveYaml('zone{}-sidenInter20.yml'.format(surface), sidenInter20)
-toolkit.saveYaml('zone{}-sidenInter50.yml'.format(surface), sidenInter50)
-
-toolkit.saveYaml('zone{}-PETs.yml'.format(surface), PETs)
-toolkit.saveYaml('zone{}-minDistances.yml'.format(surface), minDistances)
-toolkit.saveYaml('zone{}-minTTCs.yml'.format(surface), minTTCs)
 
 zone_results = {'PETS': PETs,
                 'TTCs': minTTCs,
@@ -141,9 +135,6 @@ zone_results = {'PETS': PETs,
                 'rear-nInter10': rearEndnInter10,
                 'rear-nInter20': rearEndnInter20,
                 'rear-nInter50': rearEndnInter50,
-                'nInter10' : nInter10,
-                'nInter20': nInter20,
-                'nInter50': nInter50,
                 'minDistances': minDistances,
                  }
-toolkit.saveYaml('zone{}-results-v4.yml'.format(surface), zone_results)
+# toolkit.saveYaml('zone{}-results-v5.yml'.format(surface), zone_results)

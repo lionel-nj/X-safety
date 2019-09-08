@@ -40,9 +40,6 @@ for seed in seeds:
     sim.seed = seed
     world = network.World.load('stop.yml')
     sim.run(world)
-    rearEndnInter10 = 0
-    rearEndnInter20 = 0
-    rearEndnInter50 = 0
 
     for inter in world.completedInteractions:
         if inter.categoryNum == 1:

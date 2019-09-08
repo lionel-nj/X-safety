@@ -501,15 +501,14 @@ class World:
                                 ttcIndicator.values[instant] = ttc
                                 ttcIndicator.getTimeInterval().last = instant
 
-
-                                speedDiffernetialIndicator = inter.getIndicator(events.Interaction.indicatorNames[5])
-                                if speedDiffernetialIndicator is None:
+                                speedDifferentialIndicator = inter.getIndicator(events.Interaction.indicatorNames[5])
+                                if speedDifferentialIndicator is None:
                                     speedDifferentialIndicator = indicators.SeverityIndicator(events.Interaction.indicatorNames[5], {}, mostSevereIsMax=False)
                                     inter.addIndicator(speedDifferentialIndicator)
-                                v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]  # compute distance with distanceAtInstant and euclidean distance -> should be kept for rear end TTC computation
-                                v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]
+                                # v1 = inter.roadUser1.getCurvilinearVelocityAt(-1)[0]  # compute distance with distanceAtInstant and euclidean distance -> should be kept for rear end TTC computation
+                                # v2 = inter.roadUser2.getCurvilinearVelocityAt(-1)[0]
                                 if (v1, v2) != (0, 0):
-                                    speedDifferentialIndicator.values[instant] = v2-v1
+                                    speedDifferentialIndicator.values[instant] = v1-v2
                                     speedDifferentialIndicator.getTimeInterval().last = instant
 
 
@@ -555,8 +554,8 @@ class World:
             users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key = lambda u: u.getIntersectionEntryInstant())
             interactions = [inter for inter in self.completedInteractions+self.interactions if inter.categoryNum == 2]
             for i in range(1,len(users)):
-                t1 = users[i-1].getIntersectionExitInstant()
-                t2 = users[i].getIntersectionEntryInstant()
+                t1 = users[i-1].getIntersectionExitInstant() # premier
+                t2 = users[i].getIntersectionEntryInstant() # dernier
                 if t1 > t2:
                     pet = 0
                 else:

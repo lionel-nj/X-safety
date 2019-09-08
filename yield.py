@@ -45,14 +45,25 @@ for seed in seeds:
         if inter.categoryNum is not None:
             yield_distance = inter.getIndicator(events.Interaction.indicatorNames[2])
             if yield_distance is not None:
-                yield_minDistances[inter.categoryNum][seed].append(yield_distance.getMostSevereValue(1))
+                if inter.categoryNum == 1:
+                    if inter.roadUser1.getInitialAlignment().idx == 2:
+                        yield_minDistances[inter.categoryNum][seed].append(yield_distance.getMostSevereValue(1))
+                else:
+                    yield_minDistances[inter.categoryNum][seed].append(yield_distance.getMostSevereValue(1))
+
+                # yield_minDistances[inter.categoryNum][seed].append(yield_distance.getMostSevereValue(1))
             yield_ttc = inter.getIndicator(events.Interaction.indicatorNames[7])
             if yield_ttc is not None:
                 yield_minTTC = yield_ttc.getMostSevereValue(1)*yield_sim.timeStep  # seconds
                 if yield_minTTC < 0:
                     print(inter.num, inter.categoryNum, yield_ttc.values)
                 if yield_minTTC < 20:
-                    yield_minTTCs[inter.categoryNum].append(yield_minTTC)
+                    if inter.categoryNum == 1:
+                        if inter.roadUser1.getInitialAlignment().idx == 2:
+                            yield_minTTCs[inter.categoryNum].append(yield_minTTC)
+                    else:
+                        yield_minTTCs[inter.categoryNum].append(yield_minTTC)
+                    # yield_minTTCs[inter.categoryNum].append(yield_minTTC)
                 values = yield_ttc.getValues(False)
                 if len(values) > 5:
                     yield_interactions.append(inter)
@@ -71,7 +82,7 @@ yield_nInter10 = {1: np.mean(yield_rearEndnInter10), 2: np.mean(yield_sidenInter
 yield_nInter20 = {1: np.mean(yield_rearEndnInter20), 2: np.mean(yield_sidenInter20)}
 yield_nInter50 = {1: np.mean(yield_rearEndnInter50), 2: np.mean(yield_sidenInter50)}
 
-toolkit.callWhenDone()
+# toolkit.callWhenDone()
 
 yield_results = {'PETS': yield_PETs,
                 'TTCs': yield_minTTCs,
