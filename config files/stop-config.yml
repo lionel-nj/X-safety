@@ -1,0 +1,11 @@
+!!python/object:simulation.Simulation
+duration: 300
+minNCompletedUsers: 3
+timeStep: 0.1
+safetyDistance: 1.0
+verbose: False
+seed: 44
+increment: 4
+rep: 3
+dbName: stop-analysis.db
+computeInteractions: True
