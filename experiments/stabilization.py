@@ -7,7 +7,7 @@ import network
 import simulation
 import toolkit
 
-world = network.World.load('stop.yml')
+world = network.World.load('config files/stop.yml')
 # interface = iface.Interface(world)
 # interface.setInputsAsParameters()
 
@@ -26,7 +26,7 @@ sidenInter50 = {}
 durations = {}
 PETs = {}
 
-sim = simulation.Simulation.load('config.yml')
+sim = simulation.Simulation.load('config files/config.yml')
 seeds = [sim.seed+i*sim.increment for i in range(sim.rep)]
 
 for seed in seeds:
@@ -39,7 +39,7 @@ for seed in seeds:
     print('{}'.format(seeds.index(seed)+1) + '/' + str(len(seeds)))
 
     sim.seed = seed
-    world = network.World.load('stop.yml')
+    world = network.World.load('config files/stop.yml')
     sim.run(world)
 
     for inter in world.completedInteractions:
@@ -109,7 +109,7 @@ toolkit.saveYaml(data=[sidenInter10, sidenInter20, sidenInter50, rearEndnInter10
 
 # toolkit.callWhenDone()
 
-results = toolkit.loadYaml('stabilization-results.yml')
+results = toolkit.loadYaml('results/stabilization-results.yml')
 indicatorValues = results[2]
 indicatorValues = list(indicatorValues.values())
 meanValues = [np.mean(l) for l in indicatorValues]
@@ -121,7 +121,6 @@ plt.xlabel('Nombre de réplications ')
 plt.savefig('stabilization-side-nInter50.pdf')
 plt.close()
 
-results = toolkit.loadYaml('stabilization-results.yml')
 indicatorValues = results[5]
 indicatorValues = list(indicatorValues.values())
 meanValues = [np.mean(l) for l in indicatorValues]
@@ -133,7 +132,6 @@ plt.xlabel('Nombre de réplications ')
 plt.savefig('stabilization-rearEnd-nInter50.pdf')
 plt.close()
 
-results = toolkit.loadYaml('stabilization-results.yml')
 indicatorValues = results[-3]
 indicatorValues = list(indicatorValues.values())
 meanValues = [np.mean(l) for l in indicatorValues]
@@ -145,7 +143,6 @@ plt.xlabel('Nombre de réplications ')
 plt.savefig('stabilization-side-TTCS.pdf')
 plt.close()
 
-results = toolkit.loadYaml('stabilization-results.yml')
 indicatorValues = results[-2]
 indicatorValues = list(indicatorValues.values())
 meanValues = [np.mean(l) for l in indicatorValues]
@@ -155,9 +152,8 @@ plt.ylim(bottom=5)
 plt.ylabel("$\overline{TTC_{min}^{arrière}}$ (s)")
 plt.xlabel('Nombre de réplications ')
 plt.savefig('stabilization-rearEnd-TTCS.pdf')
-
 plt.close()
-results = toolkit.loadYaml('stabilization-results.yml')
+
 indicatorValues = results[-1]
 indicatorValues = list(indicatorValues.values())
 meanValues = [np.mean(l) for l in indicatorValues]

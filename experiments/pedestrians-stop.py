@@ -7,8 +7,7 @@ import simulation
 import toolkit
 
 pedestrians_world = network.World.load('config files/pedestrians-stop.yml')
-pedestrians_sim = simulation.Simulation.load('config files/pedestrians-config.yml')
-pedestrians_sim.dbName = 'pedestrians-stop-data.db'
+pedestrians_sim = simulation.Simulation.load('config files/pedestrians-stop-config.yml')
 # pedestrians_analysis = an.Analysis(idx=0, world=pedestrians_world, seed=pedestrians_sim.seed)
 # pedestrians_analysis.interactions = []
 
