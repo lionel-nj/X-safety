@@ -551,7 +551,7 @@ class World:
 
     def computePET(self, sim):
         if sim.computeInteractions:
-            users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key = lambda u: u.getIntersectionEntryInstant())
+            users = sorted([u for u in self.completed+self.users if u.getIntersectionExitInstant() is not None], key=lambda u: u.getIntersectionEntryInstant())
             interactions = [inter for inter in self.completedInteractions+self.interactions if inter.categoryNum == 2]
             for i in range(1,len(users)):
                 t1 = users[i-1].getIntersectionExitInstant() # premier

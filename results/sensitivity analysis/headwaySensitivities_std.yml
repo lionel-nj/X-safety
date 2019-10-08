@@ -1,0 +1,94 @@
+PETs:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - 0
+    - 1
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    SCpJZWeK7z8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    CVVEPnqU8D8=
+rearTTCmin:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    U9UtpkrD/T8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ignf5YdM6j8=
+rearnInter10:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    qApBSyAXtj8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    bAaG9t4asD8=
+rearnInter20:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Ic8kBfgRtz8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    vgwIkTKArj8=
+rearnInter50:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    WVsswfXWtT8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    9l6jP0syrz8=
+sideTTCmin:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    zdEbxFDP7z8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    gjCE0+C47z8=
+sidenInter10:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    iqsI6mZHvD8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6RrrIzA7qz8=
+sidenInter20:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    fFQwQfd0wD8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    vTPF7/HDoz8=
+sidenInter50:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    QOmHQwiMwT8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    Cr2rh4H2oT8=

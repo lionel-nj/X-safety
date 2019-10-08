@@ -183,7 +183,7 @@ def plotVariations(indicatorValues, fileName, figName, ylabel):
     runningMeanValues = [np.mean(meanValues[:k+1]) for k in range(len(meanValues))]
     plt.plot(range(1, len(indicatorValues)+1), runningMeanValues)
     plt.ylim(bottom=0)
-    plt.xlabel('Number of replications ')
+    plt.xlabel('Nombre de réplications ')
     plt.ylabel(ylabel)
     plt.title(figName)
     plt.savefig(fileName)

@@ -189,7 +189,6 @@ class NewellMovingObject(moving.MovingObject):
 
     def updateCurvilinearPositions(self, instant, world, maxSpeed=None, acceleration=None):
         '''Update curvilinear position of user at new instant'''
-        # TODO reflechir pour des control devices
         if self.curvilinearPositions is None:  # vehicle without positions
             if self.instantAtS0 is None:
                 if self.leader is None:

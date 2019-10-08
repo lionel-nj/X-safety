@@ -1,0 +1,121 @@
+PETs:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - &id001 !!python/object/apply:numpy.dtype
+    args:
+    - f8
+    - 0
+    - 1
+    state: !!python/tuple
+    - 3
+    - <
+    - null
+    - null
+    - null
+    - -1
+    - -1
+    - 0
+  - !!binary |
+    /ECNKesBQkA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    uSIiiZkJPcA=
+completedUsers2:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    MaG9hPZSPsA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    s5fQXkKrR0A=
+percentageTimeCongestion2Mean:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6aP4yHH1DMA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    6bFcK9/eEEA=
+rearTTCmin:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    wwpPTZk4I8A=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    3jVAnoxsPkA=
+rearnInter10:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    G/vDYOHIPcA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    WGmKXxIhRkA=
+rearnInter20:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    0/Pn1k4VPsA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    qjtcSZeXRkA=
+rearnInter50:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    C7pnKFpFPsA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    gWPWaVFSR0A=
+sideTTCmin:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    T/7GW3p79T8=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    SUJyemFGMcA=
+sidenInter10:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    XfgHbU5uEkA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    ltNRTkc5LcA=
+sidenInter20:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    pukuhSpuDUA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    H7sWhHEbMMA=
+sidenInter50:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    icy0awtvGEA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    XhfrpmrxIsA=
+speedV1Lane2mean:
+  '+40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    TyICgL23JMA=
+  '-40': !!python/object/apply:numpy.core.multiarray.scalar
+  - *id001
+  - !!binary |
+    HMXqfNXgOEA=
