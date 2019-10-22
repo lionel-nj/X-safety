@@ -40,7 +40,7 @@ We also provide a tutorial detailing the use of X-safety for simple use cases.
 
 # X-Safety
 
-``X-safety'' is a Python package that allows to represent road users moving in one dimension. It relies on a relatively simple car-following model developed by Newell (see -@newell2002simplified; @laval2008microscopic). Interactions at intersection are the result of a simple behavior model at traffic control devices based on gap acceptance theory for yield and stop signs. 
+``X-safety`` is a Python package that allows to represent road users moving in one dimension. It relies on a relatively simple car-following model developed by Newell (see -@newell2002simplified; @laval2008microscopic). Interactions at intersection are the result of a simple behavior model at traffic control devices based on gap acceptance theory for yield and stop signs. 
 The program has been developed following the methodology adapted from the work of Gauthier (see @gauthier2016calibration). It is to be noted that the positions and indicators of each users are updated at a regular step time that is defined by the user of X-Safety. 
 In its first version, turning movements and lane changes are not allowed. 
 
@@ -56,7 +56,7 @@ The program makes several approximations which therefore limit its application:
 - Users are assumed to have an infinite acceleration capacity, which brings discontinuities into their trajectories and indicators. 
 - Users are assumed to have no lateral movement. This reduces the range of possible positions that can be reached from an origin, and therefore trajectories and safety indicators might lack of representativity with real life behavior of road users in a traffic conflict event. 
 
-``X-safety'' had been used previously to lead several case studies that are presented in ``An Open-Source Minimal Micro-Simulation Tool for Safety Analysis'' (Lionel Nébot Janvier and Nicolas Saunier, 2019). 
+``X-safety`` had been used previously to lead several case studies that are presented in ``An Open-Source Minimal Micro-Simulation Tool for Safety Analysis`` (Lionel Nébot Janvier and Nicolas Saunier, 2019). 
 
 # Acknowledgements
 
