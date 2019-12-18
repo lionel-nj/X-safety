@@ -1,5 +1,5 @@
 ---
-title: X-Safety: An Open-Source Minimal Micro-Simulation Tool for Safety Analysis
+title: 'X-Safety: An Open-Source Minimal Micro-Simulation Tool for Safety Analysis'
 tags:
   - Python
   - road safety
@@ -7,7 +7,7 @@ tags:
   - road users
   - user interactions
   - traffic conflicts
-  - crossing
+  - intersections
   - traffic simulation
   - safety simulation
   - surrogate measures of safety 
@@ -21,7 +21,7 @@ authors:
     affiliation: 1
 	
 affiliations:
- - name: École Polytechnique de Montréal. Civil, Geological and Mining Engineering Department
+ - name: Polytechnique Montréal. Civil, Geological and Mining Engineering Department
    index: 1
 date: 16 October 2019
 bibliography: paper.bib
