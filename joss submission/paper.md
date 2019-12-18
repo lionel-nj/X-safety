@@ -30,7 +30,7 @@ bibliography: paper.bib
 
 Road crashes remain a global public health issue. Road safety analysis most commonly relies on historical crash records and to make any change cities have to collect up to five years of crash data [@global-synergies]. Such an approach is reactive to the extent that one must wait for long periods of time to collect sufficient data coming from crash reports to identify unsafe sites and implement solutions. This constitutes therefore an ethical issue as one needs to wait for accidents to occur to be able to prevent them. 
 
-To circumvent this limitation surrogate measures of safety (SMoS) have been studied and developed over the last decades [@laureshyn16appendix]. SMoS rely on indicators obtained from direct traffic observation. Safety indicators like the time-to-collision (TTC) and post-encroachment time (PET) are used to measure the severity of road user interaction, that is their proximity to a potential crash. SMoS enable the proactive analysis of road safety more quickly before accidents happen. However, only some SMoS, most prominently from traffic conflict techniques (TCT), have validated [@laureshyn16appendix]. Based on conflict observations using the Swedish TCT, Svensson studied the distribution of conflict safety indicators at different sites [@svensson1998method;@svensson06estimating]. This paper presents ``X-Safety``, a minimal microscopic traffic simulation tool for road safety analysis, with the main goal to investigate the distributions of interaction severity indicators. The tool currently focuses on road intersections, but is meant to be easy to configure and to be able to represent any road network. A tutorial is provided for users to get started with ``X-Safety`` for simple use cases. 
+To circumvent this limitation surrogate measures of safety (SMoS) have been studied and developed over the last decades [@laureshyn16appendix]. SMoS rely on indicators obtained from direct traffic observation. Safety indicators like the time-to-collision (TTC) and post-encroachment time (PET) are used to measure the severity of road user interaction, that is their proximity to a potential crash. SMoS enable the proactive analysis of road safety more quickly before accidents happen. However, only some SMoS, most prominently from traffic conflict techniques (TCT), have validated [@laureshyn16appendix]. Based on conflict observations using the Swedish TCT, Svensson studied the distribution of conflict safety indicators at different sites [@svensson1998method; @svensson06estimating]. This paper presents ``X-Safety``, a minimal microscopic traffic simulation tool for road safety analysis, with the main goal to investigate the distributions of interaction severity indicators. The tool currently focuses on road intersections, but is meant to be easy to configure and to be able to represent any road network. A tutorial is provided for users to get started with ``X-Safety`` for simple use cases. 
 
 
 # X-Safety
@@ -49,7 +49,7 @@ To remain minimal, simple models were chosen to represent the world and user beh
 - Road users change speed instantaneously, i.e. have infinite acceleration, which may bring discontinuities into their trajectories and indicators; 
 - Road user lateral movement is not described and no lane change model is available in the current version. 
 
-``X-safety`` had been used previously in several case studies that are presented in ``An Open-Source Minimal Micro-Simulation Tool for Safety Analysis`` [@nebot-janvier20minimal]. The results show that the distributions of interaction safety indicators are significantly different for different traffic control devices, namely yield and stop signs, and when user interactions are recorded in areas  of different sizes. 
+``X-safety`` has been used previously in several case studies that are presented in ``An Open-Source Minimal Micro-Simulation Tool for Safety Analysis`` [@nebot-janvier20minimal]. The results show that the distributions of interaction safety indicators are significantly different for different traffic control devices, namely yield and stop signs, and when user interactions are recorded in areas  of different sizes. 
 
 # How to ?
 
@@ -70,12 +70,12 @@ Fist of all, each scenario has to be run separetely by running these files: stop
 
 ### Realize case study 2 (CS-2)
 
-CS-2's aim is to evaluate in which extent the size of observation area has a role in the distribution of safety indicators. Three different areas have been considered. For each size the user of X-safety has to run zoneinfluence.py, replacing the list surfaces by the list of the unique surface that is under study.
+CS-2's aim is to evaluate in which extent the size of observation area has a role in the distribution of safety indicators. Three different areas have been considered. For each size the user of ``X-safety`` has to run zoneinfluence.py, replacing the list surfaces by the list of the unique surface that is under study.
 For each surface size, the algorithm produces result files for each indicator, but also a general file that gathers all the information that have been parsed in the different files previously generated. This file is used in zone-analysis-results.py where information are gathered. This file included scripts to generate graphic and tabular representation of the results.
 
 ### Realize case study 3 (CS-3)
 
-In CS3, the influence of attrubution of priority to different traffic flow at a road crossing is studied. To do so, the user of X-safety must run pedestrians.py and pedestrians-stop.py. These scripts produce result files related to each experimental case. These files are then loaded into pedestrians-results.py that provide a set of script to descrbe the results. 
+In CS3, the influence of attrubution of priority to different traffic flow at a road crossing is studied. To do so, the user of ``X-safety`` must run pedestrians.py and pedestrians-stop.py. These scripts produce result files related to each experimental case. These files are then loaded into pedestrians-results.py that provide a set of script to descrbe the results. 
 
 
 # Acknowledgements
