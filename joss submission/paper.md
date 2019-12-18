@@ -18,8 +18,7 @@ authors:
     affiliation: 1
   - name: Nicolas Saunier
     orcid: 0000-0003-0218-7932
-    affiliation: 1
-	
+    affiliation: 1	
 affiliations:
  - name: Polytechnique Montréal. Civil, Geological and Mining Engineering Department
    index: 1
