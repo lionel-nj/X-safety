@@ -1,6 +1,4 @@
-
-# EN : Minimal Simulation tool of road users' interactions
-
+# EN : Minimal Simulation tool for road user interactions and safety
 
 This project is the development of a simulation tool in order to proceed to road safety analysis as part of Lionel Nébot Janvier's master's project at Polytechnique Montréal under the supervision of [Professor Nicolas Saunier](http://nicolas.saunier.confins.net). 
 
