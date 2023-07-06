@@ -6,7 +6,7 @@ seaborn==0.9.0
 trafficintelligence==0.2.3
 twilio==6.26.3
 Shapely==1.6.4.post2
-scipy==1.1.0
+scipy==1.10.0
 numpy==1.22.0
 SALib==1.3.7
 PyYAML==5.4
